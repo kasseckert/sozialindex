@@ -122,10 +122,16 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with: { name: website, path: web }
+      # Eindeutiger Name je Versuch, damit "Re-run jobs" nicht an einem
+      # doppelten Artefakt "github-pages" scheitert.
       - uses: actions/upload-pages-artifact@v3
-        with: { path: web }
+        with:
+          path: web
+          name: github-pages-${{ github.run_attempt }}
       - id: deploy
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
 
   ssh:
     needs: daten
