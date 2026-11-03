@@ -30,6 +30,7 @@ on:
       - "daten/import/**"
       - "web/**"
       - "etl/**"
+      - ".github/workflows/**"
 
 permissions:
   contents: write
@@ -44,6 +45,8 @@ jobs:
   daten:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      abruf: ${{ steps.abruf.outcome }}
     steps:
       - uses: actions/checkout@v4
 
@@ -56,6 +59,8 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Daten abrufen
+        id: abruf
+        continue-on-error: true
         env:
           GENESIS_BAYERN_USER: ${{ secrets.GENESIS_BAYERN_USER }}
           GENESIS_BAYERN_PASSWORD: ${{ secrets.GENESIS_BAYERN_PASSWORD }}
@@ -69,12 +74,17 @@ jobs:
           fi
 
       - name: Index berechnen
+        if: steps.abruf.outcome == 'success'
         run: python etl/index_berechnen.py | tee -a abruf.log
 
       - name: Zusammenfassung
         if: always()
         run: |
           {
+            if [ "${{ steps.abruf.outcome }}" != "success" ]; then
+              echo "> **Datenabruf fehlgeschlagen.** Veröffentlicht wird die bisherige Fassung der Karte. Die Ursache steht im Protokoll unten."
+              echo
+            fi
             echo "## Datenabruf"
             echo '```'
             cat abruf.log 2>/dev/null || echo "kein Protokoll"
@@ -82,6 +92,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Geänderte Daten speichern
+        if: steps.abruf.outcome == 'success'
         run: |
           git config user.name "sozialindex-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -98,6 +109,7 @@ jobs:
         with:
           name: website
           path: web/
+          include-hidden-files: true
           retention-days: 7
 
   pages:
@@ -150,3 +162,15 @@ jobs:
         run: |
           sudo apt-get -qq update && sudo apt-get -qq install -y lftp
           lftp -u "$FTP_USER","$FTP_PASSWORT" -e "set ftp:ssl-force true; set ssl:verify-certificate yes; mirror -R --delete --verbose web/ $FTP_ZIELPFAD; quit" "$FTP_HOST"
+
+  # Meldet einen fehlgeschlagenen Datenabruf als Fehler (mit E-Mail von GitHub),
+  # nachdem die bisherige Fassung der Karte trotzdem veröffentlicht wurde.
+  melden:
+    needs: [daten, pages, ssh, ftp]
+    if: always() && needs.daten.outputs.abruf == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Datenabruf fehlgeschlagen
+        run: |
+          echo "::error::Der Datenabruf ist fehlgeschlagen. Die bisherige Karte wurde veröffentlicht. Details im Schritt 'Daten abrufen' des Jobs 'daten'."
+          exit 1
