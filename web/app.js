@@ -10,7 +10,10 @@
     auswahl: null,            // ags des geöffneten Gebiets
     reiter: "profil",
   };
-  const Karte = { map: null, flaechen: null, grenzen: null, layerNachAgs: new Map(), popup: null, diagramm: null };
+  const Karte = { map: null, flaechen: null, grenzen: null, layerNachAgs: new Map(), popup: null, diagramm: null,
+    hoverRand: null, hoverAgs: null, hoverLayer: null, auswahlRand: null };
+  // Geräte ohne Maus (Tablet, Handy): keine Hover-Effekte, ein Tippen öffnet das Popup.
+  const mitMaus = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
   const reduziert = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const STUFEN = [85, 92, 97, 103, 108, 115];   // Klassengrenzen auf der 100er-Skala
@@ -176,6 +179,13 @@
       zoomSnap: 0.25, zoomDelta: 0.5, attributionControl: true,
       zoomAnimation: !reduziert, fadeAnimation: !reduziert, markerZoomAnimation: !reduziert,
     });
+    // Eigene Ebenen für Umrisse über den Flächen; sie fangen keine Mausereignisse ab.
+    for (const [name, z] of [["grenzen", 410], ["auswahl", 420], ["hover", 430]]) {
+      Karte.map.createPane(name);
+      Karte.map.getPane(name).style.zIndex = z;
+      Karte.map.getPane(name).style.pointerEvents = "none";
+    }
+    Karte.map.on("mouseout", hoverAus);
     Karte.map.attributionControl.setPrefix(false);
     Karte.map.attributionControl.addAttribution("Grenzen © GeoBasis-DE / BKG (dl-de/by-2-0)");
     const grenzen = L.geoJSON(Z.kreise).getBounds();
@@ -191,6 +201,7 @@
   }
 
   function flaechenZeichnen() {
+    hoverAus();
     if (Karte.flaechen) Karte.flaechen.remove();
     if (Karte.grenzen) Karte.grenzen.remove();
     Karte.layerNachAgs.clear();
@@ -202,22 +213,25 @@
         const p = f.properties;
         Karte.layerNachAgs.set(p.ags, layer);
         const freiesGebiet = p.bez === "Gemeindefreies Gebiet";
-        layer.bindTooltip(() => freiesGebiet
+        if (mitMaus) layer.bindTooltip(() => freiesGebiet
           ? `<span>${esc(p.name)}</span><br><span>Gemeindefreies Gebiet, keine Daten</span>`
           : `<strong>${esc(anzeigeName(p, Z.ebene))}</strong><br>${esc(merkmalName())}: <b>${esc(anzeigeWert(p.ags))}</b>`,
         { sticky: true, className: "kurzinfo", direction: "top", offset: [0, -8] });
-        if (freiesGebiet) return;
+        if (freiesGebiet) {
+          layer.on("mouseover", () => { hoverAus(); Karte.hoverLayer = layer; });
+          return;
+        }
         layer.on({
-          mouseover: () => { if (Z.auswahl !== p.ags) layer.setStyle({ weight: 2.5, color: css("--tinte") }); layer.bringToFront(); if (Karte.grenzen) Karte.grenzen.bringToFront(); },
-          mouseout: () => stilFuer(layer, p),
-          click: () => gebietOeffnen(p.ags, false),
+          mouseover: () => hoverAn(layer),
+          mouseout: () => { if (Karte.hoverAgs === p.ags) hoverAus(); },
+          click: () => { hoverAus(); gebietOeffnen(p.ags, false); },
         });
       },
     }).addTo(Karte.map);
 
     if (Z.ebene === "gemeinde") {
       Karte.grenzen = L.geoJSON(Z.kreise, {
-        interactive: false,
+        interactive: false, pane: "grenzen",
         style: { fill: false, color: css("--kreisgrenze"), weight: 1.6, opacity: 0.85 },
       }).addTo(Karte.map);
     } else {
@@ -227,21 +241,42 @@
   }
 
   function stilFuer(layer, p) {
-    const ausgewaehlt = Z.auswahl === p.ags;
     layer.setStyle({
       fillColor: p.bez === "Gemeindefreies Gebiet" ? css("--ohne-daten") : farbe(skalenwert(p.ags)),
       fillOpacity: 1,
-      color: ausgewaehlt ? css("--tinte") : css("--kontur"),
-      weight: ausgewaehlt ? 3 : (Z.ebene === "kreis" ? 1.4 : 0.6),
+      color: css("--kontur"),
+      weight: Z.ebene === "kreis" ? 1.4 : 0.6,
     });
-    if (ausgewaehlt) layer.bringToFront();
+  }
+  /** Umriss als eigene, nicht anklickbare Ebene; die Flächen werden nie umsortiert. */
+  function umriss(feature, pane, gewicht) {
+    return L.geoJSON(feature, {
+      pane, interactive: false,
+      style: { fill: false, color: css("--tinte"), weight: gewicht, opacity: 1 },
+    }).addTo(Karte.map);
+  }
+  function hoverAn(layer) {
+    if (!mitMaus) return;
+    const ags = layer.feature.properties.ags;
+    if (Karte.hoverAgs === ags) return;
+    hoverAus();   // Vorgänger immer ausdrücklich zurücksetzen
+    Karte.hoverAgs = ags;
+    Karte.hoverLayer = layer;
+    if (ags !== Z.auswahl) Karte.hoverRand = umriss(layer.feature, "hover", 2.5);
+  }
+  function hoverAus() {
+    if (Karte.hoverRand) Karte.hoverRand.remove();
+    if (Karte.hoverLayer) Karte.hoverLayer.closeTooltip();
+    Karte.hoverRand = null;
+    Karte.hoverAgs = null;
+    Karte.hoverLayer = null;
   }
   function stileSetzen() {
     Karte.flaechen.eachLayer((l) => stilFuer(l, l.feature.properties));
-    if (Karte.grenzen) {
-      Karte.grenzen.setStyle({ color: css("--kreisgrenze") });
-      Karte.grenzen.bringToFront();
-    }
+    if (Karte.grenzen) Karte.grenzen.setStyle({ color: css("--kreisgrenze") });
+    if (Karte.auswahlRand) { Karte.auswahlRand.remove(); Karte.auswahlRand = null; }
+    const sel = Z.auswahl && Karte.layerNachAgs.get(Z.auswahl);
+    if (sel) Karte.auswahlRand = umriss(sel.feature, "auswahl", 3);
   }
 
   // ------------------------------------------------------------ Legende & Rangliste
