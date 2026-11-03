@@ -1,0 +1,4 @@
+requests>=2.31
+# nur für etl/geodaten_erzeugen.py:
+shapely>=2.0
+pyproj>=3.6

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <title>Datenassistent – Sozialindex Oberfranken</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%236A2C5E'/><circle cx='14' cy='14' r='7' fill='none' stroke='%23fff' stroke-width='3'/><path d='M19 19l7 7' stroke='%23fff' stroke-width='3'/></svg>">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="assistent.css">
+</head>
+<body class="assistent">
+  <header class="a-kopf">
+    <div>
+      <h1>Datenassistent</h1>
+      <p>Indikatoren aus dem Regionalatlas der Statistischen Ämter auswählen, prüfen und speichern. Beim Speichern in GitHub startet die Aktualisierung der Karte automatisch.</p>
+    </div>
+    <nav class="a-aktionen" aria-label="Speichern">
+      <button type="button" id="btn-github" class="primaer">In GitHub speichern</button>
+      <button type="button" id="btn-start">Aktualisierung starten</button>
+      <button type="button" id="btn-download">Konfiguration herunterladen</button>
+      <a href="index.html">Zur Karte</a>
+    </nav>
+  </header>
+
+  <p id="meldung" class="a-meldung" role="status" hidden></p>
+
+  <main class="a-raster">
+    <section class="a-spalte" aria-labelledby="h-konfig">
+      <div class="a-spaltenkopf">
+        <h2 id="h-konfig">Indikatoren im Index</h2>
+        <span id="konfig-zaehler" class="a-leise"></span>
+      </div>
+      <ol id="liste" class="a-liste"></ol>
+      <details class="a-json">
+        <summary>Konfiguration als JSON bearbeiten</summary>
+        <p class="a-leise">Für Einstellungen, die der Assistent nicht abbildet, etwa GENESIS-Quellen oder Dimensionen.</p>
+        <textarea id="json" spellcheck="false" rows="18"></textarea>
+        <button type="button" id="btn-json">JSON übernehmen</button>
+      </details>
+    </section>
+
+    <section class="a-spalte" aria-labelledby="h-katalog">
+      <div class="a-spaltenkopf">
+        <h2 id="h-katalog">Regionalatlas durchsuchen</h2>
+        <span id="katalog-stand" class="a-leise"></span>
+      </div>
+      <div class="a-suche">
+        <input type="search" id="suche" placeholder="z. B. Arbeitslos, Einkommen, Betreuung" autocomplete="off">
+        <label class="a-schalter"><input type="checkbox" id="nur-gemeinde"> nur mit Gemeindedaten</label>
+      </div>
+      <p id="ziel-hinweis" class="a-ziel" hidden></p>
+      <ol id="treffer" class="a-treffer"></ol>
+    </section>
+  </main>
+
+  <dialog id="dlg-github" aria-labelledby="dlg-github-titel">
+    <form method="dialog" class="a-dialog">
+      <h2 id="dlg-github-titel">In GitHub speichern</h2>
+      <p class="a-leise">Die Datei <code>konfiguration/indikatoren.json</code> wird im Repository aktualisiert. Danach berechnet GitHub Actions den Index neu und veröffentlicht die Karte.</p>
+      <label class="feld"><span class="feld-titel">Repository (Besitzer/Name)</span><input id="gh-repo" placeholder="landratsamt/sozialindex" required></label>
+      <label class="feld"><span class="feld-titel">Branch</span><input id="gh-branch" value="main" required></label>
+      <label class="feld"><span class="feld-titel">Zugangstoken</span><input id="gh-token" type="password" autocomplete="off" placeholder="github_pat_…" required></label>
+      <p class="a-leise">Ein feingranulares Token mit Zugriff nur auf dieses Repository und den Rechten „Contents: Read and write“ sowie „Actions: Read and write“. Es wird nicht gespeichert und verlässt Ihren Browser nur in Richtung api.github.com.</p>
+      <label class="feld"><span class="feld-titel">Änderungsnotiz</span><input id="gh-notiz" value="Indikatoren über den Datenassistenten angepasst"></label>
+      <div class="a-dialog-knoepfe">
+        <button value="abbrechen" formnovalidate>Abbrechen</button>
+        <button value="ok" class="primaer">Speichern</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-vorschau" aria-labelledby="dlg-vorschau-titel">
+    <div class="a-dialog">
+      <h2 id="dlg-vorschau-titel">Vorschau</h2>
+      <div id="vorschau-inhalt"></div>
+      <div class="a-dialog-knoepfe"><button type="button" id="btn-vorschau-zu">Schließen</button></div>
+    </div>
+  </dialog>
+
+  <script src="assistent.js"></script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+{
+ "kreis": {
+  "alq": {
+   "herkunft": "demo",
+   "quelle": "Demodaten (fiktiv)"
+  },
+  "sgb2": {
+   "herkunft": "demo",
+   "quelle": "Demodaten (fiktiv)"
+  },
+  "eink": {
+   "herkunft": "demo",
+   "quelle": "Demodaten (fiktiv)"
+  },
+  "alt65": {
+   "herkunft": "demo",
+   "quelle": "Demodaten (fiktiv)"
+  },
+  "bev5": {
+   "herkunft": "demo",
+   "quelle": "Demodaten (fiktiv)"
+  },
+  "wand": {
+   "herkunft": "demo",
+   "quelle": "Demodaten (fiktiv)"
+  },
+  "u3": {
+   "herkunft": "demo",
+   "quelle": "Demodaten (fiktiv)"
+  },
+  "ohneabschl": {
+   "herkunft": "demo",
+   "quelle": "Demodaten (fiktiv)"
+  },
+  "wfl": {
+   "herkunft": "demo",
+   "quelle": "Demodaten (fiktiv)"
+  },
+  "arzt": {
+   "herkunft": "demo",
+   "quelle": "Demodaten (fiktiv)"
+  }
+ },
+ "gemeinde": {
+  "alq": {
+   "herkunft": "demo",
+   "quelle": "Demodaten (fiktiv)"
+  },
+  "sgb2": {
+   "herkunft": "demo",
+   "quelle": "Demodaten (fiktiv)"
+  },
+  "eink": {
+   "herkunft": "demo",
+   "quelle": "Demodaten (fiktiv)"
+  },
+  "alt65": {
+   "herkunft": "demo",
+   "quelle": "Demodaten (fiktiv)"
+  },
+  "bev5": {
+   "herkunft": "demo",
+   "quelle": "Demodaten (fiktiv)"
+  },
+  "wand": {
+   "herkunft": "demo",
+   "quelle": "Demodaten (fiktiv)"
+  },
+  "u3": {
+   "herkunft": "demo",
+   "quelle": "Demodaten (fiktiv)"
+  },
+  "wfl": {
+   "herkunft": "demo",
+   "quelle": "Demodaten (fiktiv)"
+  }
+ }
+}

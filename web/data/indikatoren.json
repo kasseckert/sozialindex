@@ -1,0 +1,105 @@
+{
+  "hinweis": "Bearbeitbar im Datenassistenten (web/assistent.html) oder direkt hier. Quellen werden der Reihe nach versucht; die erste mit Daten gewinnt.",
+  "jahre": [2015, 2024],
+  "gewichte": {"arbeit": 1, "demografie": 1, "bildung": 1, "versorgung": 1},
+  "dimensionen": [
+    {"id": "arbeit", "name": "Arbeit und Einkommen"},
+    {"id": "demografie", "name": "Demografie"},
+    {"id": "bildung", "name": "Bildung und Familie"},
+    {"id": "versorgung", "name": "Wohnen und Versorgung"}
+  ],
+  "indikatoren": [
+    {
+      "id": "alq", "name": "Arbeitslosenquote", "einheit": "%", "nachkommastellen": 1,
+      "beschreibung": "Arbeitslose in Prozent aller zivilen Erwerbspersonen",
+      "dimension": "arbeit", "polaritaet": -1, "ebenen": ["kreis", "gemeinde"],
+      "quellen": [
+        {"typ": "regionalatlas", "suche": ["Arbeitslosenquote"], "feld_suche": ["insgesamt", "alle"]},
+        {"typ": "csv", "datei": "alq.csv"}
+      ]
+    },
+    {
+      "id": "sgb2", "name": "SGB-II-Quote", "einheit": "%", "nachkommastellen": 1,
+      "beschreibung": "Anteil der Leistungsberechtigten nach SGB II an der Bevölkerung unter 65 Jahren",
+      "dimension": "arbeit", "polaritaet": -1, "ebenen": ["kreis", "gemeinde"],
+      "quellen": [
+        {"typ": "regionalatlas", "suche": ["SGB II", "Grundsicherung für Arbeitsuchende"], "feld_suche": ["quote", "anteil"]},
+        {"typ": "csv", "datei": "sgb2.csv"}
+      ]
+    },
+    {
+      "id": "eink", "name": "Verfügbares Einkommen je Einwohner", "einheit": "€", "nachkommastellen": 0,
+      "beschreibung": "Verfügbares Einkommen der privaten Haushalte je Einwohner",
+      "dimension": "arbeit", "polaritaet": 1, "ebenen": ["kreis", "gemeinde"],
+      "quellen": [
+        {"typ": "regionalatlas", "code": "AI-S-01", "feld": "ai1601"},
+        {"typ": "regionalatlas", "suche": ["Einkommensteuer"], "feld_suche": ["je Einwohner"]},
+        {"typ": "csv", "datei": "einkommen.csv"}
+      ]
+    },
+    {
+      "id": "alt65", "name": "Anteil 65 Jahre und älter", "einheit": "%", "nachkommastellen": 1,
+      "beschreibung": "Anteil der Einwohner ab 65 Jahren an der Gesamtbevölkerung",
+      "dimension": "demografie", "polaritaet": -1, "ebenen": ["kreis", "gemeinde"],
+      "quellen": [
+        {"typ": "regionalatlas", "suche": ["Altersgruppen", "Altersstruktur"], "feld_suche": ["65"]},
+        {"typ": "csv", "datei": "alt65.csv"}
+      ]
+    },
+    {
+      "id": "bev5", "name": "Bevölkerungsentwicklung (5 Jahre)", "einheit": "%", "nachkommastellen": 1,
+      "beschreibung": "Veränderung der Einwohnerzahl gegenüber dem Stand fünf Jahre zuvor",
+      "dimension": "demografie", "polaritaet": 1, "ebenen": ["kreis", "gemeinde"],
+      "quellen": [
+        {"typ": "regionalatlas", "code": "AI002-1-5", "feld_suche": ["Bevölkerung", "insgesamt"],
+         "berechnung": "veraenderung", "jahre": 5},
+        {"typ": "csv", "datei": "bev5.csv"}
+      ]
+    },
+    {
+      "id": "wand", "name": "Wanderungssaldo je 1.000 Einwohner", "einheit": "je 1.000 EW", "nachkommastellen": 1,
+      "beschreibung": "Zuzüge minus Fortzüge je 1.000 Einwohner",
+      "dimension": "demografie", "polaritaet": 1, "ebenen": ["kreis", "gemeinde"],
+      "quellen": [
+        {"typ": "regionalatlas", "suche": ["Wanderung"], "feld_suche": ["saldo"]},
+        {"typ": "csv", "datei": "wand.csv"}
+      ]
+    },
+    {
+      "id": "u3", "name": "Betreuungsquote unter 3 Jahren", "einheit": "%", "nachkommastellen": 1,
+      "beschreibung": "Anteil der Kinder unter 3 Jahren in Kindertagesbetreuung",
+      "dimension": "bildung", "polaritaet": 1, "ebenen": ["kreis", "gemeinde"],
+      "quellen": [
+        {"typ": "regionalatlas", "code": "AI003-3", "feld": "ai0306"},
+        {"typ": "csv", "datei": "u3.csv"}
+      ]
+    },
+    {
+      "id": "ohneabschl", "name": "Schulabgänger ohne Abschluss", "einheit": "%", "nachkommastellen": 1,
+      "beschreibung": "Anteil der Abgänger allgemeinbildender Schulen ohne Hauptschulabschluss",
+      "dimension": "bildung", "polaritaet": -1, "ebenen": ["kreis"],
+      "quellen": [
+        {"typ": "regionalatlas", "suche": ["Schulabgänger", "Absolventen"], "feld_suche": ["ohne"]},
+        {"typ": "csv", "datei": "ohneabschl.csv"}
+      ]
+    },
+    {
+      "id": "wfl", "name": "Wohnfläche je Einwohner", "einheit": "m²", "nachkommastellen": 1,
+      "beschreibung": "Wohnfläche in Wohngebäuden je Einwohner",
+      "dimension": "versorgung", "polaritaet": 1, "ebenen": ["kreis", "gemeinde"],
+      "quellen": [
+        {"typ": "regionalatlas", "suche": ["Wohnfläche"], "feld_suche": ["je Einwohner"]},
+        {"typ": "csv", "datei": "wfl.csv"}
+      ]
+    },
+    {
+      "id": "arzt", "name": "Hausärzte je 10.000 Einwohner", "einheit": "je 10.000 EW", "nachkommastellen": 1,
+      "beschreibung": "Hausärztinnen und Hausärzte je 10.000 Einwohner",
+      "dimension": "versorgung", "polaritaet": 1, "ebenen": ["kreis"],
+      "quellen": [
+        {"typ": "regionalatlas", "suche": ["Ärzte"], "feld_suche": ["haus"]},
+        {"typ": "csv", "datei": "hausaerzte.csv"}
+      ]
+    }
+  ]
+}

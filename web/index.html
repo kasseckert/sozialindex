@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Sozialindex Oberfranken</title>
+  <meta name="description" content="Interaktive Karte zur sozialen Lage der Kreise und Gemeinden in Oberfranken.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232F6B3A'/><rect x='6' y='18' width='5' height='8' fill='%23fff'/><rect x='13.5' y='12' width='5' height='14' fill='%23fff'/><rect x='21' y='7' width='5' height='19' fill='%23fff'/></svg>">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="seite" aria-label="Steuerung und Rangliste">
+      <header class="kopf">
+        <h1>Sozialindex Oberfranken</h1>
+        <p class="unterzeile">Soziale Lage der Kreise und Gemeinden im Vergleich. Klicken Sie auf ein Gebiet, um Profil, Verlauf und Kennzahlen zu sehen.</p>
+      </header>
+
+      <section class="steuerung" aria-label="Ansicht wählen">
+        <fieldset class="umschalter">
+          <legend>Ebene</legend>
+          <label><input type="radio" name="ebene" value="kreis" checked><span>Kreise</span></label>
+          <label><input type="radio" name="ebene" value="gemeinde"><span>Gemeinden</span></label>
+        </fieldset>
+
+        <label class="feld">
+          <span class="feld-titel">Merkmal</span>
+          <select id="merkmal"></select>
+        </label>
+
+        <label class="feld">
+          <span class="feld-titel">Jahr <output id="jahr-anzeige" for="jahr"></output></span>
+          <input type="range" id="jahr" step="1">
+        </label>
+
+        <label class="feld">
+          <span class="feld-titel">Gebiet suchen</span>
+          <input type="search" id="suche" list="suchliste" placeholder="Name eingeben" autocomplete="off">
+          <datalist id="suchliste"></datalist>
+        </label>
+      </section>
+
+      <section class="legende" aria-label="Legende">
+        <p id="legende-titel" class="legende-titel"></p>
+        <div class="skala" id="skala"></div>
+        <div class="skala-pole"><span>ungünstiger</span><span>günstiger</span></div>
+        <p class="legende-hinweis" id="legende-hinweis"></p>
+      </section>
+
+      <section class="rangliste" aria-label="Rangliste">
+        <h2 id="rang-titel">Rangliste</h2>
+        <ol id="rang"></ol>
+      </section>
+
+      <footer class="fuss">
+        <details>
+          <summary>So wird der Index berechnet</summary>
+          <p>Jeder Indikator wird standardisiert und so ausgerichtet, dass höhere Werte eine günstigere Lage bedeuten. Die Indikatoren werden zu vier Dimensionen gemittelt, die Dimensionen gleich gewichtet zum Gesamtindex zusammengefasst.</p>
+          <p>100 entspricht dem Durchschnitt der oberfränkischen Kreise bzw. Gemeinden im gewählten Jahr. 110 liegt eine Standardabweichung günstiger, 90 eine ungünstiger. Gemeinden werden nur mit Indikatoren bewertet, die auf Gemeindeebene vorliegen.</p>
+        </details>
+        <details>
+          <summary>Quellen und Lizenzen</summary>
+          <ul id="quellen"></ul>
+          <p>Verwaltungsgrenzen: © GeoBasis-DE / BKG, Datenlizenz Deutschland – Namensnennung – 2.0.</p>
+        </details>
+        <p class="stand" id="stand"></p>
+      </footer>
+    </aside>
+
+    <main class="karte-rahmen">
+      <div id="demo-hinweis" class="demo-hinweis" hidden>
+        Demodaten: Die angezeigten Werte sind fiktiv und dienen nur zum Testen.
+      </div>
+      <div id="karte" role="application" aria-label="Karte von Oberfranken"></div>
+      <div id="lade" class="lade">Daten werden geladen</div>
+    </main>
+  </div>
+
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script src="vendor/chartjs/chart.umd.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
