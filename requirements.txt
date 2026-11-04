@@ -2,3 +2,5 @@ requests>=2.31
 # Geometrie (Schulerreichbarkeit, Geodaten):
 shapely>=2.0
 pyproj>=3.6
+# Landtagsdrucksachen lesen:
+pdfplumber>=0.11

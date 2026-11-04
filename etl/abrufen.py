@@ -119,7 +119,7 @@ def quelle_csv(spec: dict, ebene: str):
                 werte[(ags, int(z["jahr"]))] = w
     if not werte:
         return None
-    return werte, f"csv:{spec['datei']}", {"quelle": f"Eigene Datei {spec['datei']}"}
+    return werte, f"csv:{spec['datei']}", {"quelle": spec.get("quellenangabe") or f"Eigene Datei {spec['datei']}"}
 
 
 _genesis_cache: dict = {}

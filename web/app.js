@@ -623,14 +623,24 @@
         const text = q.code ? `${q.quelle}, ${q.code}${q.feld ? " (" + q.feld + ")" : ""}` : q.quelle;
         const schluessel = `${ind.name}|${text}`;
         const alt = eintraege.get(schluessel);
-        eintraege.set(schluessel, { name: ind.name, text, ebenen: [...(alt?.ebenen || []), ebene === "kreis" ? "Kreise" : "Gemeinden"] });
+        eintraege.set(schluessel, { id, name: ind.name, text, ebenen: [...(alt?.ebenen || []), ebene === "kreis" ? "Kreise" : "Gemeinden"] });
       }
     }
+    const letztesJahr = Math.max(...m.jahre);
+    const standText = (id) => {
+      const st = m.datenstand?.[id];
+      if (!st) return "";
+      if (st.konstant) return { text: `Stand: ${st.hinweis || "fester Stand"}`, alt: false };
+      const bis = Math.max(st.kreis || 0, st.gemeinde || 0);
+      return { text: `Daten bis ${bis}`, alt: bis < letztesJahr - 1 };
+    };
+    for (const e of eintraege.values()) e.stand = standText(e.id);
     $("#quellen").innerHTML = [...eintraege.values()]
-      .map((e) => `<li>${esc(e.name)}: ${esc(e.text)}, ${esc(e.ebenen.join(" und "))}</li>`).join("")
+      .map((e) => `<li>${esc(e.name)}: ${esc(e.text)}, ${esc(e.ebenen.join(" und "))}${e.stand
+        ? `. <span class="${e.stand.alt ? "stand-alt" : ""}">${esc(e.stand.text)}${e.stand.alt ? ", älter als ein Jahr" : ""}</span>` : ""}</li>`).join("")
       + `<li>Amtliche Statistik: © Statistische Ämter des Bundes und der Länder, dl-de/by-2-0</li>`;
     const datum = new Date(m.erstellt).toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" });
-    $("#stand").textContent = `Datenstand: ${datum}`;
+    $("#stand").textContent = `Zuletzt berechnet am ${datum}. Den Stand jeder Quelle zeigt „Quellen und Lizenzen“.`;
     $("#demo-hinweis").hidden = !m.demo;
   }
 

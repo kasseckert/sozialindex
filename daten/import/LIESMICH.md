@@ -24,8 +24,9 @@ Für 2019 wurde keine entsprechende Anfrage gefunden. Jahr = Kalenderjahr des
 Die Werte sind jeweils das Mittel aus Jungen- und Mädchenquote, da keine
 Gesamtquote veröffentlicht wird. Achtung beim Ergänzen: In Drucksache 18/3249
 stehen die Spalten in der Reihenfolge Realschule vor Gymnasium, sonst umgekehrt.
-Neue Jahrgänge unter www.bayern.landtag.de/parlament/dokumente (Suche
-„Übertrittsquoten“) als neue Zeilen ergänzen.
+Neue Jahrgänge übernimmt der Workflow „Jahresdaten und Erinnerungen“ halbautomatisch
+(siehe README). Von Hand: `python etl/landtag_uebertritt.py --drucksache 19/7981`
+liest, prüft und schreibt alle sechs Dateien; mit `--pruefen` nur Bericht ohne Schreiben.
 
 ## Vorlagen zum Befüllen (Statistik der Bundesagentur für Arbeit)
 

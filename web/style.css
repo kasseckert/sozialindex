@@ -167,6 +167,7 @@ input[type="range"] { width: 100%; accent-color: var(--s7); margin: 2px 0; }
 .fuss details p, .fuss ul { margin: 6px 0; }
 .fuss ul { padding-left: 1.1em; }
 .stand { margin: 4px 0 0; }
+.stand-alt { color: var(--s1); font-weight: 700; }
 
 /* --------------------------------------------------------------- Karte */
 .karte-rahmen { position: relative; background: var(--grund); min-height: 0; }

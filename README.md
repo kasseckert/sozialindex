@@ -69,6 +69,22 @@ Die Dimension „Bildung und Familie“ greift auf sechs Quellen zurück:
 
 **Grenzen:** Die Bildungsfragen des Zensus gibt es nur für Kreise sowie für Gemeinden ab 10 000 Einwohnern, deshalb nur auf Kreisebene genutzt. Die Schulentfernung ist Luftlinie vom Flächenmittelpunkt der Gemeinde, kein Schulweg. Die Übertrittsquote hängt auch vom Schulangebot vor Ort ab und ist in den Städten traditionell höher. Übertrittsquoten liegen bisher für 2023 und 2024 vor; neue Jahrgänge nach `daten/import/LIESMICH.md` ergänzen.
 
+## Was sich automatisch aktualisiert
+
+| Daten | Aktualisierung |
+| --- | --- |
+| Regionalatlas, Bildungsdatenbank, GENESIS, Schulstandorte | automatisch, monatlich (Workflow „Daten aktualisieren“) |
+| Zensus 2022 | automatisch abgerufen; Stichtagswerte, ändern sich erst mit dem nächsten Zensus |
+| Übertrittsquoten und Eignungen (Landtag) | halbautomatisch (Workflow „Jahresdaten und Erinnerungen“) |
+| BA-Daten (Ausbildungsmarkt, ohne Berufsabschluss) | von Hand, mit jährlicher Erinnerung |
+| Verwaltungsgrenzen | von Hand, nur bei Gebietsreformen |
+
+**Übertrittsquoten:** Von September bis Dezember sucht der Workflow „Jahresdaten und Erinnerungen“ am 1. jedes Monats nach der neuen Landtagsdrucksache „Übertrittsquoten in Bayern“. Findet er sie, liest er die Oberfranken-Werte aus, prüft sie (13 Kreise je Tabelle, Wertebereich, Spaltenreihenfolge, auffällige Sprünge zum Vorjahr) und legt einen Änderungsvorschlag (Pull Request) mit einer Übersichtstabelle an. Erst wenn Sie ihn mit **Merge** bestätigen, gehen die Werte in die Karte ein. Findet er die Drucksache nicht, legt er eine Erinnerung (Issue) an; dann unter **Actions → Jahresdaten und Erinnerungen → Run workflow** die Drucksachennummer eintragen (z. B. `19/7981`), der Rest läuft wie oben. Damit Pull Requests angelegt werden dürfen: **Settings → Actions → General → „Allow GitHub Actions to create and approve pull requests“**. Ohne diese Einstellung erstellt der Workflow stattdessen ein Issue mit Link zu den Änderungen.
+
+**BA-Daten:** Im November (Ausbildungsmarkt) und Februar (Beschäftigte nach Berufsabschluss) legt derselbe Workflow eine Erinnerung mit Anleitung an.
+
+**Datenstand:** Unter „Quellen und Lizenzen“ zeigt die Karte für jede Quelle das jüngste Datenjahr. Liegt es mehr als ein Jahr zurück, ist der Eintrag farbig hervorgehoben.
+
 ## Ohne GitHub: auf dem eigenen Server
 
 ```bash
@@ -84,6 +100,7 @@ Optionen von `etl/abrufen.py`: `--demo-auffuellen` füllt fehlende Indikatoren m
 
 ```
 .github/workflows/aktualisieren.yml   Automatisierung (Abruf, Berechnung, Veröffentlichung)
+.github/workflows/jahresdaten.yml     Übertrittsquoten aus dem Landtag, Erinnerungen
 konfiguration/indikatoren.json        Indikatoren, Quellen, Dimensionen, Gewichte
 web/                                  die Website (statisch, ohne Drittanbieter-Anfragen)
   index.html, app.js, style.css       Karte
@@ -92,6 +109,7 @@ web/                                  die Website (statisch, ohne Drittanbieter-
 etl/
   regionalatlas.py                    Client für den Regionalatlas
   schulen.py                          Schulstandorte und Schulerreichbarkeit
+  landtag_uebertritt.py               Übertrittsquoten aus Landtagsdrucksachen lesen
   abrufen.py                          Schritt 1: Quellen abrufen
   index_berechnen.py                  Schritt 2: Index berechnen
   genesis.py, genesis_auswerten.py    GENESIS-Webservice (Zensus, Bildungsdatenbank, Landesämter)

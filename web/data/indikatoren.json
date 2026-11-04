@@ -311,7 +311,8 @@
       "quellen": [
         {
           "typ": "csv",
-          "datei": "uebertritt_gymnasium.csv"
+          "datei": "uebertritt_gymnasium.csv",
+          "quellenangabe": "Bayerischer Landtag, Antworten des Kultusministeriums auf Schriftliche Anfragen"
         }
       ]
     },
@@ -330,7 +331,8 @@
       "quellen": [
         {
           "typ": "csv",
-          "datei": "uebertritt_realschule.csv"
+          "datei": "uebertritt_realschule.csv",
+          "quellenangabe": "Bayerischer Landtag, Antworten des Kultusministeriums auf Schriftliche Anfragen"
         }
       ]
     },
@@ -349,7 +351,8 @@
       "quellen": [
         {
           "typ": "csv",
-          "datei": "eignung_gymnasium.csv"
+          "datei": "eignung_gymnasium.csv",
+          "quellenangabe": "Bayerischer Landtag, Antworten des Kultusministeriums auf Schriftliche Anfragen"
         }
       ]
     },
@@ -368,7 +371,8 @@
       "quellen": [
         {
           "typ": "csv",
-          "datei": "eignung_realschule.csv"
+          "datei": "eignung_realschule.csv",
+          "quellenangabe": "Bayerischer Landtag, Antworten des Kultusministeriums auf Schriftliche Anfragen"
         }
       ]
     },
@@ -535,7 +539,8 @@
       "quellen": [
         {
           "typ": "csv",
-          "datei": "ohne_berufsabschluss.csv"
+          "datei": "ohne_berufsabschluss.csv",
+          "quellenangabe": "Statistik der Bundesagentur für Arbeit"
         },
         {
           "typ": "quotient",
@@ -576,7 +581,8 @@
       "quellen": [
         {
           "typ": "csv",
-          "datei": "ausbildungsmarkt.csv"
+          "datei": "ausbildungsmarkt.csv",
+          "quellenangabe": "Statistik der Bundesagentur für Arbeit"
         }
       ]
     },

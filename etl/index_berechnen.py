@@ -191,6 +191,19 @@ def berechne_ebene(ebene, daten, markiert=None):
 
 def main():
     daten, herkunft = lade_roh()
+    # Datenstand je Quelle: jüngstes Jahr mit echten Werten (vor dem Fortschreiben)
+    datenstand = {}
+    for ebene, gebiete in daten.items():
+        for g in gebiete.values():
+            for ind_id, reihe in g.items():
+                eintrag = datenstand.setdefault(ind_id, {})
+                eintrag[ebene] = max(eintrag.get(ebene, 0), max(reihe))
+    for ind_id, eintrag in datenstand.items():
+        h = " ".join(herkunft[e].get(ind_id, "") for e in herkunft)
+        eintrag["konstant"] = "konstant" in h
+        if eintrag["konstant"]:
+            eintrag["hinweis"] = ("aktueller Schulbestand" if "schulen:" in h
+                                  else "Zensus-Stichtag 15.05.2022" if "zensus" in h else "fester Stand")
     markiert = fortschreiben(daten)
     namen = lade_namen()
     protokoll_datei = WURZEL / "daten" / "quellenprotokoll.json"
@@ -209,6 +222,7 @@ def main():
             "fortschreiben_jahre": K.FORTSCHREIBEN_JAHRE,
             "indikatoren": [{k: v for k, v in i.items() if k not in ("quelle", "quellen")} for i in K.INDIKATOREN],
             "quellen": quellen,
+            "datenstand": datenstand,
         },
     }
     for ebene in ("kreis", "gemeinde"):
