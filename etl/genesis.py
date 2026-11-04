@@ -64,7 +64,7 @@ def hat_zugang(datenbank: str) -> bool:
     return bool(os.environ.get(f"GENESIS_{datenbank.upper()}_USER"))
 
 
-def _post(datenbank: str, pfad: str, parameter: dict, versuche: int = 3) -> requests.Response:
+def _post(datenbank: str, pfad: str, parameter: dict, versuche: int = 2) -> requests.Response:
     if datenbank not in BASIS_URL:
         raise GenesisFehler(f"Unbekannte Datenbank '{datenbank}'")
     user, pw = _zugang(datenbank)
@@ -77,13 +77,13 @@ def _post(datenbank: str, pfad: str, parameter: dict, versuche: int = 3) -> requ
     letzter_fehler = None
     for i in range(versuche):
         try:
-            r = requests.post(url, headers=headers, data=parameter, timeout=120)
+            r = requests.post(url, headers=headers, data=parameter, timeout=(15, 90))
             if r.status_code == 200:
                 return r
             letzter_fehler = f"HTTP {r.status_code}: {r.text[:300]}"
         except requests.RequestException as e:
             letzter_fehler = str(e)
-        time.sleep(2 * (i + 1))
+        time.sleep(3)
     raise GenesisFehler(f"{url} fehlgeschlagen: {letzter_fehler}")
 
 
@@ -146,11 +146,17 @@ def tabellen_katalog(datenbank: str, auswahl: str = "*", anzahl: int = 2500) -> 
     return [{"code": t.get("Code", ""), "titel": (t.get("Content") or "").strip()} for t in liste if t.get("Code")]
 
 
-def finde_tabellen(datenbank: str, suchbegriffe: list[str], anzahl: int = 8) -> list[dict]:
+_FUND_CACHE: dict = {}
+
+
+def finde_tabellen(datenbank: str, suchbegriffe: list[str], anzahl: int = 3) -> list[dict]:
     """
     Sucht Tabellen per Volltext und sortiert sie danach, wie viele Wörter der
     Suchbegriffe im Titel vorkommen. Ergebnis: [{"code", "titel"}].
     """
+    schluessel = (datenbank, tuple(suchbegriffe), anzahl)
+    if schluessel in _FUND_CACHE:
+        return _FUND_CACHE[schluessel]
     gesehen, treffer = set(), []
     for begriff in suchbegriffe:
         try:
@@ -165,4 +171,5 @@ def finde_tabellen(datenbank: str, suchbegriffe: list[str], anzahl: int = 8) -> 
             gesehen.add(code)
             treffer.append((sum(w in titel.lower() for w in woerter), {"code": code, "titel": titel}))
     treffer.sort(key=lambda x: -x[0])
-    return [t for _, t in treffer[:anzahl]]
+    _FUND_CACHE[schluessel] = [t for _, t in treffer[:anzahl]]
+    return _FUND_CACHE[schluessel]
