@@ -1,5 +1,4 @@
-  ! Tabellenliste bildung (*): https://www.bildungsmonitoring.de/bildungws/rest/2020/catalogue/tables fehlgeschlagen: HTTPSConnectionPool(host='www.bildungsmonitoring.de', port=443): Read timed out. (read timeout=90)
-  · Tabellenliste bildung: 58 Tabellen
+  · Tabellenliste bildung: 907 Tabellen
   · Tabellenliste zensus: 420 Tabellen
 kreis     alq           960 Werte  regionalatlas:AI008-1-5/ai0801
 kreis     sgb2          960 Werte  regionalatlas:AI-S-04/ai2102
@@ -17,7 +16,7 @@ kreis     eignung_rs    576 Werte  csv:eignung_realschule.csv
 kreis     abi           960 Werte  regionalatlas:AI003-2/ai0304
 kreis     mittlerer       – keine Daten, entfällt auf dieser Ebene
 kreis     azubi_rs        – keine Daten, entfällt auf dieser Ebene
-  ! ohne_beruf (kreis, quotient, 12 s): Tabelle 2000S-1003: {'Code': 25, 'Content': 'Mindestens ein Parameter enthält ungültige Werte. Bitte prüfen Sie folgende Eingabe.: regionalmerkmal', 'Type': 'Information'}
+  ! ohne_beruf (kreis, quotient, 13 s): Tabelle 2000S-1003: {'Code': 25, 'Content': 'Mindestens ein Parameter enthält ungültige Werte. Bitte prüfen Sie folgende Eingabe.: regionalmerkmal', 'Type': 'Information'}
 kreis     ohne_beruf      – keine Daten, entfällt auf dieser Ebene
 kreis     ausbildung      – keine Daten, entfällt auf dieser Ebene
 kreis     weg_gs        960 Werte  schulen:grundschule (konstant fortgeschrieben)
@@ -40,9 +39,10 @@ gemeinde  wfl             – keine Daten, entfällt auf dieser Ebene
 97133 Zeilen geschrieben nach daten/rohdaten.csv
 Geschrieben: web/data/werte.json (272 KB)
 kreis: günstigste ['München', 'München', 'Starnberg'], ungünstigste ['Regen', 'Wunsiedel i. Fichtelgebirge', 'Hof']
-BY-D07.11i: Fehler
+BY-D07.11i: ok
 BY-D07.1i: ok
 BY-D09.1i: ok
 BY-D11.1i: ok
 BY-D12.1i: ok
 BY-D12.3i: ok
+2000S-1003: ok
