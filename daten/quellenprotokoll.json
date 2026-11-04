@@ -1,12 +1,12 @@
 {
  "kreis": {
   "alq": {
-   "herkunft": "regionalatlas:AI008-1-5/ai0806",
+   "herkunft": "regionalatlas:AI008-1-5/ai0801",
    "quelle": "Regionalatlas Deutschland",
    "code": "AI008-1-5",
-   "feld": "ai0806",
+   "feld": "ai0801",
    "titel": "Arbeitslosenquote, Anteil Arbeitslose",
-   "feld_titel": "Anteil Arbeitslose 15-24 Jahre an Arbeitslosen insgesamt",
+   "feld_titel": "Arbeitslosenquote",
    "einheit": "Prozent"
   },
   "sgb2": {
@@ -26,6 +26,15 @@
    "titel": "Verfügbares Einkommen pro Kopf",
    "feld_titel": "Verfügbares Einkommen pro Kopf",
    "einheit": "EUR"
+  },
+  "alt65": {
+   "herkunft": "regionalatlas:AI002-2-5/ai0207",
+   "quelle": "Regionalatlas Deutschland",
+   "code": "AI002-2-5",
+   "feld": "ai0207",
+   "titel": "Bevölkerung nach Alter",
+   "feld_titel": "Bevölkerung 65 Jahre und älter",
+   "einheit": "Prozent"
   },
   "bev5": {
    "herkunft": "regionalatlas:AI002-1-5/ai0201",
@@ -88,7 +97,7 @@
    "herkunft": "csv:eignung_realschule.csv",
    "quelle": "Bayerischer Landtag, Antworten des Kultusministeriums auf Schriftliche Anfragen"
   },
-  "mittlerer": {
+  "abi": {
    "herkunft": "regionalatlas:AI003-2/ai0304",
    "quelle": "Regionalatlas Deutschland",
    "code": "AI003-2",
@@ -109,13 +118,13 @@
   }
  },
  "gemeinde": {
-  "alq": {
-   "herkunft": "regionalatlas:AI008-1-5/ai0806",
+  "alt65": {
+   "herkunft": "regionalatlas:AI002-2-5/ai0207",
    "quelle": "Regionalatlas Deutschland",
-   "code": "AI008-1-5",
-   "feld": "ai0806",
-   "titel": "Arbeitslosenquote, Anteil Arbeitslose",
-   "feld_titel": "Anteil Arbeitslose 15-24 Jahre an Arbeitslosen insgesamt",
+   "code": "AI002-2-5",
+   "feld": "ai0207",
+   "titel": "Bevölkerung nach Alter",
+   "feld_titel": "Bevölkerung 65 Jahre und älter",
    "einheit": "Prozent"
   },
   "bev5": {
