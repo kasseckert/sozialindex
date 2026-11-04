@@ -76,6 +76,27 @@
    "herkunft": "csv:uebertritt_gymnasium.csv",
    "quelle": "Eigene Datei uebertritt_gymnasium.csv"
   },
+  "uebertritt_rs": {
+   "herkunft": "csv:uebertritt_realschule.csv",
+   "quelle": "Eigene Datei uebertritt_realschule.csv"
+  },
+  "eignung_gym": {
+   "herkunft": "csv:eignung_gymnasium.csv",
+   "quelle": "Eigene Datei eignung_gymnasium.csv"
+  },
+  "eignung_rs": {
+   "herkunft": "csv:eignung_realschule.csv",
+   "quelle": "Eigene Datei eignung_realschule.csv"
+  },
+  "mittlerer": {
+   "herkunft": "regionalatlas:AI003-2/ai0304",
+   "quelle": "Regionalatlas Deutschland",
+   "code": "AI003-2",
+   "feld": "ai0304",
+   "titel": "Schulabgänger/-innen",
+   "feld_titel": "Anteil Schulabgänger/-innen mit allgem. Hochschulreife",
+   "einheit": "Prozent"
+  },
   "weg_gs": {
    "herkunft": "schulen:grundschule (konstant fortgeschrieben)",
    "quelle": "Schulstandorte in Bayern, Bayerisches Staatsministerium für Unterricht und Kultus (CC BY 4.0)",
