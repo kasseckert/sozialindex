@@ -11,10 +11,11 @@ Methode (je Ebene getrennt: Kreise und Gemeinden)
 3. Dimensionswert = Mittel der z-Werte der Indikatoren dieser Dimension.
 4. Gesamtindex = gewichtetes Mittel der Dimensionswerte.
 5. Dimensionen und Gesamtindex werden je Jahr erneut standardisiert und auf
-   die Skala 100 ± 10 gebracht: 100 = Durchschnitt der oberfränkischen Kreise
-   bzw. Gemeinden in diesem Jahr, 110 = eine Standardabweichung günstiger,
+   die Skala 100 ± 10 gebracht: 100 = Durchschnitt aller Kreise bzw. Gemeinden
+   des Landes in diesem Jahr, 110 = eine Standardabweichung günstiger,
    90 = eine Standardabweichung ungünstiger. Der Index beschreibt also die
-   relative Lage innerhalb Oberfrankens; absolute Entwicklungen zeigen die
+   relative Lage innerhalb des Landes; der Vergleich innerhalb einer Region
+   (Aufsichtsbezirk) wird in der Karte daraus abgeleitet; absolute Entwicklungen zeigen die
    Zeitreihen der einzelnen Indikatoren.
 
 Gemeinden werden nur mit Indikatoren bewertet, die auf Gemeindeebene vorliegen.
@@ -33,6 +34,7 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 
+import gebiete as GEB
 import konfiguration as K
 
 WURZEL = Path(__file__).resolve().parent.parent
@@ -77,10 +79,12 @@ def fortschreiben(daten):
 
 
 def lade_namen():
-    namen = {}
-    for ebene, datei in (("kreis", "kreise.geojson"), ("gemeinde", "gemeinden.geojson")):
-        fc = json.loads((WURZEL / "web" / "data" / datei).read_text(encoding="utf-8"))
-        namen[ebene] = {f["properties"]["ags"]: f["properties"] for f in fc["features"]}
+    namen = {"kreis": {}, "gemeinde": {}}
+    daten = WURZEL / "web" / "data"
+    for ebene, dateien in (("kreis", [daten / "kreise.geojson"]), ("gemeinde", sorted((daten / "gemeinden").glob("*.geojson")))):
+        for datei in dateien:
+            fc = json.loads(datei.read_text(encoding="utf-8"))
+            namen[ebene].update({f["properties"]["ags"]: f["properties"] for f in fc["features"]})
     return namen
 
 
@@ -210,7 +214,13 @@ def main():
     quellen = json.loads(protokoll_datei.read_text(encoding="utf-8")) if protokoll_datei.exists() else {}
     ausgabe = {
         "meta": {
-            "titel": "Sozialindex Oberfranken",
+            "titel": f"Sozialindex {GEB.LAND['name']}",
+            "land": GEB.LAND,
+            "regionen": [{"id": r["id"], "name": r["name"],
+                          "kreise": sorted(a for a in namen["kreis"] if GEB.region_von(a) == r["id"])}
+                         for r in GEB.REGIONEN],
+            "min_kreise_regionaler_vergleich": GEB.G.get("min_kreise_regionaler_vergleich", 10),
+            "min_gemeinden_regionaler_vergleich": GEB.G.get("min_gemeinden_regionaler_vergleich", 20),
             "erstellt": date.today().isoformat(),
             "jahre": K.JAHRE,
             "index_mitte": K.INDEX_MITTE,
@@ -232,7 +242,18 @@ def main():
         if fehlend:
             print(f"Hinweis: {len(fehlend)} Gebiete der Ebene {ebene} ohne Daten: {sorted(fehlend)[:5]} …")
 
-    ZIEL.write_text(json.dumps(ausgabe, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    # Gemeindedaten je Region in eigene Dateien, damit die Karte nur lädt, was sie zeigt
+    gem_ordner = ZIEL.parent / "werte_gemeinden"
+    gem_ordner.mkdir(exist_ok=True)
+    for alt in gem_ordner.glob("*.json"):
+        alt.unlink()
+    gem_gebiete = ausgabe["gemeinde"]["gebiete"]
+    for r in GEB.REGIONEN:
+        teil = {a: g for a, g in gem_gebiete.items() if GEB.region_von(a) == r["id"]}
+        (gem_ordner / f"{r['id']}.json").write_text(
+            json.dumps({"gebiete": teil}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    kopf = {**ausgabe, "gemeinde": {k: v for k, v in ausgabe["gemeinde"].items() if k != "gebiete"}}
+    ZIEL.write_text(json.dumps(kopf, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     # Kopie der Konfiguration für den Datenassistenten
     (ZIEL.parent / "indikatoren.json").write_text(
         (WURZEL / "konfiguration" / "indikatoren.json").read_text(encoding="utf-8"), encoding="utf-8")

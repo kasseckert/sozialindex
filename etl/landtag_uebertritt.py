@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import csv
 import io
+import json
 import os
 import re
 import sys
@@ -31,14 +32,46 @@ BERICHT = WURZEL / "daten" / "uebertritt_bericht.md"
 BASIS = "https://www.bayern.landtag.de/www/ElanTextAblage_WP{wp}/Drucksachen/Schriftliche%20Anfragen/{wp}_{nr:07d}.pdf"
 SUCHSEITE = "https://www.bayern.landtag.de/parlament/dokumente/drucksachen"
 
-KREISE = {  # (Name in der Drucksache, kreisfreie Stadt?) -> AGS
-    ("bamberg", True): "09461", ("bayreuth", True): "09462", ("coburg", True): "09463", ("hof", True): "09464",
-    ("bamberg", False): "09471", ("bayreuth", False): "09472", ("coburg", False): "09473",
-    ("forchheim", False): "09474", ("hof", False): "09475", ("kronach", False): "09476",
-    ("kulmbach", False): "09477", ("lichtenfels", False): "09478", ("wunsiedel", False): "09479",
-}
+BEZIRKE = {"Oberbayern": "091", "Niederbayern": "092", "Oberpfalz": "093", "Oberfranken": "094",
+           "Mittelfranken": "095", "Unterfranken": "096", "Schwaben": "097"}
 ZAHL = r"(\d{1,3},\d)\s*%?"
-ZEILE = re.compile(r"Oberfranken\s+([A-Za-zÄÖÜäöüß][^\d\n]*?)\s+" + r"\s+".join([ZAHL] * 4))
+# Bezirk am Zeilenanfang (in einer Drucksache fehlt einmal der erste Buchstabe: "ittelfranken"),
+# danach der Kreisname, der über einen Zeilenumbruch laufen kann, dann vier Prozentwerte.
+ZEILE = re.compile(r"(?<![A-Za-zÄÖÜäöü])[A-ZÄÖÜ]?(" + "|".join(sorted({b[1:] for b in BEZIRKE}, key=len, reverse=True))
+                   + r")\s+([A-Za-zÄÖÜäöüß][^\d]{0,60}?)\s+" + r"\s+".join([ZAHL] * 4))
+
+
+def _token(name: str) -> str:
+    return re.split(r"[\s,\-.(]+", name.strip().lower())[0]
+
+
+def _kreisliste() -> list[dict]:
+    """Amtliche Kreise aus den Geodaten der Karte: ags, Name, kreisfrei, Bezirkspräfix."""
+    fc = json.loads((WURZEL / "web" / "data" / "kreise.geojson").read_text(encoding="utf-8"))
+    return [{"ags": f["properties"]["ags"], "token": _token(f["properties"]["name"]),
+             "kreisfrei": f["properties"]["bez"] != "Landkreis", "praefix": f["properties"]["ags"][:3]}
+            for f in fc["features"]]
+
+
+KREISLISTE = None
+
+
+def kreis_zuordnen(bezirk: str, name: str):
+    """Ordnet „Mittelfranken / Neust. a.d.Aisch-Bad Windsh.“ dem amtlichen Kreisschlüssel zu."""
+    global KREISLISTE
+    if KREISLISTE is None:
+        KREISLISTE = _kreisliste()
+    praefix = next((v for k, v in BEZIRKE.items() if k.endswith(bezirk)), None)
+    kreisfrei = bool(re.search(r"Kfr\.?\s*St", name))
+    t = _token(name)
+    kandidaten = [k for k in KREISLISTE if k["praefix"] == praefix and k["kreisfrei"] == kreisfrei]
+    genau = [k for k in kandidaten if k["token"] == t]
+    if len(genau) == 1:
+        return genau[0]["ags"]
+    praefix_treffer = [k for k in kandidaten if len(t) >= 4 and k["token"].startswith(t)]
+    if len(praefix_treffer) == 1:
+        return praefix_treffer[0]["ags"]
+    return None
 
 
 class Lesefehler(RuntimeError):
@@ -102,24 +135,24 @@ def lesen(text: str) -> tuple[int, dict, dict, list[str]]:
 
     treffer = []
     for z in ZEILE.finditer(text):
-        name = z.group(1).strip()
+        bezirk, name = z.group(1), re.sub(r"\s+", " ", z.group(2)).strip()
         if name.lower().startswith("insgesamt"):
             continue
-        kreisfrei = bool(re.search(r"Kfr\.?\s*St", name))
-        schluessel = (name.split(",")[0].split()[0].lower(), kreisfrei)
-        ags = KREISE.get(schluessel)
+        ags = kreis_zuordnen(bezirk, name)
         if not ags:
-            hinweise.append(f"Unbekannte Zeile übersprungen: {name}")
+            hinweise.append(f"Zeile nicht zugeordnet: {bezirk} {name}")
             continue
-        werte = tuple(float(z.group(i).replace(",", ".")) for i in range(2, 6))
+        werte = tuple(float(z.group(i).replace(",", ".")) for i in range(3, 7))
         treffer.append((z.start(), ags, werte))
 
-    if len(treffer) < 26:
-        raise Lesefehler(f"Nur {len(treffer)} Oberfranken-Zeilen gefunden, erwartet 26 (zwei Tabellen à 13)")
-    tab1, tab2 = treffer[:13], treffer[13:26]
+    n = len(_kreisliste()) if KREISLISTE is None else len(KREISLISTE)
+    if len(treffer) < 2 * n:
+        raise Lesefehler(f"Nur {len(treffer)} Kreiszeilen gefunden, erwartet {2 * n} (zwei Tabellen à {n})"
+                         + (f"; {hinweise[0]}" if hinweise else ""))
+    tab1, tab2 = treffer[:n], treffer[n:2 * n]
     for nr, tab in ((1, tab1), (2, tab2)):
-        if len({a for _, a, _ in tab}) != 13:
-            raise Lesefehler(f"Tabelle {nr}: nicht alle 13 Kreise eindeutig erkannt")
+        if len({a for _, a, _ in tab}) != n:
+            raise Lesefehler(f"Tabelle {nr}: nicht alle {n} Kreise eindeutig erkannt")
 
     gym_zuerst = _reihenfolge_uebertritt(text[:tab1[0][0]])
     if not gym_zuerst:
@@ -151,7 +184,7 @@ def pruefen(jahr, uebertritt, eignung) -> tuple[list[str], list[str]]:
         for ags, werte in tab.items():
             if not all(0 <= w <= 100 for w in werte):
                 fehler.append(f"{name} {ags}: Wert außerhalb 0–100")
-    for ags in ("09461", "09462"):
+    for ags in [a for a in ("09162", "09562", "09461") if a in uebertritt]:   # München, Erlangen, Bamberg
         gj, rj, gm, rm = uebertritt[ags]
         if gj + gm <= rj + rm:
             fehler.append(f"Kreisfreie Stadt {ags}: Gymnasialquote nicht über Realschulquote, Spalten vermutlich vertauscht")
@@ -200,8 +233,11 @@ def vorhandene_jahre() -> set[int]:
     pfad = IMPORT / "uebertritt_rohdaten.csv"
     if not pfad.exists():
         return set()
+    from collections import Counter
     with pfad.open(encoding="utf-8") as f:
-        return {int(z["jahr"]) for z in csv.DictReader(f, delimiter=";")}
+        n = Counter(int(z["jahr"]) for z in csv.DictReader(f, delimiter=";"))
+    soll = len(_kreisliste())
+    return {j for j, k in n.items() if k >= soll}
 
 
 # ------------------------------------------------------------------ Suchen
@@ -239,14 +275,17 @@ def ausgabe(schluessel: str, wert: str):
             f.write(f"{schluessel}={wert}\n")
 
 
-def verarbeiten(text: str, quelle: str, nur_pruefen: bool) -> int:
+def verarbeiten(text: str, quelle: str, nur_pruefen: bool, bericht_vorher: list[str] | None = None) -> tuple[int, int | None]:
     jahr, ue, ei, hinweise = lesen(text)
     fehler, auffaellig = pruefen(jahr, ue, ei)
+    fc = json.loads((WURZEL / "web" / "data" / "kreise.geojson").read_text(encoding="utf-8"))
+    kreisname = {f["properties"]["ags"]: (f["properties"]["name"] + (" (Stadt)" if f["properties"]["bez"] != "Landkreis" else ""))
+                 for f in fc["features"]}
     tabelle = ["| Kreis | Gymnasium | Realschule | Gymnasialeignung | Realschuleignung |", "| --- | --- | --- | --- | --- |"]
     for ags in sorted(ue):
         g, r = (ue[ags][0] + ue[ags][2]) / 2, (ue[ags][1] + ue[ags][3]) / 2
         eg, er = (ei[ags][0] + ei[ags][2]) / 2, (ei[ags][1] + ei[ags][3]) / 2
-        tabelle.append(f"| {ags} | {g:.1f} % | {r:.1f} % | {eg:.1f} % | {er:.1f} % |")
+        tabelle.append(f"| {kreisname.get(ags, ags)} | {g:.1f} % | {r:.1f} % | {eg:.1f} % | {er:.1f} % |")
     bericht = [f"## Übertrittsquoten zum Schuljahr {jahr}/{jahr + 1}", "", f"Quelle: Bayerischer Landtag, {quelle}", "",
                "Mittel aus Jungen- und Mädchenquote:", "", *tabelle, ""]
     if hinweise:
@@ -254,36 +293,66 @@ def verarbeiten(text: str, quelle: str, nur_pruefen: bool) -> int:
     if auffaellig:
         bericht += ["**Auffällige Veränderungen gegenüber dem Vorjahr (über 12 Prozentpunkte), bitte mit der Drucksache vergleichen:**",
                     *[f"- {a}" for a in auffaellig], ""]
+    vorher = bericht_vorher if bericht_vorher is not None else []
     if fehler:
         bericht += ["**Prüfung nicht bestanden, Werte wurden nicht übernommen:**", *[f"- {f}" for f in fehler]]
-        bericht_schreiben(bericht)
+        bericht_schreiben(vorher + bericht)
         print("\n".join(bericht))
-        return 1
-    bericht += ["Alle Prüfungen bestanden."]
-    bericht_schreiben(bericht)
+        return 1, jahr
+    bericht += ["Alle Prüfungen bestanden.", ""]
+    bericht_schreiben(vorher + bericht)
+    vorher[:] = vorher + bericht
     print("\n".join(bericht))
-    ausgabe("jahr", str(jahr))
     if not nur_pruefen:
         schreiben(jahr, ue, ei, quelle)
-    return 0
+    return 0, jahr
+
+
+def abschluss(jahre: list[int]):
+    """Ausgaben für den Workflow: Zweigname und Titel des Änderungsvorschlags."""
+    jahre = sorted(set(jahre))
+    if not jahre:
+        return
+    spanne = f"{jahre[0]}" if len(jahre) == 1 else f"{jahre[0]}-{jahre[-1]}"
+    ausgabe("zweig", f"uebertritt-{spanne}")
+    ausgabe("titel", f"Übertrittsquoten zum Schuljahr {jahre[0]}/{jahre[0] + 1} übernehmen" if len(jahre) == 1
+            else f"Übertrittsquoten {len(jahre)} Schuljahre ({jahre[0]} bis {jahre[-1]}) übernehmen")
+    ausgabe("jahr", str(jahre[-1]))
 
 
 def main():
     ap = argparse.ArgumentParser()
     g = ap.add_mutually_exclusive_group(required=True)
-    g.add_argument("--drucksache")
+    g.add_argument("--drucksache", help="eine oder mehrere Nummern, durch Komma getrennt, z. B. 18/3249, 19/7981")
     g.add_argument("--datei")
     g.add_argument("--suchen", action="store_true")
     ap.add_argument("--pruefen", action="store_true")
     a = ap.parse_args()
+    bericht: list[str] = []
+    jahre: list[int] = []
     try:
         if a.datei:
             inhalt = Path(a.datei).read_bytes()
             text = pdf_text(inhalt) if inhalt.startswith(b"%PDF") else inhalt.decode("utf-8")
-            sys.exit(verarbeiten(text, Path(a.datei).name, a.pruefen))
+            code, jahr = verarbeiten(text, Path(a.datei).name, a.pruefen, bericht)
+            abschluss([jahr] if code == 0 else [])
+            sys.exit(code)
         if a.drucksache:
-            url = url_fuer(a.drucksache)
-            sys.exit(verarbeiten(pdf_text(herunterladen(url)), f"Drucksache {a.drucksache.strip()}", a.pruefen))
+            fehler = 0
+            for ds in [d.strip() for d in a.drucksache.split(",") if d.strip()]:
+                try:
+                    code, jahr = verarbeiten(pdf_text(herunterladen(url_fuer(ds))), f"Drucksache {ds}", a.pruefen, bericht)
+                except Lesefehler as e:
+                    bericht += [f"**Drucksache {ds}: Lesen fehlgeschlagen:** {e}", ""]
+                    bericht_schreiben(bericht)
+                    print(f"FEHLER {ds}: {e}")
+                    code, jahr = 1, None
+                if code == 0:
+                    jahre.append(jahr)
+                else:
+                    fehler += 1
+            abschluss(jahre)
+            sys.exit(0 if jahre and not fehler else 1)
         # --suchen: nur Drucksachen mit noch nicht vorhandenem Jahrgang übernehmen
         bekannt = vorhandene_jahre()
         for ds in suchen():
@@ -293,11 +362,13 @@ def main():
             except Exception:
                 continue
             if jahr not in bekannt:
-                sys.exit(verarbeiten(text, f"Drucksache {ds}", a.pruefen))
+                code, jahr = verarbeiten(text, f"Drucksache {ds}", a.pruefen, bericht)
+                abschluss([jahr] if code == 0 else [])
+                sys.exit(code)
         print("Keine neue Drucksache gefunden.")
         sys.exit(3)
     except Lesefehler as e:
-        bericht_schreiben([f"**Lesen fehlgeschlagen:** {e}"])
+        bericht_schreiben(bericht + [f"**Lesen fehlgeschlagen:** {e}"])
         print(f"FEHLER: {e}")
         sys.exit(1)
 

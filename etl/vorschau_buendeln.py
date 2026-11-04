@@ -27,8 +27,12 @@ def main():
     leaflet_css = (WEB / "vendor/leaflet/leaflet.css").read_text(encoding="utf-8")
     daten = {
         "kreise": json.loads((WEB / "data/kreise.geojson").read_text(encoding="utf-8")),
-        "gemeinden": json.loads((WEB / "data/gemeinden.geojson").read_text(encoding="utf-8")),
         "werte": json.loads((WEB / "data/werte.json").read_text(encoding="utf-8")),
+        "gemeinden": {
+            p.stem: {"geo": json.loads(p.read_text(encoding="utf-8")),
+                     "werte": json.loads((WEB / "data/werte_gemeinden" / f"{p.stem}.json").read_text(encoding="utf-8"))}
+            for p in sorted((WEB / "data/gemeinden").glob("*.geojson"))
+        },
     }
     skript = lambda p: (WEB / p).read_text(encoding="utf-8").replace("</script", "<\\/script")
 

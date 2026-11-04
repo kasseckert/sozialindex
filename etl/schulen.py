@@ -163,15 +163,16 @@ def _nach_utm(p: tuple[float, float]) -> tuple[float, float]:
     return x, y
 
 
-def gemeinde_mittelpunkte(gemeinden_geojson: Path) -> dict[str, tuple[float, float]]:
-    """Innenpunkt jeder Gemeindefläche in UTM 32N."""
+def gemeinde_mittelpunkte(gemeinden_geojson) -> dict[str, tuple[float, float]]:
+    """Innenpunkt jeder Gemeindefläche in UTM 32N (eine Datei oder Liste von Dateien)."""
     from pyproj import Transformer
     from shapely import transform as shp_transform
     from shapely.geometry import shape
     t = Transformer.from_crs(4326, 25832, always_xy=True)
-    fc = json.loads(gemeinden_geojson.read_text(encoding="utf-8"))
+    dateien = gemeinden_geojson if isinstance(gemeinden_geojson, (list, tuple)) else [gemeinden_geojson]
+    feats = [f for d in dateien for f in json.loads(Path(d).read_text(encoding="utf-8"))["features"]]
     ergebnis = {}
-    for f in fc["features"]:
+    for f in feats:
         p = f["properties"]
         if p.get("bez") == "Gemeindefreies Gebiet":
             continue
@@ -181,15 +182,35 @@ def gemeinde_mittelpunkte(gemeinden_geojson: Path) -> dict[str, tuple[float, flo
     return ergebnis
 
 
-def entfernungen(schulart: str, gemeinden_geojson: Path) -> dict[str, float]:
+def entfernungen(schulart: str, gemeinden_geojson) -> dict[str, float]:
     """{gemeinde_ags: Entfernung in km zur nächsten Schule der Schulart}."""
     schulen = standorte(schulart)
     mitte = gemeinde_mittelpunkte(gemeinden_geojson)
-    # nur Schulen im Umkreis betrachten (Oberfranken + 40 km), spart Rechenzeit
+    # nur Schulen im Umkreis betrachten (Untersuchungsgebiet + 40 km), spart Rechenzeit
     xs = [p[0] for p in mitte.values()]
     ys = [p[1] for p in mitte.values()]
     rand = 40_000
     nah = [s for s in schulen if min(xs) - rand <= s[0] <= max(xs) + rand and min(ys) - rand <= s[1] <= max(ys) + rand]
     if not nah:
-        raise SchulFehler("Keine Schulen im Umkreis von Oberfranken gefunden (Koordinatensystem prüfen).")
-    return {ags: min(math.hypot(x - sx, y - sy) for sx, sy in nah) / 1000 for ags, (x, y) in mitte.items()}
+        raise SchulFehler("Keine Schulen im Untersuchungsgebiet gefunden (Koordinatensystem prüfen).")
+    # Gitterindex mit 10-km-Zellen: zuerst nur Schulen in benachbarten Zellen prüfen.
+    # Nach Suche mit Radius r Zellen ist jede Schule außerhalb mindestens (r - 1) Zellen
+    # entfernt; liegt der beste Treffer darunter, ist er garantiert der nächste.
+    zelle = 10_000
+    gitter: dict = {}
+    for sx, sy in nah:
+        gitter.setdefault((int(sx // zelle), int(sy // zelle)), []).append((sx, sy))
+    ergebnis = {}
+    for ags, (x, y) in mitte.items():
+        cx, cy = int(x // zelle), int(y // zelle)
+        best = None
+        for r in range(1, 60):
+            kandidaten = [p for dx in range(-r, r + 1) for dy in range(-r, r + 1) for p in gitter.get((cx + dx, cy + dy), [])]
+            if kandidaten:
+                best = min(math.hypot(x - sx, y - sy) for sx, sy in kandidaten)
+                if best <= (r - 1) * zelle:
+                    break
+        if best is None:
+            best = min(math.hypot(x - sx, y - sy) for sx, sy in nah)
+        ergebnis[ags] = best / 1000
+    return ergebnis

@@ -70,6 +70,24 @@ def _verlauf(ind: str, endwert: float, jahr: int, endjahr: int, r: random.Random
     return endwert
 
 
+def _basis(kreis: str) -> list[float]:
+    """Ausgangswerte eines Kreises: Oberfranken fest, übrige Kreise fiktiv erzeugt."""
+    if kreis in KREIS_BASIS:
+        return KREIS_BASIS[kreis]
+    stadt = int(kreis[3:5]) < 70          # kreisfreie Städte haben Kreisnummern unter 70
+    vorlage = [v for k, v in KREIS_BASIS.items() if (int(k[3:5]) < 70) == stadt]
+    mittel = [sum(x) / len(x) for x in zip(*vorlage)]
+    r = _zufall("basis", kreis)
+    sued = kreis[:3] in ("091", "097")    # Oberbayern, Schwaben: im Mittel günstigere Lage (fiktiv)
+    faktor = {"alq": 0.75, "sgb2": 0.75, "eink": 1.1, "bev5": 1.0, "wand": 1.0}
+    ergebnis = []
+    for name, m in zip(SPALTEN, mittel):
+        w = m * (faktor.get(name, 1) if sued else 1)
+        streu = abs(m) * 0.15 if name not in ("bev5", "wand") else 2.0
+        ergebnis.append(w + r.gauss(0, streu))
+    return ergebnis
+
+
 def werte(ind: str, ebene: str, gebiete: list[dict], jahre: list[int]) -> dict[tuple[str, int], float]:
     """Liefert {(ags, jahr): wert} für einen Indikator auf einer Ebene."""
     if ind not in SPALTEN:
@@ -80,9 +98,7 @@ def werte(ind: str, ebene: str, gebiete: list[dict], jahre: list[int]) -> dict[t
     for g in gebiete:
         ags = g["ags"]
         kreis = ags[:5]
-        if kreis not in KREIS_BASIS:
-            continue
-        basis = KREIS_BASIS[kreis][spalte]
+        basis = _basis(kreis)[spalte]
         if ebene == "gemeinde":
             if ind not in GEMEINDE_STREUUNG:
                 continue

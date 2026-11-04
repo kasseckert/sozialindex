@@ -23,7 +23,8 @@ from pathlib import Path
 WURZEL = Path(__file__).resolve().parent.parent
 _K = json.loads((WURZEL / "konfiguration" / "indikatoren.json").read_text(encoding="utf-8"))
 
-REGIERUNGSBEZIRK_PRAEFIX = _K.get("praefix", "094")          # Oberfranken
+from gebiete import LAND as _LAND
+REGIERUNGSBEZIRK_PRAEFIX = _LAND["praefix"]   # Gebietsschlüssel-Präfix des Landes (Bayern: 09)
 JAHRE = list(range(_K["jahre"][0], _K["jahre"][1] + 1))
 DIMENSIONEN = _K["dimensionen"]
 INDIKATOREN = _K["indikatoren"]

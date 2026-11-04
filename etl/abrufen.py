@@ -36,11 +36,18 @@ _katalog = None
 _katalog_fehler = None
 
 
+def geodateien(ebene: str) -> list[Path]:
+    if ebene == "kreis":
+        return [WEB_DATEN / "kreise.geojson"]
+    return sorted((WEB_DATEN / "gemeinden").glob("*.geojson"))
+
+
 def gebiete(ebene: str) -> list[dict]:
-    datei = WEB_DATEN / ("kreise.geojson" if ebene == "kreis" else "gemeinden.geojson")
-    fc = json.loads(datei.read_text(encoding="utf-8"))
-    return [f["properties"] for f in fc["features"]
-            if f["properties"].get("bez") != "Gemeindefreies Gebiet"]
+    ergebnis = []
+    for datei in geodateien(ebene):
+        fc = json.loads(datei.read_text(encoding="utf-8"))
+        ergebnis += [f["properties"] for f in fc["features"] if f["properties"].get("bez") != "Gemeindefreies Gebiet"]
+    return ergebnis
 
 
 def _zahl(text):
@@ -191,7 +198,7 @@ def quelle_quotient(spec: dict, ebene: str):
 
 def quelle_schulen(spec: dict, ebene: str):
     import schulen
-    gem = schulen.entfernungen(spec["schulart"], WEB_DATEN / "gemeinden.geojson")
+    gem = schulen.entfernungen(spec["schulart"], geodateien("gemeinde"))
     if ebene == "kreis":
         summen: dict = {}
         for ags, km in gem.items():
