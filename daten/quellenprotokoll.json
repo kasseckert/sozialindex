@@ -1,5 +1,97 @@
 {
- "kreis": {},
+ "kreis": {
+  "alq": {
+   "herkunft": "regionalatlas:AI008-1-5/ai0806",
+   "quelle": "Regionalatlas Deutschland",
+   "code": "AI008-1-5",
+   "feld": "ai0806",
+   "titel": "Arbeitslosenquote, Anteil Arbeitslose",
+   "feld_titel": "Anteil Arbeitslose 15-24 Jahre an Arbeitslosen insgesamt",
+   "einheit": "Prozent"
+  },
+  "sgb2": {
+   "herkunft": "regionalatlas:AI-S-04/ai2102",
+   "quelle": "Regionalatlas Deutschland",
+   "code": "AI-S-04",
+   "feld": "ai2102",
+   "titel": "Grundsicherung für Arbeitssuchende (SGB II)",
+   "feld_titel": "SGB II-Quote bis Altersgrenze",
+   "einheit": "Prozent"
+  },
+  "eink": {
+   "herkunft": "regionalatlas:AI-S-01/ai1601",
+   "quelle": "Regionalatlas Deutschland",
+   "code": "AI-S-01",
+   "feld": "ai1601",
+   "titel": "Verfügbares Einkommen pro Kopf",
+   "feld_titel": "Verfügbares Einkommen pro Kopf",
+   "einheit": "EUR"
+  },
+  "bev5": {
+   "herkunft": "regionalatlas:AI002-1-5/ai0201",
+   "quelle": "Regionalatlas Deutschland",
+   "code": "AI002-1-5",
+   "feld": "ai0201",
+   "titel": "Bevölkerungsstand - Geburten - Gestorbene - Wanderungen",
+   "feld_titel": "Bevölkerungsdichte (EW je qkm)",
+   "einheit": "Anzahl"
+  },
+  "wand": {
+   "herkunft": "regionalatlas:AI002-1-5/ai0212",
+   "quelle": "Regionalatlas Deutschland",
+   "code": "AI002-1-5",
+   "feld": "ai0212",
+   "titel": "Bevölkerungsstand - Geburten - Gestorbene - Wanderungen",
+   "feld_titel": "Wanderungssaldo je 10.000 EW",
+   "einheit": "Anzahl"
+  },
+  "u3": {
+   "herkunft": "regionalatlas:AI003-3/ai0306",
+   "quelle": "Regionalatlas Deutschland",
+   "code": "AI003-3",
+   "feld": "ai0306",
+   "titel": "Betreuungsquote",
+   "feld_titel": "Betreuungsquote 0 bis 2 Jahre am 01.03.",
+   "einheit": "Prozent"
+  },
+  "ohneabschl": {
+   "herkunft": "regionalatlas:AI003-2/ai0305",
+   "quelle": "Regionalatlas Deutschland",
+   "code": "AI003-2",
+   "feld": "ai0305",
+   "titel": "Schulabgänger/-innen",
+   "feld_titel": "Anteil Schulabgänger/-innen ohne Hauptschulabschluss",
+   "einheit": "Prozent"
+  },
+  "ganztag": {
+   "herkunft": "regionalatlas:AI-N-05/ai0312",
+   "quelle": "Regionalatlas Deutschland",
+   "code": "AI-N-05",
+   "feld": "ai0312",
+   "titel": "Ganztagsbetreuung von Kindern",
+   "feld_titel": "Ganztagsbetreuung 3 bis 5 Jahre am 01.03.",
+   "einheit": "Prozent"
+  },
+  "mittlerer": {
+   "herkunft": "regionalatlas:AI003-2/ai0304",
+   "quelle": "Regionalatlas Deutschland",
+   "code": "AI003-2",
+   "feld": "ai0304",
+   "titel": "Schulabgänger/-innen",
+   "feld_titel": "Anteil Schulabgänger/-innen mit allgem. Hochschulreife",
+   "einheit": "Prozent"
+  },
+  "weg_gs": {
+   "herkunft": "schulen:grundschule (konstant fortgeschrieben)",
+   "quelle": "Schulstandorte in Bayern, Bayerisches Staatsministerium für Unterricht und Kultus (CC BY 4.0)",
+   "code": "grundschule"
+  },
+  "weg_gym": {
+   "herkunft": "schulen:gymnasium (konstant fortgeschrieben)",
+   "quelle": "Schulstandorte in Bayern, Bayerisches Staatsministerium für Unterricht und Kultus (CC BY 4.0)",
+   "code": "gymnasium"
+  }
+ },
  "gemeinde": {
   "alq": {
    "herkunft": "regionalatlas:AI008-1-5/ai0806",
