@@ -106,6 +106,30 @@
    "feld_titel": "Anteil Schulabgänger/-innen mit allgem. Hochschulreife",
    "einheit": "Prozent"
   },
+  "wechsel_gym_rs": {
+   "herkunft": "genesis:bildung/BY-D12.3i",
+   "quelle": "Kommunale Bildungsdatenbank",
+   "code": "BY-D12.3i",
+   "titel": ""
+  },
+  "wechsel_rs_ms": {
+   "herkunft": "genesis:bildung/BY-D12.3i",
+   "quelle": "Kommunale Bildungsdatenbank",
+   "code": "BY-D12.3i",
+   "titel": ""
+  },
+  "wechsel_ms_rs": {
+   "herkunft": "genesis:bildung/BY-D12.3i",
+   "quelle": "Kommunale Bildungsdatenbank",
+   "code": "BY-D12.3i",
+   "titel": ""
+  },
+  "ohne_beruf": {
+   "herkunft": "genesis:zensus/2000S-1003 / genesis:zensus/2000S-1003 (konstant fortgeschrieben)",
+   "quelle": "Zensus 2022",
+   "code": "2000S-1003",
+   "titel": ""
+  },
   "weg_gs": {
    "herkunft": "schulen:grundschule (konstant fortgeschrieben)",
    "quelle": "Schulstandorte in Bayern, Bayerisches Staatsministerium für Unterricht und Kultus (CC BY 4.0)",

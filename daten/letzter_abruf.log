@@ -1,4 +1,5 @@
-  · Tabellenliste bildung: 907 Tabellen
+  ! Tabellenliste bildung (*): https://www.bildungsmonitoring.de/bildungws/rest/2020/catalogue/tables fehlgeschlagen: HTTPSConnectionPool(host='www.bildungsmonitoring.de', port=443): Max retries exceeded with url: /bildungws/rest/2
+  ! Tabellenliste bildung (BY-*): https://www.bildungsmonitoring.de/bildungws/rest/2020/catalogue/tables fehlgeschlagen: HTTPSConnectionPool(host='www.bildungsmonitoring.de', port=443): Max retries exceeded with url: /bildungws/rest/2
   · Tabellenliste zensus: 420 Tabellen
 kreis     alq           960 Werte  regionalatlas:AI008-1-5/ai0801
 kreis     sgb2          960 Werte  regionalatlas:AI-S-04/ai2102
@@ -16,8 +17,28 @@ kreis     eignung_rs    576 Werte  csv:eignung_realschule.csv
 kreis     abi           960 Werte  regionalatlas:AI003-2/ai0304
 kreis     mittlerer       – keine Daten, entfällt auf dieser Ebene
 kreis     azubi_rs        – keine Daten, entfällt auf dieser Ebene
-  ! ohne_beruf (kreis, quotient, 13 s): Tabelle 2000S-1003: {'Code': 25, 'Content': 'Mindestens ein Parameter enthält ungültige Werte. Bitte prüfen Sie folgende Eingabe.: regionalmerkmal', 'Type': 'Information'}
-kreis     ohne_beruf      – keine Daten, entfällt auf dieser Ebene
+  · sch_ausl (kreis, quotient): 72 s
+kreis     sch_ausl        – keine Daten, entfällt auf dieser Ebene
+kreis     sch_privat      – keine Daten, entfällt auf dieser Ebene
+  · sch_je_lk (kreis, quotient): 118 s
+kreis     sch_je_lk       – keine Daten, entfällt auf dieser Ebene
+  · lk_teilzeit (kreis, quotient): 28 s
+kreis     lk_teilzeit     – keine Daten, entfällt auf dieser Ebene
+  · einsch_spaet (kreis, genesis): 63 s
+kreis     einsch_spaet     – keine Daten, entfällt auf dieser Ebene
+kreis     einsch_frueh     – keine Daten, entfällt auf dieser Ebene
+  ! ue_ms (kreis, genesis, 150 s): Tabelle BY-D12.1i: keine Regionalebene mit den Kreisen gefunden (versucht: BY-KRE, KREISE, KRS, KREIS; KREISE: https://www.bildungsmonitoring.de/bildungws/rest/2020/data/tablefile fehlgeschlagen: HTTPSConnectionPool(host='www.bildu; KRS: nur 0 von 96 Gebieten; KREIS: nur 0 von 96 Gebieten)
+kreis     ue_ms           – keine Daten, entfällt auf dieser Ebene
+  ! ue_gym_kbd (kreis, genesis, 0 s): Tabelle BY-D12.1i: keine Regionalebene mit den Kreisen gefunden (versucht: BY-KRE, KREISE, KRS, KREIS; KREISE: https://www.bildungsmonitoring.de/bildungws/rest/2020/data/tablefile fehlgeschlagen: HTTPSConnectionPool(host='www.bildu; KRS: nur 0 von 96 Gebieten; KREIS: nur 0 von 96 Gebieten)
+kreis     ue_gym_kbd      – keine Daten, entfällt auf dieser Ebene
+  ! ue_rs_kbd (kreis, genesis, 0 s): Tabelle BY-D12.1i: keine Regionalebene mit den Kreisen gefunden (versucht: BY-KRE, KREISE, KRS, KREIS; KREISE: https://www.bildungsmonitoring.de/bildungws/rest/2020/data/tablefile fehlgeschlagen: HTTPSConnectionPool(host='www.bildu; KRS: nur 0 von 96 Gebieten; KREIS: nur 0 von 96 Gebieten)
+kreis     ue_rs_kbd       – keine Daten, entfällt auf dieser Ebene
+  · wechsel_gym_rs (kreis, genesis): 206 s
+kreis     wechsel_gym_rs   576 Werte  genesis:bildung/BY-D12.3i
+kreis     wechsel_rs_ms   576 Werte  genesis:bildung/BY-D12.3i
+kreis     wechsel_ms_rs   517 Werte  genesis:bildung/BY-D12.3i
+  · ohne_beruf (kreis, quotient): 29 s
+kreis     ohne_beruf    960 Werte  genesis:zensus/2000S-1003 / genesis:zensus/2000S-1003 (konstant fortgeschrieben)
 kreis     ausbildung      – keine Daten, entfällt auf dieser Ebene
 kreis     weg_gs        960 Werte  schulen:grundschule (konstant fortgeschrieben)
 kreis     weg_gym       960 Werte  schulen:gymnasium (konstant fortgeschrieben)
@@ -36,13 +57,6 @@ gemeinde  weg_gs      20560 Werte  schulen:grundschule (konstant fortgeschrieben
 gemeinde  weg_gym     20560 Werte  schulen:gymnasium (konstant fortgeschrieben)
 gemeinde  wfl             – keine Daten, entfällt auf dieser Ebene
 
-97133 Zeilen geschrieben nach daten/rohdaten.csv
-Geschrieben: web/data/werte.json (272 KB)
-kreis: günstigste ['München', 'München', 'Starnberg'], ungünstigste ['Regen', 'Wunsiedel i. Fichtelgebirge', 'Hof']
-BY-D07.11i: ok
-BY-D07.1i: ok
-BY-D09.1i: ok
-BY-D11.1i: ok
-BY-D12.1i: ok
-BY-D12.3i: ok
-2000S-1003: ok
+99762 Zeilen geschrieben nach daten/rohdaten.csv
+Geschrieben: web/data/werte.json (316 KB)
+kreis: günstigste ['München', 'München', 'Starnberg'], ungünstigste ['Schweinfurt', 'Wunsiedel i. Fichtelgebirge', 'Hof']
