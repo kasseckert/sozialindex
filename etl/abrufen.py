@@ -20,6 +20,7 @@ import csv
 import json
 import re
 import sys
+import time
 from datetime import date
 from pathlib import Path
 
@@ -130,6 +131,8 @@ def quelle_csv(spec: dict, ebene: str):
 
 
 _genesis_cache: dict = {}
+_genesis_fehler: dict = {}
+GENESIS_BUDGET_S = 240          # höchstens 4 Minuten je GENESIS-Quelle
 
 
 def _genesis_zeilen(datenbank: str, tabelle: str, ebene: str, spec: dict):
@@ -138,6 +141,8 @@ def _genesis_zeilen(datenbank: str, tabelle: str, ebene: str, spec: dict):
     schluessel = (datenbank, tabelle, ebene)
     if schluessel in _genesis_cache:
         return _genesis_cache[schluessel]
+    if schluessel in _genesis_fehler:          # nicht zweimal am selben Fehler warten
+        raise _genesis_fehler[schluessel]
     varianten = [spec["regionalvariable"]] if spec.get("regionalvariable") else (
         ["KREISE", "KRS", "KREIS"] if ebene == "kreis" else ["GEMEIN", "GEM", "GEMEINDE"])
     zusatz = spec.get("jahre", 0) if spec.get("berechnung") == "veraenderung" else 0
@@ -150,6 +155,9 @@ def _genesis_zeilen(datenbank: str, tabelle: str, ebene: str, spec: dict):
             return zeilen
         except GenesisFehler as e:
             fehler = e
+            if "HTTP" in str(e) or "fehlgeschlagen" in str(e):   # Server- oder Netzfehler: andere Variante hilft nicht
+                break
+    _genesis_fehler[schluessel] = fehler
     raise fehler
 
 
@@ -164,7 +172,10 @@ def quelle_genesis(spec: dict, ebene: str):
     else:
         return None
     letzter_fehler = None
+    beginn = time.time()
     for kand in kandidaten:
+        if time.time() - beginn > GENESIS_BUDGET_S:
+            raise RuntimeError(f"Zeitbudget von {GENESIS_BUDGET_S} s überschritten, weitere Tabellen übersprungen")
         try:
             zeilen = _genesis_zeilen(db, kand["code"], ebene, spec)
             werte = ffcsv_auswerten(zeilen, spec, ebene, K.REGIERUNGSBEZIRK_PRAEFIX)
@@ -273,11 +284,14 @@ def main():
             werte, herkunft, info = {}, None, None
             if not nur_demo:
                 for spec in ind["quellen"]:
+                    t0 = time.time()
                     try:
                         res = QUELLEN[spec["typ"]](spec, ebene)
                     except Exception as e:  # Quelle gestört → nächste Quelle
-                        protokoll.append(f"  ! {ind['id']} ({ebene}, {spec['typ']}): {e}")
+                        protokoll.append(f"  ! {ind['id']} ({ebene}, {spec['typ']}, {time.time() - t0:.0f} s): {str(e)[:300]}")
                         continue
+                    if time.time() - t0 > 20:
+                        protokoll.append(f"  · {ind['id']} ({ebene}, {spec['typ']}): {time.time() - t0:.0f} s")
                     if not res:
                         continue
                     w, h, i = res
