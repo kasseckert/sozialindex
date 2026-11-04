@@ -137,7 +137,7 @@ GENESIS_BUDGET_S = 240          # höchstens 4 Minuten je GENESIS-Quelle
 
 def _genesis_zeilen(datenbank: str, tabelle: str, ebene: str, spec: dict):
     """Ruft eine Tabelle ab; probiert gängige Namen der Regionalvariable durch."""
-    from genesis import tabelle_ffcsv, GenesisFehler
+    from genesis import tabelle_stueckweise as tabelle_ffcsv, GenesisFehler
     schluessel = (datenbank, tabelle, ebene)
     if schluessel in _genesis_cache:
         return _genesis_cache[schluessel]

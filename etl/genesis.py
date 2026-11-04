@@ -64,7 +64,7 @@ def hat_zugang(datenbank: str) -> bool:
     return bool(os.environ.get(f"GENESIS_{datenbank.upper()}_USER"))
 
 
-def _post(datenbank: str, pfad: str, parameter: dict, versuche: int = 2) -> requests.Response:
+def _post(datenbank: str, pfad: str, parameter: dict, versuche: int = 2, lesezeit: int = 90) -> requests.Response:
     if datenbank not in BASIS_URL:
         raise GenesisFehler(f"Unbekannte Datenbank '{datenbank}'")
     user, pw = _zugang(datenbank)
@@ -77,7 +77,7 @@ def _post(datenbank: str, pfad: str, parameter: dict, versuche: int = 2) -> requ
     letzter_fehler = None
     for i in range(versuche):
         try:
-            r = requests.post(url, headers=headers, data=parameter, timeout=(15, 90))
+            r = requests.post(url, headers=headers, data=parameter, timeout=(15, lesezeit))
             if r.status_code == 200:
                 return r
             letzter_fehler = f"HTTP {r.status_code}: {r.text[:300]}"
@@ -141,7 +141,7 @@ def tabelle_ffcsv(datenbank: str, tabelle: str, startjahr: int, endjahr: int,
 def tabellen_katalog(datenbank: str, auswahl: str = "*", anzahl: int = 2500) -> list[dict]:
     """Liste der Tabellen einer Datenbank: [{"code", "titel"}]."""
     r = _post(datenbank, "catalogue/tables",
-              {"selection": auswahl, "area": "all", "pagelength": str(anzahl), "language": "de"})
+              {"selection": auswahl, "area": "all", "pagelength": str(anzahl), "language": "de"}, lesezeit=240)
     liste = r.json().get("List") or []
     return [{"code": t.get("Code", ""), "titel": (t.get("Content") or "").strip()} for t in liste if t.get("Code")]
 
@@ -173,3 +173,25 @@ def finde_tabellen(datenbank: str, suchbegriffe: list[str], anzahl: int = 3) -> 
     treffer.sort(key=lambda x: -x[0])
     _FUND_CACHE[schluessel] = [t for _, t in treffer[:anzahl]]
     return _FUND_CACHE[schluessel]
+
+
+def tabelle_stueckweise(datenbank: str, tabelle: str, startjahr: int, endjahr: int,
+                        regionalvariable: str | None = None, regionalschluessel: str | None = None) -> list[dict]:
+    """
+    Wie tabelle_ffcsv; ist die Tabelle für einen Abruf zu groß (GENESIS-Code 98),
+    wird sie Jahr für Jahr abgerufen und zusammengesetzt.
+    """
+    try:
+        return tabelle_ffcsv(datenbank, tabelle, startjahr, endjahr, regionalvariable, regionalschluessel)
+    except GenesisFehler as e:
+        if "zu gross" not in str(e) and "'Code': 98" not in str(e):
+            raise
+    zeilen, fehler = [], []
+    for jahr in range(startjahr, endjahr + 1):
+        try:
+            zeilen += tabelle_ffcsv(datenbank, tabelle, jahr, jahr, regionalvariable, regionalschluessel)
+        except GenesisFehler as e:
+            fehler.append(f"{jahr}: {str(e)[:120]}")
+    if not zeilen:
+        raise GenesisFehler(f"Tabelle {tabelle}: auch jahresweise kein Abruf möglich ({'; '.join(fehler[:3])})")
+    return zeilen

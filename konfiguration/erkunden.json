@@ -24,6 +24,10 @@
     {
       "datenbank": "bildung",
       "tabelle": "BY-D12.3i"
+    },
+    {
+      "datenbank": "zensus",
+      "tabelle": "2000S-1003"
     }
   ]
 }

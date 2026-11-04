@@ -25,17 +25,48 @@ def _ags_normalisieren(code: str, ebene: str) -> str | None:
     return None
 
 
+def normalisieren(zeilen: list[dict]) -> list[dict]:
+    """
+    Bringt beide Flat-File-Formate auf eine Form.
+
+    Älteres Format: Zeit; 1_Merkmal_Label; 1_Auspraegung_Code; …; CODE__Bezeichnung__Einheit (je Wert eine Spalte)
+    Neueres Format (u. a. Bildungsdatenbank, Zensus): time; 1_variable_label; 1_variable_attribute_code; …;
+                    value; value_unit; value_variable_code; value_variable_label (je Wert eine Zeile)
+    Ergebnis ist immer das ältere Format; im neueren wird jede Wertzeile zu einer Spalte
+    „CODE__Bezeichnung__Einheit“.
+    """
+    if not zeilen or "value" not in zeilen[0]:
+        return zeilen
+    ergebnis = []
+    for z in zeilen:
+        d = {"Zeit": z.get("time") or z.get("time_label") or z.get("time_code") or ""}
+        for k, v in z.items():
+            m = re.match(r"(\d+)_variable_(label|attribute_code|attribute_label)$", k)
+            if m:
+                ziel = {"label": "Merkmal_Label", "attribute_code": "Auspraegung_Code",
+                        "attribute_label": "Auspraegung_Label"}[m.group(2)]
+                d[f"{m.group(1)}_{ziel}"] = v
+        name = f"{z.get('value_variable_code', 'WERT')}__{z.get('value_variable_label', '')}__{z.get('value_unit', '')}"
+        d[name] = z.get("value")
+        ergebnis.append(d)
+    return ergebnis
+
+
 def ffcsv_auswerten(zeilen: list[dict], spec: dict, ebene: str, praefix: str) -> dict[tuple[str, int], float]:
     """Holt aus einer Flat-File-CSV die Werte {(ags, jahr): wert}."""
+    zeilen = normalisieren(zeilen)
     if not zeilen:
         return {}
-    spalten = list(zeilen[0].keys())
+    spalten = list(dict.fromkeys(k for z in zeilen for k in z))   # alle Spalten aller Zeilen
     # Wertspalten der Flat-File-CSV enthalten "__" (Code__Bezeichnung__Einheit)
     kandidaten = [c for c in spalten if "__" in c and not c.endswith(("_Code", "_Label", "_q"))]
     muster = (spec.get("wert_spalte") or "").lower()
     wertspalten = [c for c in kandidaten if muster in c.lower()] if muster else kandidaten
     if not wertspalten:
-        raise ValueError(f"Keine Wertspalte{' mit ' + repr(muster) if muster else ''}. Spalten: {spalten}")
+        raise ValueError(f"Keine Wertspalte{' mit ' + repr(muster) if muster else ''}. Vorhanden: {kandidaten}")
+    if len(wertspalten) > 1:
+        # nicht raten: bei mehreren passenden Wertspalten muss die Konfiguration eindeutig sein
+        raise ValueError(f"Wertspalte nicht eindeutig{' für ' + repr(muster) if muster else ''}: {wertspalten}")
     wertspalte = wertspalten[0]
 
     # Merkmalsnummern (1_, 2_, …) ermitteln
