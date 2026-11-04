@@ -62,6 +62,29 @@
    "titel": "Schulabgänger/-innen",
    "feld_titel": "Anteil Schulabgänger/-innen ohne Hauptschulabschluss",
    "einheit": "Prozent"
+  },
+  "ganztag": {
+   "herkunft": "regionalatlas:AI-N-05/ai0312",
+   "quelle": "Regionalatlas Deutschland",
+   "code": "AI-N-05",
+   "feld": "ai0312",
+   "titel": "Ganztagsbetreuung von Kindern",
+   "feld_titel": "Ganztagsbetreuung 3 bis 5 Jahre am 01.03.",
+   "einheit": "Prozent"
+  },
+  "uebertritt": {
+   "herkunft": "csv:uebertritt_gymnasium.csv",
+   "quelle": "Eigene Datei uebertritt_gymnasium.csv"
+  },
+  "weg_gs": {
+   "herkunft": "schulen:grundschule (konstant fortgeschrieben)",
+   "quelle": "Schulstandorte in Bayern, Bayerisches Staatsministerium für Unterricht und Kultus (CC BY 4.0)",
+   "code": "grundschule"
+  },
+  "weg_gym": {
+   "herkunft": "schulen:gymnasium (konstant fortgeschrieben)",
+   "quelle": "Schulstandorte in Bayern, Bayerisches Staatsministerium für Unterricht und Kultus (CC BY 4.0)",
+   "code": "gymnasium"
   }
  },
  "gemeinde": {
@@ -82,6 +105,16 @@
    "titel": "Bevölkerungsstand - Geburten - Gestorbene - Wanderungen",
    "feld_titel": "Bevölkerungsdichte (EW je qkm)",
    "einheit": "Anzahl"
+  },
+  "weg_gs": {
+   "herkunft": "schulen:grundschule (konstant fortgeschrieben)",
+   "quelle": "Schulstandorte in Bayern, Bayerisches Staatsministerium für Unterricht und Kultus (CC BY 4.0)",
+   "code": "grundschule"
+  },
+  "weg_gym": {
+   "herkunft": "schulen:gymnasium (konstant fortgeschrieben)",
+   "quelle": "Schulstandorte in Bayern, Bayerisches Staatsministerium für Unterricht und Kultus (CC BY 4.0)",
+   "code": "gymnasium"
   }
  }
 }
