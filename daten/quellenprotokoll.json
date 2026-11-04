@@ -1,78 +1,33 @@
 {
- "kreis": {
-  "alq": {
-   "herkunft": "demo",
-   "quelle": "Demodaten (fiktiv)"
-  },
-  "sgb2": {
-   "herkunft": "demo",
-   "quelle": "Demodaten (fiktiv)"
-  },
-  "eink": {
-   "herkunft": "demo",
-   "quelle": "Demodaten (fiktiv)"
-  },
-  "alt65": {
-   "herkunft": "demo",
-   "quelle": "Demodaten (fiktiv)"
-  },
-  "bev5": {
-   "herkunft": "demo",
-   "quelle": "Demodaten (fiktiv)"
-  },
-  "wand": {
-   "herkunft": "demo",
-   "quelle": "Demodaten (fiktiv)"
-  },
-  "u3": {
-   "herkunft": "demo",
-   "quelle": "Demodaten (fiktiv)"
-  },
-  "ohneabschl": {
-   "herkunft": "demo",
-   "quelle": "Demodaten (fiktiv)"
-  },
-  "wfl": {
-   "herkunft": "demo",
-   "quelle": "Demodaten (fiktiv)"
-  },
-  "arzt": {
-   "herkunft": "demo",
-   "quelle": "Demodaten (fiktiv)"
-  }
- },
+ "kreis": {},
  "gemeinde": {
   "alq": {
-   "herkunft": "demo",
-   "quelle": "Demodaten (fiktiv)"
-  },
-  "sgb2": {
-   "herkunft": "demo",
-   "quelle": "Demodaten (fiktiv)"
-  },
-  "eink": {
-   "herkunft": "demo",
-   "quelle": "Demodaten (fiktiv)"
-  },
-  "alt65": {
-   "herkunft": "demo",
-   "quelle": "Demodaten (fiktiv)"
+   "herkunft": "regionalatlas:AI008-1-5/ai0806",
+   "quelle": "Regionalatlas Deutschland",
+   "code": "AI008-1-5",
+   "feld": "ai0806",
+   "titel": "Arbeitslosenquote, Anteil Arbeitslose",
+   "feld_titel": "Anteil Arbeitslose 15-24 Jahre an Arbeitslosen insgesamt",
+   "einheit": "Prozent"
   },
   "bev5": {
-   "herkunft": "demo",
-   "quelle": "Demodaten (fiktiv)"
+   "herkunft": "regionalatlas:AI002-1-5/ai0201",
+   "quelle": "Regionalatlas Deutschland",
+   "code": "AI002-1-5",
+   "feld": "ai0201",
+   "titel": "Bevölkerungsstand - Geburten - Gestorbene - Wanderungen",
+   "feld_titel": "Bevölkerungsdichte (EW je qkm)",
+   "einheit": "Anzahl"
   },
-  "wand": {
-   "herkunft": "demo",
-   "quelle": "Demodaten (fiktiv)"
+  "weg_gs": {
+   "herkunft": "schulen:grundschule (konstant fortgeschrieben)",
+   "quelle": "Schulstandorte in Bayern, Bayerisches Staatsministerium für Unterricht und Kultus (CC BY 4.0)",
+   "code": "grundschule"
   },
-  "u3": {
-   "herkunft": "demo",
-   "quelle": "Demodaten (fiktiv)"
-  },
-  "wfl": {
-   "herkunft": "demo",
-   "quelle": "Demodaten (fiktiv)"
+  "weg_gym": {
+   "herkunft": "schulen:gymnasium (konstant fortgeschrieben)",
+   "quelle": "Schulstandorte in Bayern, Bayerisches Staatsministerium für Unterricht und Kultus (CC BY 4.0)",
+   "code": "gymnasium"
   }
  }
 }
