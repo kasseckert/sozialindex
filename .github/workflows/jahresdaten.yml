@@ -1,0 +1,165 @@
+# Jahresdaten ohne Schnittstelle: Übertrittsquoten (Landtag) und Erinnerungen (BA-Daten).
+#
+# Übertrittsquoten: von September bis Dezember sucht der Workflow am 1. jedes
+# Monats nach der neuen Landtagsdrucksache „Übertrittsquoten in Bayern“. Findet
+# er sie, liest und prüft er die Werte und legt einen Änderungsvorschlag
+# (Pull Request) an. Nach Ihrer Bestätigung („Merge“) wird die Karte neu berechnet.
+# Findet er nichts, legt er eine Erinnerung (Issue) an. Dann genügt es, unter
+# Actions → „Jahresdaten und Erinnerungen“ → Run workflow die Drucksachennummer
+# einzutragen, z. B. 19/7981.
+#
+# Damit Pull Requests angelegt werden können: Settings → Actions → General →
+# „Allow GitHub Actions to create and approve pull requests“ anhaken. Ohne diese
+# Einstellung legt der Workflow stattdessen ein Issue mit Link zu den Änderungen an.
+
+name: Jahresdaten und Erinnerungen
+
+on:
+  schedule:
+    - cron: "0 5 1 9-12 *"    # Übertrittsquoten suchen (September bis Dezember)
+    - cron: "0 5 15 11 *"     # Erinnerung: BA Ausbildungsmarkt
+    - cron: "0 5 15 2 *"      # Erinnerung: BA Beschäftigte nach Berufsabschluss
+  workflow_dispatch:
+    inputs:
+      drucksache:
+        description: "Drucksachennummer der Übertrittsquoten, z. B. 19/7981 (leer lassen = automatisch suchen)"
+        type: string
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: jahresdaten
+  cancel-in-progress: false
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  GH_REPO: ${{ github.repository }}
+  TITEL_ERINNERUNG: "Übertrittsquoten: neue Landtagsdrucksache eintragen"
+  TITEL_FEHLER: "Übertrittsquoten: Drucksache konnte nicht gelesen werden"
+
+jobs:
+  uebertritt:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 5 1 9-12 *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Abhängigkeiten installieren
+        run: pip install requests pdfplumber
+
+      - name: Drucksache lesen und prüfen
+        id: lesen
+        env:
+          DRUCKSACHE: ${{ inputs.drucksache }}
+        run: |
+          set +e
+          if [ -n "$DRUCKSACHE" ]; then
+            python etl/landtag_uebertritt.py --drucksache "$DRUCKSACHE"
+          else
+            python etl/landtag_uebertritt.py --suchen
+          fi
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+          if [ -f daten/uebertritt_bericht.md ]; then cat daten/uebertritt_bericht.md >> "$GITHUB_STEP_SUMMARY"; fi
+          exit 0
+
+      - name: Änderungsvorschlag anlegen
+        if: steps.lesen.outputs.code == '0'
+        env:
+          JAHR: ${{ steps.lesen.outputs.jahr }}
+        run: |
+          zweig="uebertritt-$JAHR"
+          git config user.name "sozialindex-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$zweig"
+          git add daten/import
+          if git diff --cached --quiet; then
+            echo "Die Werte für $JAHR sind bereits genau so vorhanden."
+            exit 0
+          fi
+          git commit -m "Übertrittsquoten zum Schuljahr $JAHR/$((JAHR + 1))"
+          git push -f origin "$zweig"
+          titel="Übertrittsquoten zum Schuljahr $JAHR/$((JAHR + 1)) übernehmen"
+          if [ "$(gh pr list --head "$zweig" --state open --json number --jq length)" != "0" ]; then
+            echo "Änderungsvorschlag besteht bereits und wurde aktualisiert."
+          elif ! gh pr create --base "${{ github.event.repository.default_branch }}" --head "$zweig" --title "$titel" --body-file daten/uebertritt_bericht.md; then
+            {
+              cat daten/uebertritt_bericht.md
+              echo
+              echo "GitHub Actions darf in diesem Repository keine Pull Requests anlegen. Die Werte liegen im Zweig \`$zweig\`."
+              echo "Zum Übernehmen: ${{ github.server_url }}/${{ github.repository }}/compare/$zweig öffnen und „Create pull request“, dann „Merge“ klicken."
+            } > hinweis.md
+            gh issue create --title "$titel" --body-file hinweis.md
+          fi
+          # offene Erinnerung schließen
+          for n in $(gh issue list --state open --search "in:title \"$TITEL_ERINNERUNG\"" --json number --jq '.[].number'); do
+            gh issue close "$n" --comment "Erledigt: Werte für $JAHR gefunden, siehe Änderungsvorschlag."
+          done
+
+      - name: Lesefehler melden
+        if: steps.lesen.outputs.code == '1'
+        run: |
+          if [ "$(gh issue list --state open --search "in:title \"$TITEL_FEHLER\"" --json number --jq length)" = "0" ]; then
+            {
+              cat daten/uebertritt_bericht.md 2>/dev/null
+              echo
+              echo "Die Werte wurden nicht übernommen. Mögliche Ursachen: falsche Drucksachennummer oder geänderter Tabellenaufbau."
+              echo "Bitte Nummer prüfen und den Workflow erneut starten; besteht das Problem weiter, die Werte nach daten/import/LIESMICH.md von Hand eintragen."
+            } > fehler.md
+            gh issue create --title "$TITEL_FEHLER" --body-file fehler.md
+          fi
+          exit 1
+
+      - name: Erinnerung anlegen
+        if: steps.lesen.outputs.code == '3' && github.event_name == 'schedule'
+        run: |
+          if [ "$(gh issue list --state open --search "in:title \"$TITEL_ERINNERUNG\"" --json number --jq length)" = "0" ]; then
+            cat > erinnerung.md <<'TEXT'
+          Die neue Drucksache „Übertrittsquoten in Bayern“ wurde automatisch nicht gefunden. Sie erscheint meist zwischen August und Oktober.
+
+          1. Auf www.bayern.landtag.de unter Parlament → Dokumente → Drucksachen nach **Übertrittsquoten in Bayern** suchen.
+          2. Die Nummer der neuesten Drucksache notieren, z. B. 19/7981.
+          3. Im Reiter **Actions** links **Jahresdaten und Erinnerungen** wählen, **Run workflow** klicken, die Nummer eintragen und starten.
+
+          Der Workflow liest und prüft die Werte und legt einen Änderungsvorschlag an. Diese Erinnerung schließt sich danach von selbst.
+          TEXT
+            gh issue create --title "$TITEL_ERINNERUNG" --body-file erinnerung.md
+          fi
+
+  erinnerung_ba:
+    if: github.event.schedule == '0 5 15 11 *' || github.event.schedule == '0 5 15 2 *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Erinnerung für BA-Daten anlegen
+        env:
+          PLAN: ${{ github.event.schedule }}
+        run: |
+          if [ "$PLAN" = "0 5 15 11 *" ]; then
+            titel="BA-Daten: Bewerber je Ausbildungsstelle für $(date +%Y) eintragen"
+            datei="ausbildungsmarkt.csv"
+            text="Die Ausbildungsmarktstatistik für das Berichtsjahr (Oktober bis September) ist veröffentlicht."
+          else
+            titel="BA-Daten: Beschäftigte ohne Berufsabschluss für $(( $(date +%Y) - 1 )) eintragen"
+            datei="ohne_berufsabschluss.csv"
+            text="Die Beschäftigtenstatistik zum Stichtag 30. Juni des Vorjahres ist veröffentlicht."
+          fi
+          if [ "$(gh issue list --state open --search "in:title \"$titel\"" --json number --jq length)" = "0" ]; then
+            {
+              echo "$text"
+              echo
+              echo "1. Auf statistik.arbeitsagentur.de die Tabelle herunterladen (siehe \`daten/import/LIESMICH.md\`)."
+              echo "2. Die Werte der 13 oberfränkischen Kreise in \`daten/import/$datei\` ergänzen (Spalten \`ags;jahr;wert\`)."
+              echo "3. Speichern (Commit changes). Die Karte wird automatisch neu berechnet."
+              echo
+              echo "Wird dieser Indikator nicht genutzt, kann diese Erinnerung einfach geschlossen werden."
+            } > erinnerung.md
+            gh issue create --title "$titel" --body-file erinnerung.md
+          fi
