@@ -162,7 +162,9 @@ def aufloesen(katalog: list[dict], spec: dict, ebene: str, jahre: list[int]) -> 
             fsuchen = [fsuchen] if isinstance(fsuchen, str) else fsuchen
             feld = next((f for f in ind["felder"] if any(_enthaelt(f["titel"], s) for s in fsuchen)), None)
             treffer_feld = 2 if feld else 0
-            feld = feld or (ind["felder"][0] if ind["felder"] else None)
+            if not fsuchen:            # nur ohne Feldsuche ist die erste Spalte eine zulässige Wahl
+                feld = ind["felder"][0] if ind["felder"] else None
+            # mit Feldsuche und ohne Treffer: Quelle verwerfen statt eine falsche Spalte zu nehmen
         if not feld:
             continue
         titeltreffer = 2 if any(_enthaelt(ind["titel"], s)

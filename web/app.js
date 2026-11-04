@@ -770,7 +770,9 @@
       for (const [id, q] of Object.entries(m.quellen?.[ebene] || {})) {
         const ind = indikator(id);
         if (!ind) continue;
-        const text = q.code ? `${q.quelle}, ${q.code}${q.feld ? " (" + q.feld + ")" : ""}` : q.quelle;
+        const text = q.feld_titel
+          ? `${q.quelle}: „${q.feld_titel}“ (${q.code}${q.feld ? "/" + q.feld : ""})`
+          : q.code ? `${q.quelle}, ${q.code}${q.feld ? " (" + q.feld + ")" : ""}` : q.quelle;
         const schluessel = `${ind.name}|${text}`;
         const alt = eintraege.get(schluessel);
         eintraege.set(schluessel, { id, name: ind.name, text, ebenen: [...(alt?.ebenen || []), ebene === "kreis" ? "Kreise" : "Gemeinden"] });
