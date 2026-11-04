@@ -227,18 +227,6 @@
           "feld": "ai0305"
         },
         {
-          "typ": "genesis",
-          "datenbank": "bildung",
-          "suche": [
-            "Absolventen Abgänger allgemeinbildenden Schulen Abschlussarten",
-            "Schulabgänger Abschlussart"
-          ],
-          "filter": {
-            "Abschluss": "ohne Hauptschulabschluss"
-          },
-          "wert_spalte": "anteil"
-        },
-        {
           "typ": "csv",
           "datei": "ohneabschl.csv"
         }
@@ -376,58 +364,9 @@
       ],
       "quellen": [
         {
-          "typ": "quotient",
-          "faktor": 100,
-          "zaehler": {
-            "typ": "genesis",
-            "datenbank": "bayern",
-            "suche": [
-              "Absolventen Abgänger allgemeinbildende Schulen Abschlussart Kreise",
-              "Absolventen Abgänger Abschlussarten"
-            ],
-            "wert_spalte": "",
-            "filter": {
-              "Abschluss": "mittler|Realschul"
-            }
-          },
-          "nenner": {
-            "typ": "genesis",
-            "datenbank": "bayern",
-            "suche": [
-              "Absolventen Abgänger allgemeinbildende Schulen Abschlussart Kreise",
-              "Absolventen Abgänger Abschlussarten"
-            ],
-            "wert_spalte": "",
-            "filter": {
-              "Abschluss": "Insgesamt"
-            }
-          }
-        },
-        {
-          "typ": "quotient",
-          "faktor": 100,
-          "zaehler": {
-            "typ": "genesis",
-            "datenbank": "bildung",
-            "suche": [
-              "Absolventen Abgänger allgemeinbildenden Schulen Abschlussarten"
-            ],
-            "wert_spalte": "",
-            "filter": {
-              "Abschluss": "mittler|Realschul"
-            }
-          },
-          "nenner": {
-            "typ": "genesis",
-            "datenbank": "bildung",
-            "suche": [
-              "Absolventen Abgänger allgemeinbildenden Schulen Abschlussarten"
-            ],
-            "wert_spalte": "",
-            "filter": {
-              "Abschluss": "Insgesamt"
-            }
-          }
+          "typ": "csv",
+          "datei": "mittlerer_abschluss.csv",
+          "hinweis": "Platzhalter, bis die passende Tabelle der Bildungsdatenbank erkundet ist"
         }
       ]
     },
@@ -445,58 +384,9 @@
       ],
       "quellen": [
         {
-          "typ": "quotient",
-          "faktor": 100,
-          "zaehler": {
-            "typ": "genesis",
-            "datenbank": "bildung",
-            "suche": [
-              "Neu abgeschlossene Ausbildungsverträge schulische Vorbildung",
-              "Auszubildende schulische Vorbildung"
-            ],
-            "wert_spalte": "",
-            "filter": {
-              "Vorbildung": "Realschul|mittler"
-            }
-          },
-          "nenner": {
-            "typ": "genesis",
-            "datenbank": "bildung",
-            "suche": [
-              "Neu abgeschlossene Ausbildungsverträge schulische Vorbildung",
-              "Auszubildende schulische Vorbildung"
-            ],
-            "wert_spalte": "",
-            "filter": {
-              "Vorbildung": "Insgesamt"
-            }
-          }
-        },
-        {
-          "typ": "quotient",
-          "faktor": 100,
-          "zaehler": {
-            "typ": "genesis",
-            "datenbank": "regio",
-            "suche": [
-              "Auszubildende neu abgeschlossene Ausbildungsverträge schulische Vorbildung"
-            ],
-            "wert_spalte": "",
-            "filter": {
-              "Vorbildung": "Realschul|mittler"
-            }
-          },
-          "nenner": {
-            "typ": "genesis",
-            "datenbank": "regio",
-            "suche": [
-              "Auszubildende neu abgeschlossene Ausbildungsverträge schulische Vorbildung"
-            ],
-            "wert_spalte": "",
-            "filter": {
-              "Vorbildung": "Insgesamt"
-            }
-          }
+          "typ": "csv",
+          "datei": "azubi_vorbildung.csv",
+          "hinweis": "Platzhalter, bis die passende Tabelle der Bildungsdatenbank erkundet ist"
         }
       ]
     },
@@ -614,17 +504,6 @@
         "gemeinde"
       ],
       "quellen": [
-        {
-          "typ": "genesis",
-          "datenbank": "zensus",
-          "suche": [
-            "Wohnfläche je Bewohner",
-            "Wohnfläche Wohnungen Gebäude"
-          ],
-          "wert_spalte": "",
-          "filter": {},
-          "zeitlich_konstant": true
-        },
         {
           "typ": "csv",
           "datei": "wfl.csv"

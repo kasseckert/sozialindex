@@ -1,0 +1,41 @@
+  · Tabellenliste bildung: keine Zugangsdaten hinterlegt
+  · Tabellenliste zensus: keine Zugangsdaten hinterlegt
+kreis     alq           960 Werte  regionalatlas:AI008-1-5/ai0801
+kreis     sgb2          960 Werte  regionalatlas:AI-S-04/ai2102
+kreis     eink          768 Werte  regionalatlas:AI-S-01/ai1601
+kreis     alt65         960 Werte  regionalatlas:AI002-2-5/ai0207
+kreis     bev5          960 Werte  regionalatlas:AI002-1-5/ai0201
+kreis     wand          960 Werte  regionalatlas:AI002-1-5/ai0212
+kreis     u3            960 Werte  regionalatlas:AI003-3/ai0306
+kreis     ohneabschl    960 Werte  regionalatlas:AI003-2/ai0305
+kreis     ganztag       960 Werte  regionalatlas:AI-N-05/ai0312
+kreis     uebertritt    576 Werte  csv:uebertritt_gymnasium.csv
+kreis     uebertritt_rs   576 Werte  csv:uebertritt_realschule.csv
+kreis     eignung_gym   576 Werte  csv:eignung_gymnasium.csv
+kreis     eignung_rs    576 Werte  csv:eignung_realschule.csv
+kreis     abi           960 Werte  regionalatlas:AI003-2/ai0304
+kreis     mittlerer       – keine Daten, entfällt auf dieser Ebene
+kreis     azubi_rs        – keine Daten, entfällt auf dieser Ebene
+  ! ohne_beruf (kreis, quotient, 12 s): https://ergebnisse.zensus2022.de/api/rest/2020/data/tablefile fehlgeschlagen: HTTP 401: {"Code":15,"Content":"Sie sind nicht berechtigt diesen Service aufzurufen oder der Header Ihres Requests enthält nicht alle notwendigen Angaben, sodass Ihre Zugangsdaten nicht erkannt werden.","Type":"ERROR"}
+kreis     ohne_beruf      – keine Daten, entfällt auf dieser Ebene
+kreis     ausbildung      – keine Daten, entfällt auf dieser Ebene
+kreis     weg_gs        960 Werte  schulen:grundschule (konstant fortgeschrieben)
+kreis     weg_gym       960 Werte  schulen:gymnasium (konstant fortgeschrieben)
+kreis     wfl             – keine Daten, entfällt auf dieser Ebene
+kreis     arzt            – keine Daten, entfällt auf dieser Ebene
+  · alq (gemeinde): regionalatlas:AI008-1-5/ai0801 deckt nur 8% der Gebiete ab, übersprungen
+gemeinde  alq             – keine Daten, entfällt auf dieser Ebene
+gemeinde  sgb2            – keine Daten, entfällt auf dieser Ebene
+gemeinde  eink            – keine Daten, entfällt auf dieser Ebene
+gemeinde  alt65       22071 Werte  regionalatlas:AI002-2-5/ai0207
+gemeinde  bev5        20310 Werte  regionalatlas:AI002-1-5/ai0201
+  · wand (gemeinde): regionalatlas:AI002-1-5/ai0212 deckt nur 8% der Gebiete ab, übersprungen
+gemeinde  wand            – keine Daten, entfällt auf dieser Ebene
+gemeinde  u3              – keine Daten, entfällt auf dieser Ebene
+gemeinde  weg_gs      20560 Werte  schulen:grundschule (konstant fortgeschrieben)
+gemeinde  weg_gym     20560 Werte  schulen:gymnasium (konstant fortgeschrieben)
+gemeinde  wfl             – keine Daten, entfällt auf dieser Ebene
+
+97133 Zeilen geschrieben nach daten/rohdaten.csv
+Geschrieben: web/data/werte.json (272 KB)
+kreis: günstigste ['München', 'München', 'Starnberg'], ungünstigste ['Regen', 'Wunsiedel i. Fichtelgebirge', 'Hof']
