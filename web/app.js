@@ -35,8 +35,8 @@
     const zahl = fmt(wert, ind.nachkommastellen ?? 1);
     if (ind.einheit === "%") return `${zahl} %`;
     if (ind.einheit === "€") return `${zahl} €`;
-    if (ind.einheit === "m²") return `${zahl} m²`;
-    return zahl;   // Einheiten wie "je 1.000 EW" stehen bereits im Namen
+    if (!ind.einheit || /^je\s/.test(ind.einheit)) return zahl;   // „je 1.000 EW“ steht bereits im Namen
+    return `${zahl} ${ind.einheit}`;
   }
 
   function anzeigeName(props, ebene) {
@@ -74,10 +74,17 @@
   }
 
   /** Text für Kurzinfo und Rangliste. */
+  /** Jahr, aus dem ein fortgeschriebener Wert stammt, sonst null. */
+  function fortgeschriebenAus(ags, id, jahr = Z.jahr, ebene = Z.ebene) {
+    const f = gebietDaten(ags, ebene)?.fortgeschrieben?.[id];
+    return f && f.jahre.includes(String(jahr)) ? f.aus : null;
+  }
+
   function anzeigeWert(ags, merkmal = Z.merkmal) {
     if (merkmal === "index" || merkmal.startsWith("dim:")) return fmt(skalenwert(ags, merkmal), 1);
     const id = merkmal.slice(4);
-    return mitEinheit(gebietDaten(ags)?.werte[id]?.[String(Z.jahr)], indikator(id));
+    const aus = fortgeschriebenAus(ags, id);
+    return mitEinheit(gebietDaten(ags)?.werte[id]?.[String(Z.jahr)], indikator(id)) + (aus ? ` (Stand ${aus})` : "");
   }
 
   function farbe(wert) {
@@ -285,8 +292,20 @@
     $("#skala").innerHTML = [1, 2, 3, 4, 5, 6, 7].map((k) => `<span style="background:var(--s${k})"></span>`).join("");
     const istIndikator = Z.merkmal.startsWith("ind:");
     $("#legende-hinweis").textContent = istIndikator
-      ? `Farbe zeigt die Abweichung vom Durchschnitt der ${Z.ebene === "kreis" ? "Kreise" : "Gemeinden"}. ${indikator(Z.merkmal.slice(4)).beschreibung}.`
-      : `100 = Durchschnitt der ${Z.ebene === "kreis" ? "oberfränkischen Kreise" : "oberfränkischen Gemeinden"}. Stufen: unter 85, 85–92, 92–97, 97–103, 103–108, 108–115, ab 115. ${abdeckungText()}`;
+      ? `Farbe zeigt die Abweichung vom Durchschnitt der ${Z.ebene === "kreis" ? "Kreise" : "Gemeinden"}. ${indikator(Z.merkmal.slice(4)).beschreibung}. ${fortgeschriebenText()}`
+      : `100 = Durchschnitt der ${Z.ebene === "kreis" ? "oberfränkischen Kreise" : "oberfränkischen Gemeinden"}. Stufen: unter 85, 85–92, 92–97, 97–103, 103–108, 108–115, ab 115. ${abdeckungText()} ${fortgeschriebenText()}`.trim();
+  }
+
+  /** Hinweis, wenn im gewählten Jahr Werte fortgeschrieben sind. */
+  function fortgeschriebenText() {
+    const gebiete = Object.values(ebenenDaten().gebiete);
+    const jahr = String(Z.jahr);
+    const ids = Z.merkmal.startsWith("ind:") ? [Z.merkmal.slice(4)] : ebenenDaten().indikatoren
+      .filter((id) => Z.merkmal === "index" || indikator(id).dimension === Z.merkmal.slice(4));
+    const betroffen = ids.filter((id) => gebiete.some((g) => g.fortgeschrieben?.[id]?.jahre.includes(jahr)));
+    if (!betroffen.length) return "";
+    const aus = [...new Set(betroffen.flatMap((id) => gebiete.map((g) => g.fortgeschrieben?.[id]?.aus).filter(Boolean)))].sort();
+    return `Für ${jahr} noch nicht veröffentlicht und mit dem Wert von ${aus.join(" bzw. ")} fortgeschrieben: ${betroffen.map((id) => indikator(id).name).join(", ")}.`;
   }
 
   function abdeckungText() {
@@ -463,7 +482,7 @@
   function verlaufZeichnen(flaeche, notiz, ags) {
     const g = gebietDaten(ags);
     const jahre = Z.daten.meta.jahre.map(String);
-    let reihe, referenz, titel, einheitText = "";
+    let reihe, referenz, titel, einheitText = "", fortgIdx = new Set();
     if (Z.merkmal === "index" || Z.merkmal.startsWith("dim:")) {
       reihe = jahre.map((j) => skalenwert(ags, Z.merkmal, j));
       referenz = jahre.map(() => 100);
@@ -476,7 +495,10 @@
       referenz = jahre.map((j) => ebenenDaten().referenz[id]?.[j] ?? null);
       titel = ind.name;
       einheitText = ind.einheit;
-      notiz.textContent = `${ind.name} (${ind.einheit}). Gestrichelt: Durchschnitt der ${Z.ebene === "kreis" ? "Kreise" : "Gemeinden"} Oberfrankens.`;
+      const f = g.fortgeschrieben?.[id];
+      fortgIdx = new Set((f?.jahre || []).map((j) => jahre.indexOf(j)));
+      notiz.textContent = `${ind.name} (${ind.einheit}). Gestrichelt: Durchschnitt der ${Z.ebene === "kreis" ? "Kreise" : "Gemeinden"} Oberfrankens.`
+        + (f ? ` Hohle Punkte: ${f.jahre.join(" und ")} noch nicht veröffentlicht, Wert von ${f.aus} fortgeschrieben.` : "");
     }
     const canvas = document.createElement("canvas");
     canvas.setAttribute("role", "img");
@@ -490,7 +512,10 @@
         datasets: [
           { label: "Oberfranken", data: referenz, borderColor: css("--leise"), borderDash: [4, 4], borderWidth: 1.5, pointRadius: 0 },
           { label: "Gebiet", data: reihe, borderColor: css("--s7"), borderWidth: 2.5, tension: 0.25,
-            pointRadius: jahre.map((_, i) => (i === aktiv ? 5 : 2)), pointBackgroundColor: css("--s7") },
+            pointRadius: jahre.map((_, i) => (i === aktiv ? 5 : fortgIdx.has(i) ? 3.5 : 2)),
+            pointBackgroundColor: jahre.map((_, i) => (fortgIdx.has(i) ? css("--papier") : css("--s7"))),
+            pointBorderColor: css("--s7"), pointBorderWidth: 1.5,
+            segment: { borderDash: (c) => (fortgIdx.has(c.p1DataIndex) ? [5, 4] : undefined) } },
         ],
       },
       options: {
@@ -509,15 +534,19 @@
   function kennzahlenZeichnen(flaeche, notiz, ags) {
     const g = gebietDaten(ags);
     const j = String(Z.jahr);
-    const zeile = (ind, wert, ref, punktFarbe) => `<tr>
+    let fussnote = false;
+    const zeile = (ind, wert, ref, punktFarbe, aus) => {
+      if (aus) fussnote = true;
+      return `<tr>
       <th scope="row">${esc(ind.name)}</th>
-      <td>${esc(mitEinheit(wert, ind))}<span class="punkt" style="background:${punktFarbe}" aria-hidden="true"></span></td>
+      <td${aus ? ` title="Noch nicht veröffentlicht; Wert von ${aus} fortgeschrieben"` : ""}>${esc(mitEinheit(wert, ind))}${aus ? '<sup class="fortg">*</sup>' : ""}<span class="punkt" style="background:${punktFarbe}" aria-hidden="true"></span></td>
       <td class="einheit">${esc(mitEinheit(ref, ind))}</td></tr>`;
+    };
 
     let html = `<table class="kennzahlen"><colgroup><col class="c-name"><col class="c-wert"><col class="c-ref"></colgroup><thead><tr><th>${Z.jahr}</th><th>Wert</th><th>Ø Oberfr.</th></tr></thead><tbody>`;
     for (const id of ebenenDaten().indikatoren) {
       const ind = indikator(id);
-      html += zeile(ind, g.werte[id]?.[j], ebenenDaten().referenz[id]?.[j], farbe(skalenwert(ags, "ind:" + id)));
+      html += zeile(ind, g.werte[id]?.[j], ebenenDaten().referenz[id]?.[j], farbe(skalenwert(ags, "ind:" + id)), fortgeschriebenAus(ags, id));
     }
     if (Z.ebene === "gemeinde") {
       const kAgs = ags.slice(0, 5);
@@ -527,12 +556,13 @@
         html += `<tr class="zwischen"><th colspan="3">Nur auf Kreisebene verfügbar (Wert des Kreises)</th></tr>`;
         for (const id of nurKreis) {
           html += zeile(indikator(id), kg.werte[id]?.[j], Z.daten.kreis.referenz[id]?.[j],
-            farbe(skalenwert(kAgs, "ind:" + id, Z.jahr, "kreis")));
+            farbe(skalenwert(kAgs, "ind:" + id, Z.jahr, "kreis")), fortgeschriebenAus(kAgs, id, Z.jahr, "kreis"));
         }
       }
     }
     flaeche.innerHTML = html + "</tbody></table>";
-    notiz.textContent = "Der farbige Punkt zeigt, ob der Wert günstiger (grün) oder ungünstiger (violett) als der Durchschnitt ist.";
+    notiz.textContent = "Der farbige Punkt zeigt, ob der Wert günstiger (grün) oder ungünstiger (violett) als der Durchschnitt ist."
+      + (fussnote ? " * Für dieses Jahr noch nicht veröffentlicht; letzter verfügbarer Wert fortgeschrieben." : "");
   }
 
   function hexAlpha(farbe, a) {

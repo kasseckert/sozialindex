@@ -235,6 +235,7 @@ input[type="range"] { width: 100%; accent-color: var(--s7); margin: 2px 0; }
 .kennzahlen td { text-align: right; padding: 5px 0 5px 6px; white-space: nowrap; }
 .kennzahlen tr + tr { border-top: 1px solid var(--linie); }
 .kennzahlen .einheit { color: var(--leise); }
+.kennzahlen .fortg { color: var(--s1); font-weight: 700; margin-left: 1px; }
 .kennzahlen .zwischen th { font-weight: 700; padding-top: 10px; color: var(--leise); }
 .kennzahlen .punkt { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-left: 6px; vertical-align: 0; }
 .kennzahlen thead th { color: var(--leise); font-size: 12px; }

@@ -122,19 +122,117 @@ def quelle_csv(spec: dict, ebene: str):
     return werte, f"csv:{spec['datei']}", {"quelle": f"Eigene Datei {spec['datei']}"}
 
 
+_genesis_cache: dict = {}
+
+
+def _genesis_zeilen(datenbank: str, tabelle: str, ebene: str, spec: dict):
+    """Ruft eine Tabelle ab; probiert gängige Namen der Regionalvariable durch."""
+    from genesis import tabelle_ffcsv, GenesisFehler
+    schluessel = (datenbank, tabelle, ebene)
+    if schluessel in _genesis_cache:
+        return _genesis_cache[schluessel]
+    varianten = [spec["regionalvariable"]] if spec.get("regionalvariable") else (
+        ["KREISE", "KRS", "KREIS"] if ebene == "kreis" else ["GEMEIN", "GEM", "GEMEINDE"])
+    zusatz = spec.get("jahre", 0) if spec.get("berechnung") == "veraenderung" else 0
+    fehler = None
+    for rv in varianten:
+        try:
+            zeilen = tabelle_ffcsv(datenbank, tabelle, min(K.JAHRE) - zusatz, max(K.JAHRE),
+                                   rv, K.REGIERUNGSBEZIRK_PRAEFIX + "*")
+            _genesis_cache[schluessel] = zeilen
+            return zeilen
+        except GenesisFehler as e:
+            fehler = e
+    raise fehler
+
+
 def quelle_genesis(spec: dict, ebene: str):
-    if not spec.get("tabelle"):
-        return None
-    from genesis import tabelle_ffcsv
     from genesis_auswerten import ffcsv_auswerten
-    zeilen = tabelle_ffcsv(spec["datenbank"], spec["tabelle"], min(K.JAHRE), max(K.JAHRE),
-                           spec.get("regionalvariable", {"kreis": "KREISE", "gemeinde": "GEMEIN"}[ebene]),
-                           K.REGIERUNGSBEZIRK_PRAEFIX + "*")
-    werte = ffcsv_auswerten(zeilen, spec, ebene, K.REGIERUNGSBEZIRK_PRAEFIX)
-    return werte, f"genesis:{spec['tabelle']}", {"quelle": f"GENESIS {spec['datenbank']}", "code": spec["tabelle"]}
+    from genesis import finde_tabellen
+    db = spec["datenbank"]
+    if spec.get("tabelle"):
+        kandidaten = [{"code": spec["tabelle"], "titel": ""}]
+    elif spec.get("suche"):
+        kandidaten = finde_tabellen(db, spec["suche"] if isinstance(spec["suche"], list) else [spec["suche"]])
+    else:
+        return None
+    letzter_fehler = None
+    for kand in kandidaten:
+        try:
+            zeilen = _genesis_zeilen(db, kand["code"], ebene, spec)
+            werte = ffcsv_auswerten(zeilen, spec, ebene, K.REGIERUNGSBEZIRK_PRAEFIX)
+        except Exception as e:
+            letzter_fehler = e
+            continue
+        if spec.get("berechnung") == "veraenderung":
+            n = spec.get("jahre", 5)
+            werte = {(a, j): (w / werte[(a, j - n)] - 1) * 100
+                     for (a, j), w in werte.items() if werte.get((a, j - n))}
+        if werte:
+            return werte, f"genesis:{db}/{kand['code']}", {
+                "quelle": {"bildung": "Kommunale Bildungsdatenbank", "zensus": "Zensus 2022",
+                           "regio": "Regionaldatenbank Deutschland", "bayern": "GENESIS-Online Bayern"}.get(db, f"GENESIS {db}"),
+                "code": kand["code"], "titel": kand.get("titel", "")}
+    if letzter_fehler and spec.get("tabelle"):
+        raise letzter_fehler
+    return None
 
 
-QUELLEN = {"regionalatlas": quelle_regionalatlas, "csv": quelle_csv, "genesis": quelle_genesis}
+def quelle_quotient(spec: dict, ebene: str):
+    z = QUELLEN[spec["zaehler"]["typ"]](spec["zaehler"], ebene)
+    n = QUELLEN[spec["nenner"]["typ"]](spec["nenner"], ebene)
+    if not z or not n:
+        return None
+    faktor = spec.get("faktor", 1)
+    werte = {k: z[0][k] / n[0][k] * faktor for k in z[0] if n[0].get(k)}
+    info = dict(z[2])
+    return werte, f"{z[1]} / {n[1]}", info
+
+
+def quelle_schulen(spec: dict, ebene: str):
+    import schulen
+    gem = schulen.entfernungen(spec["schulart"], WEB_DATEN / "gemeinden.geojson")
+    if ebene == "kreis":
+        summen: dict = {}
+        for ags, km in gem.items():
+            summen.setdefault(ags[:5], []).append(km)
+        werte_ohne_jahr = {k: sum(v) / len(v) for k, v in summen.items()}
+    else:
+        werte_ohne_jahr = gem
+    jahr = max(K.JAHRE)
+    werte = {(ags, jahr): km for ags, km in werte_ohne_jahr.items()}
+    return werte, f"schulen:{spec['schulart']}", {
+        "quelle": "Schulstandorte in Bayern, Bayerisches Staatsministerium für Unterricht und Kultus (CC BY 4.0)",
+        "code": spec["schulart"]}
+
+
+def zeitlich_konstant(werte: dict) -> dict:
+    """Überträgt den jeweils jüngsten Wert eines Gebiets auf alle Jahre (Strukturmerkmale)."""
+    letzter: dict = {}
+    for (ags, jahr), w in sorted(werte.items(), key=lambda x: x[0][1]):
+        letzter[ags] = w
+    return {(ags, j): w for ags, w in letzter.items() for j in K.JAHRE}
+
+
+def genesis_katalog_schreiben():
+    """Tabellenlisten von Bildungsdatenbank und Zensus für den Datenassistenten."""
+    from genesis import hat_zugang, tabellen_katalog
+    katalog = {}
+    for db, auswahl in (("bildung", "*"), ("zensus", "2000S*")):
+        if not hat_zugang(db):
+            continue
+        try:
+            katalog[db] = tabellen_katalog(db, auswahl)
+        except Exception as e:
+            print(f"  ! Tabellenliste {db}: {str(e)[:160]}")
+    if katalog:
+        (WEB_DATEN / "genesis_katalog.json").write_text(
+            json.dumps({"stand": date.today().isoformat(), **katalog}, ensure_ascii=False, separators=(",", ":")),
+            encoding="utf-8")
+
+
+QUELLEN = {"regionalatlas": quelle_regionalatlas, "csv": quelle_csv, "genesis": quelle_genesis,
+           "quotient": quelle_quotient, "schulen": quelle_schulen}
 
 
 def abdeckung(werte: dict, anzahl_gebiete: int) -> float:
@@ -169,6 +267,9 @@ def main():
                     if not res:
                         continue
                     w, h, i = res
+                    if ind.get("zeitlich_konstant") or spec.get("zeitlich_konstant"):
+                        w = zeitlich_konstant(w)
+                        h += " (konstant fortgeschrieben)"
                     deckung = abdeckung(w, len(gebiet_liste))
                     if deckung < K.MINDEST_ABDECKUNG:
                         protokoll.append(f"  · {ind['id']} ({ebene}): {h} deckt nur {deckung:.0%} der Gebiete ab, übersprungen")
@@ -189,6 +290,8 @@ def main():
             quellenprotokoll[ebene][ind["id"]] = {"herkunft": herkunft, **(info or {})}
             protokoll.append(f"{ebene:<9} {ind['id']:<11} {len(werte):>5} Werte  {herkunft}")
 
+    if not nur_demo:
+        genesis_katalog_schreiben()
     print("\n".join(protokoll))
     if not nur_demo and echte_werte == 0:
         print("\nFEHLER: Keine Quelle hat echte Daten geliefert. Bisherige Daten bleiben unverändert.")

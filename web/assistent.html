@@ -42,9 +42,15 @@
 
     <section class="a-spalte" aria-labelledby="h-katalog">
       <div class="a-spaltenkopf">
-        <h2 id="h-katalog">Regionalatlas durchsuchen</h2>
+        <h2 id="h-katalog">Datenquellen durchsuchen</h2>
         <span id="katalog-stand" class="a-leise"></span>
       </div>
+      <fieldset class="umschalter a-quellwahl">
+        <legend>Datenquelle</legend>
+        <label><input type="radio" name="katalog" value="regionalatlas" checked><span>Regionalatlas</span></label>
+        <label><input type="radio" name="katalog" value="bildung"><span>Bildungsdatenbank</span></label>
+        <label><input type="radio" name="katalog" value="zensus"><span>Zensus 2022</span></label>
+      </fieldset>
       <div class="a-suche">
         <input type="search" id="suche" placeholder="z. B. Arbeitslos, Einkommen, Betreuung" autocomplete="off">
         <label class="a-schalter"><input type="checkbox" id="nur-gemeinde"> nur mit Gemeindedaten</label>

@@ -9,7 +9,9 @@
   const WORKFLOW = "aktualisieren.yml";
   const TYP = { kreis: 3, gemeinde: 5 };
 
-  const Z = { konfig: null, katalog: null, katalogStand: "", quellenInfo: {}, kreise: [], ziel: null, geaendert: false };
+  const Z = { konfig: null, katalog: null, katalogStand: "", quellenInfo: {}, kreise: [], ziel: null, geaendert: false,
+    genesis: null, quelle: "regionalatlas" };
+  const DB_NAME = { bildung: "Kommunale Bildungsdatenbank", zensus: "Zensus 2022", regio: "Regionaldatenbank", bayern: "GENESIS-Online Bayern" };
   const $ = (s) => document.querySelector(s);
   const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const fmt = (v, n = 1) => v == null ? "–" : new Intl.NumberFormat("de-DE", { maximumFractionDigits: n }).format(v);
@@ -40,12 +42,9 @@
     try {
       const k = await json("data/katalog.json");
       Z.katalog = k.indikatoren; Z.katalogStand = k.stand;
-      $("#katalog-stand").textContent = `${Z.katalog.length} Indikatoren, Stand ${new Date(k.stand).toLocaleDateString("de-DE")}`;
-    } catch {
-      $("#katalog-stand").textContent = "";
-      $("#treffer").innerHTML = `<li>Der Katalog ist noch nicht vorhanden. Er wird beim ersten Datenabruf angelegt: Klicken Sie auf „Aktualisierung starten“ oder führen Sie <code>python etl/abrufen.py</code> aus.</li>`;
-    }
+    } catch { /* wird in trefferZeichnen erklärt */ }
     try { Z.quellenInfo = (await json("data/werte.json")).meta.quellen || {}; } catch { /* optional */ }
+    try { Z.genesis = await json("data/genesis_katalog.json"); } catch { /* erst nach Lauf mit Zugangsdaten */ }
     try {
       Z.kreise = (await json("data/kreise.geojson")).features.map((f) => f.properties);
     } catch { /* optional */ }
@@ -88,7 +87,18 @@
         (q.feld_suche ? `, Feld mit „${[].concat(q.feld_suche).join("“ oder „")}“` : "");
     }
     if (q.typ === "csv") return `Eigene Datei daten/import/${q.datei}`;
-    if (q.typ === "genesis") return `GENESIS ${q.datenbank || ""}, Tabelle ${q.tabelle || "noch nicht festgelegt"}`;
+    if (q.typ === "genesis") {
+      const db = DB_NAME[q.datenbank] || `GENESIS ${q.datenbank || ""}`;
+      const filter = q.filter && Object.keys(q.filter).length ? `, Zeile „${Object.values(q.filter).join("“, „")}“` : "";
+      if (q.tabelle) return `${db}, Tabelle ${q.tabelle}${filter}`;
+      if (q.suche) return `${db}, automatische Suche: „${[].concat(q.suche).join("“ oder „")}“${filter}`;
+      return `${db}, Tabelle noch nicht festgelegt`;
+    }
+    if (q.typ === "quotient") return `Anteil berechnet aus ${quelleText(q.zaehler)}${q.zeitlich_konstant ? ", für alle Jahre fortgeschrieben" : ""}`;
+    if (q.typ === "schulen") {
+      const art = { grundschule: "Grundschule", gymnasium: "Gymnasium", realschule: "Realschule", mittelschule: "Mittelschule" }[q.schulart] || q.schulart;
+      return `Schulstandorte Bayern (Kultusministerium): Entfernung ${art === "Gymnasium" ? "zum nächsten Gymnasium" : "zur nächsten " + art}`;
+    }
     return q.typ;
   }
 
@@ -159,7 +169,14 @@
 
   // ---------------------------------------------------------- Katalogtreffer
   function trefferZeichnen() {
-    if (!Z.katalog) return;
+    $("#nur-gemeinde").closest("label").hidden = Z.quelle !== "regionalatlas";
+    if (Z.quelle !== "regionalatlas") { genesisTrefferZeichnen(); return; }
+    if (!Z.katalog) {
+      $("#katalog-stand").textContent = "";
+      $("#treffer").innerHTML = `<li>Der Katalog ist noch nicht vorhanden. Er wird beim ersten Datenabruf angelegt: Klicken Sie auf „Aktualisierung starten“ oder führen Sie <code>python etl/abrufen.py</code> aus.</li>`;
+      return;
+    }
+    $("#katalog-stand").textContent = `${Z.katalog.length} Indikatoren, Stand ${new Date(Z.katalogStand).toLocaleDateString("de-DE")}`;
     const suche = woerter($("#suche").value);
     const nurGemeinde = $("#nur-gemeinde").checked;
     const liste = Z.katalog.filter((ind) => {
@@ -189,6 +206,27 @@
           </span></li>`).join("")}</ul>
       </li>`;
     }).join("");
+  }
+
+  function genesisTrefferZeichnen() {
+    const db = Z.quelle;
+    const liste = Z.genesis?.[db];
+    if (!liste) {
+      $("#katalog-stand").textContent = "";
+      $("#treffer").innerHTML = `<li>Die Tabellenliste der ${esc(DB_NAME[db])} ist noch nicht vorhanden. Sie wird angelegt, sobald Zugangsdaten hinterlegt sind (GitHub: Secrets <code>GENESIS_${db.toUpperCase()}_USER</code> und <code>GENESIS_${db.toUpperCase()}_PASSWORD</code>) und ein Lauf stattgefunden hat.</li>`;
+      return;
+    }
+    $("#katalog-stand").textContent = `${liste.length} Tabellen, Stand ${new Date(Z.genesis.stand).toLocaleDateString("de-DE")}`;
+    const suche = woerter($("#suche").value);
+    const treffer = liste.filter((t) => suche.every((w) => `${t.code} ${t.titel}`.toLowerCase().includes(w))).slice(0, 40);
+    if (!treffer.length) { $("#treffer").innerHTML = `<li>Keine passenden Tabellen. Versuchen Sie einen Wortstamm wie „abschluss“, „schüler“ oder „betreu“.</li>`; return; }
+    $("#treffer").innerHTML = treffer.map((t) => `<li data-db="${esc(db)}" data-tabelle="${esc(t.code)}">
+        <div class="a-t-kopf"><span class="a-t-titel">${esc(t.titel)}</span><span class="a-t-code">${esc(t.code)}</span></div>
+        <p class="a-t-meta">${esc(DB_NAME[db])}. Werte werden für Kreise abgerufen; die Wertspalte wird automatisch gewählt, andere Merkmale auf „Insgesamt“ gesetzt. Bitte das Ergebnis im Protokoll des nächsten Laufs prüfen.</p>
+        <div class="a-knoepfe">${Z.ziel != null
+          ? `<button type="button" class="klein primaer" data-aktion="g-quelle">Als Quelle verwenden</button>`
+          : `<button type="button" class="klein" data-aktion="g-neu">Als neuer Indikator</button>`}</div>
+      </li>`).join("");
   }
 
   function einheitKurz(u) {
@@ -357,6 +395,8 @@
     let timer;
     $("#suche").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(trefferZeichnen, 150); });
     $("#nur-gemeinde").addEventListener("change", trefferZeichnen);
+    document.querySelectorAll('input[name="katalog"]').forEach((r) =>
+      r.addEventListener("change", (e) => { Z.quelle = e.target.value; trefferZeichnen(); }));
 
     $("#liste").addEventListener("change", (e) => {
       const li = e.target.closest(".a-ind"); if (!li) return;
@@ -399,6 +439,26 @@
 
     $("#treffer").addEventListener("click", (e) => {
       const b = e.target.closest("button[data-aktion]"); if (!b) return;
+      if (b.dataset.aktion.startsWith("g-")) {
+        const li = b.closest("li[data-tabelle]");
+        const quelle = { typ: "genesis", datenbank: li.dataset.db, tabelle: li.dataset.tabelle };
+        const titel = li.querySelector(".a-t-titel").textContent;
+        if (b.dataset.aktion === "g-quelle" && Z.ziel != null) {
+          const ziel = Z.konfig.indikatoren[Z.ziel];
+          ziel.quellen.unshift(quelle);
+          melden(`Für „${ziel.name}“ wird jetzt zuerst ${DB_NAME[quelle.datenbank]}, Tabelle ${quelle.tabelle} verwendet.`);
+          Z.ziel = null;
+        } else {
+          let id = li.dataset.tabelle.toLowerCase().replace(/[^a-z0-9]/g, "_"), n = 2;
+          while (Z.konfig.indikatoren.some((x) => x.id === id)) id = id + n++;
+          Z.konfig.indikatoren.push({ id, name: titel.slice(0, 80), einheit: "", nachkommastellen: 1, beschreibung: titel,
+            dimension: Z.konfig.dimensionen.find((d) => d.id === "bildung")?.id || Z.konfig.dimensionen[0].id,
+            polaritaet: richtungRaten(titel), ebenen: ["kreis"], quellen: [quelle] });
+          melden(`„${titel.slice(0, 60)}“ wurde hinzugefügt. Bitte Name, Einheit, Dimension und Richtung prüfen.`);
+        }
+        geaendert(); listeZeichnen(); trefferZeichnen();
+        return;
+      }
       const ind = katalogEintrag(b.closest("li[data-code]").dataset.code);
       const feld = ind.felder.find((f) => f.code === b.dataset.feld);
       if (b.dataset.aktion === "t-vorschau") vorschau(ind.code, feld.code);

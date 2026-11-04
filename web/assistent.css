@@ -112,3 +112,5 @@ dialog::backdrop { background: rgba(20, 28, 26, 0.45); }
   .a-ind-felder, .a-mehr .a-ind-felder { grid-template-columns: 1fr 1fr; }
 }
 .a-ind-felder .a-ebenen label { display: flex; gap: 5px; align-items: center; font-weight: 400; font-size: 14px; }
+.a-quellwahl { grid-template-columns: repeat(3, 1fr); margin-bottom: 12px; }
+.a-quellwahl span { font-size: 14px; }

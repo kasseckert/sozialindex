@@ -28,6 +28,10 @@ JAHRE = list(range(_K["jahre"][0], _K["jahre"][1] + 1))
 DIMENSIONEN = _K["dimensionen"]
 INDIKATOREN = _K["indikatoren"]
 GEWICHTE = _K.get("gewichte") or {d["id"]: 1 for d in DIMENSIONEN}
+# Fehlen bei einem Indikator die jüngsten Jahre (Veröffentlichungsverzug), wird
+# der letzte verfügbare Wert für höchstens so viele Jahre fortgeschrieben und in
+# der Karte gekennzeichnet. 0 schaltet das ab; je Indikator mit "fortschreiben".
+FORTSCHREIBEN_JAHRE = int(_K.get("fortschreiben_jahre", 2))
 INDEX_MITTE = 100
 INDEX_STREUUNG = 10
 

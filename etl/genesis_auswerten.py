@@ -30,10 +30,12 @@ def ffcsv_auswerten(zeilen: list[dict], spec: dict, ebene: str, praefix: str) ->
     if not zeilen:
         return {}
     spalten = list(zeilen[0].keys())
-    wertspalten = [s for s in spalten if spec["wert_spalte"].lower() in s.lower()
-                   and not s.endswith(("_Code", "_Label"))]
+    # Wertspalten der Flat-File-CSV enthalten "__" (Code__Bezeichnung__Einheit)
+    kandidaten = [c for c in spalten if "__" in c and not c.endswith(("_Code", "_Label", "_q"))]
+    muster = (spec.get("wert_spalte") or "").lower()
+    wertspalten = [c for c in kandidaten if muster in c.lower()] if muster else kandidaten
     if not wertspalten:
-        raise ValueError(f"Keine Wertspalte mit '{spec['wert_spalte']}'. Spalten: {spalten}")
+        raise ValueError(f"Keine Wertspalte{' mit ' + repr(muster) if muster else ''}. Spalten: {spalten}")
     wertspalte = wertspalten[0]
 
     # Merkmalsnummern (1_, 2_, …) ermitteln
@@ -62,7 +64,7 @@ def ffcsv_auswerten(zeilen: list[dict], spec: dict, ebene: str, praefix: str) ->
             auspraegung = z.get(f"{n}_Auspraegung_Label", "")
             vorgabe = next((v for k, v in filter_.items() if k.lower() in merkmal.lower()), None)
             if vorgabe is not None:
-                passt &= auspraegung == vorgabe
+                passt &= vorgabe.strip().lower() in auspraegung.strip().lower()
             else:
                 passt &= auspraegung in ("", "Insgesamt")
         if not passt:

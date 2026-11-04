@@ -50,6 +50,30 @@ def lade_roh():
     return daten, herkunft
 
 
+def fortschreiben(daten):
+    """
+    Schreibt den letzten verfügbaren Wert eines Indikators für höchstens
+    K.FORTSCHREIBEN_JAHRE Jahre fort, wenn die jüngsten Jahre noch nicht
+    veröffentlicht sind. Gibt {ebene: {ags: {ind: [jahre]}}} der ergänzten Werte zurück.
+    """
+    markiert = defaultdict(lambda: defaultdict(dict))
+    letztes_jahr = max(K.JAHRE)
+    for ebene, gebiete in daten.items():
+        for ags, inds in gebiete.items():
+            for ind_id, reihe in inds.items():
+                ind = IND.get(ind_id, {})
+                n = int(ind.get("fortschreiben", K.FORTSCHREIBEN_JAHRE))
+                if n <= 0 or not reihe or ind.get("zeitlich_konstant"):
+                    continue
+                zuletzt = max(reihe)
+                ergaenzt = [j for j in range(zuletzt + 1, min(zuletzt + n, letztes_jahr) + 1) if j not in reihe]
+                for j in ergaenzt:
+                    reihe[j] = reihe[zuletzt]
+                if ergaenzt:
+                    markiert[ebene][ags][ind_id] = {"jahre": [str(j) for j in ergaenzt], "aus": str(zuletzt)}
+    return markiert
+
+
 def lade_namen():
     namen = {}
     for ebene, datei in (("kreis", "kreise.geojson"), ("gemeinde", "gemeinden.geojson")):
@@ -82,7 +106,7 @@ def standardisieren(tabelle):
     return dict(out)
 
 
-def berechne_ebene(ebene, daten):
+def berechne_ebene(ebene, daten, markiert=None):
     gebiete = daten[ebene]
     # nur Indikatoren, für die auf dieser Ebene tatsächlich Daten vorliegen
     inds = [i for i in K.INDIKATOREN if any(i["id"] in g for g in gebiete.values())]
@@ -149,6 +173,7 @@ def berechne_ebene(ebene, daten):
             "dimensionen": {d: r1(dims[d][ags]) for d in dims if ags in dims[d]},
             "index": r1(gesamt.get(ags, {})),
             "rang": {str(j): r for j, r in sorted(raenge[ags].items())},
+            **({"fortgeschrieben": markiert[ags]} if markiert and markiert.get(ags) else {}),
         }
     return {
         "indikatoren": [i["id"] for i in inds],
@@ -162,6 +187,7 @@ def berechne_ebene(ebene, daten):
 
 def main():
     daten, herkunft = lade_roh()
+    markiert = fortschreiben(daten)
     namen = lade_namen()
     protokoll_datei = WURZEL / "daten" / "quellenprotokoll.json"
     quellen = json.loads(protokoll_datei.read_text(encoding="utf-8")) if protokoll_datei.exists() else {}
@@ -176,12 +202,13 @@ def main():
             "herkunft": herkunft,
             "dimensionen": K.DIMENSIONEN,
             "gewichte": K.GEWICHTE,
+            "fortschreiben_jahre": K.FORTSCHREIBEN_JAHRE,
             "indikatoren": [{k: v for k, v in i.items() if k not in ("quelle", "quellen")} for i in K.INDIKATOREN],
             "quellen": quellen,
         },
     }
     for ebene in ("kreis", "gemeinde"):
-        ausgabe[ebene] = berechne_ebene(ebene, daten)
+        ausgabe[ebene] = berechne_ebene(ebene, daten, markiert.get(ebene))
         fehlend = set(namen[ebene]) - set(ausgabe[ebene]["gebiete"])
         fehlend = [a for a in fehlend if namen[ebene][a].get("bez") != "Gemeindefreies Gebiet"]
         if fehlend:
