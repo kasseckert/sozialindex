@@ -105,21 +105,55 @@ def _normalisieren(text: str) -> str:
     return re.sub(r"[ \t]+", " ", text)
 
 
+def _ausschnitt(text: str, n: int = 260) -> str:
+    """Letzte Zeichen vor einer Tabelle, für Fehlermeldungen (zeigt, wie der Kopf ausgelesen wurde)."""
+    return " | ".join(z.strip() for z in text[-n:].splitlines() if z.strip())
+
+
+def _reihenfolge_aus_kopf(vorspann: str, gym: str, rs: str):
+    """
+    Spaltenreihenfolge aus den Wörtern im Tabellenkopf. Mehrzeilige Köpfe werden beim
+    Auslesen oft zeilenweise vermischt („Eignung für das Eignung für die … / Gymnasium
+    Realschule …“), deshalb zählen nur die Schulart-Wörter in ihrer Reihenfolge; die
+    letzten beiden vor der Tabelle gehören zum Spaltenpaar Jungen.
+    None, wenn kein Kopf erkennbar ist.
+    """
+    woerter = re.findall(rf"\b({gym}|{rs})\b", vorspann)
+    if len(woerter) < 2 or woerter[-1] == woerter[-2]:
+        return None
+    return woerter[-2] == gym
+
+
 def _reihenfolge_uebertritt(vorspann: str) -> bool:
     """True, wenn Gymnasium zuerst steht; Fehler, wenn nicht erkennbar."""
     kurz = re.sub(r"\s+", " ", vorspann)
-    treffer = [(m.start(), m.group(1)) for m in re.finditer(r"(Gymnasien Realschulen|Realschulen Gymnasien)", kurz)]
-    if not treffer:
-        raise Lesefehler("Spaltenkopf der Übertrittstabelle nicht gefunden")
-    return treffer[-1][1].startswith("Gymnasien")
+    paare = re.findall(r"(Gymnasien Realschulen|Realschulen Gymnasien)", kurz)   # bewährt bei den bisherigen Drucksachen
+    r = paare[-1].startswith("Gymnasien") if paare else _reihenfolge_aus_kopf(vorspann, "Gymnasien", "Realschulen")
+    if r is None:
+        raise Lesefehler(f"Spaltenkopf der Übertrittstabelle nicht gefunden. Ausgelesen vor der Tabelle: »{_ausschnitt(vorspann)}«")
+    return r
 
 
-def _reihenfolge_eignung(vorspann: str) -> bool:
-    kurz = re.sub(r"\s+", " ", vorspann)
-    k = [m.group(1) for m in re.finditer(r"Eignung für d(?:as|ie) (Gymnasium|Realschule)", kurz)]
-    if len(k) < 2:
-        raise Lesefehler("Spaltenkopf der Eignungstabelle nicht gefunden")
-    return k[-2] == "Gymnasium"   # die letzten beiden Köpfe vor der Tabelle: Jungen-Paar
+def _reihenfolge_eignung(vorspann: str, tabelle: list, hinweise: list) -> bool:
+    """
+    True, wenn die Gymnasialeignung zuerst steht. Maßgeblich sind die Werte: Der Anteil
+    mit Gymnasialeignung (rund 40–70 %) liegt stets weit über dem Anteil mit reiner
+    Realschuleignung (rund 5–25 %). Nur wenn die Werte nicht eindeutig sind, entscheidet
+    der Tabellenkopf.
+    """
+    n = len(tabelle)
+    sp1 = sum(w[0] + w[2] for _, _, w in tabelle) / n / 2
+    sp2 = sum(w[1] + w[3] for _, _, w in tabelle) / n / 2
+    kopf = _reihenfolge_aus_kopf(vorspann, "Gymnasium", "Realschule")
+    if abs(sp1 - sp2) >= 10:
+        nach_werten = sp1 > sp2
+        if kopf is not None and kopf != nach_werten:
+            hinweise.append("Eignungstabelle: Spaltenkopf und Werte widersprachen sich; die Werte wurden zugrunde gelegt "
+                            f"(Gymnasialeignung im Mittel {max(sp1, sp2):.1f} %, Realschuleignung {min(sp1, sp2):.1f} %).")
+        return nach_werten
+    if kopf is None:
+        raise Lesefehler(f"Spaltenreihenfolge der Eignungstabelle nicht erkennbar. Ausgelesen vor der Tabelle: »{_ausschnitt(vorspann)}«")
+    return kopf
 
 
 def lesen(text: str) -> tuple[int, dict, dict, list[str]]:
@@ -159,7 +193,7 @@ def lesen(text: str) -> tuple[int, dict, dict, list[str]]:
         hinweise.append("Spaltenreihenfolge Realschule vor Gymnasium erkannt und umgestellt.")
     uebertritt = {a: (w if gym_zuerst else (w[1], w[0], w[3], w[2])) for _, a, w in tab1}
 
-    gym_zuerst_e = _reihenfolge_eignung(text[tab1[-1][0]:tab2[0][0]])
+    gym_zuerst_e = _reihenfolge_eignung(text[tab1[-1][0]:tab2[0][0]], tab2, hinweise)
     eignung = {a: (w if gym_zuerst_e else (w[1], w[0], w[3], w[2])) for _, a, w in tab2}
     return jahr, uebertritt, eignung, hinweise
 
@@ -191,6 +225,8 @@ def pruefen(jahr, uebertritt, eignung) -> tuple[list[str], list[str]]:
     for ags, (gj, rj, gm, rm) in eignung.items():
         if gj + rj > 100.5 or gm + rm > 100.5:
             fehler.append(f"Eignung {ags}: Summe über 100 %")
+    if sum(v[0] + v[2] for v in eignung.values()) <= sum(v[1] + v[3] for v in eignung.values()):
+        fehler.append("Eignung: Gymnasialeignung im Mittel nicht über Realschuleignung, Spalten vermutlich vertauscht")
     for datei, tab, idx in (("uebertritt_gymnasium.csv", uebertritt, (0, 2)), ("uebertritt_realschule.csv", uebertritt, (1, 3))):
         vor = _vorjahr(datei, jahr)
         for ags, w in tab.items():
