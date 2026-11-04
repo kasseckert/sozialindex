@@ -85,6 +85,20 @@ jobs:
         if: steps.abruf.outcome == 'success'
         run: python etl/index_berechnen.py | tee -a abruf.log
 
+      - name: Tabellen erkunden
+        if: always()
+        continue-on-error: true
+        env:
+          GENESIS_BAYERN_USER: ${{ secrets.GENESIS_BAYERN_USER }}
+          GENESIS_BAYERN_PASSWORD: ${{ secrets.GENESIS_BAYERN_PASSWORD }}
+          GENESIS_REGIO_USER: ${{ secrets.GENESIS_REGIO_USER }}
+          GENESIS_REGIO_PASSWORD: ${{ secrets.GENESIS_REGIO_PASSWORD }}
+          GENESIS_ZENSUS_USER: ${{ secrets.GENESIS_ZENSUS_USER }}
+          GENESIS_ZENSUS_PASSWORD: ${{ secrets.GENESIS_ZENSUS_PASSWORD }}
+          GENESIS_BILDUNG_USER: ${{ secrets.GENESIS_BILDUNG_USER }}
+          GENESIS_BILDUNG_PASSWORD: ${{ secrets.GENESIS_BILDUNG_PASSWORD }}
+        run: python etl/genesis_struktur.py | tee -a abruf.log
+
       - name: Zusammenfassung
         if: always()
         run: |
@@ -104,7 +118,10 @@ jobs:
         run: |
           git config user.name "sozialindex-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add web/data daten/rohdaten.csv daten/quellenprotokoll.json
+          # Protokoll und Tabellenaufbau mit ablegen, damit sie ohne Anmeldung lesbar sind
+          cp abruf.log daten/letzter_abruf.log 2>/dev/null || true
+          git add web/data daten/rohdaten.csv daten/quellenprotokoll.json daten/letzter_abruf.log
+          git add daten/genesis_struktur.md daten/genesis_struktur.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "Keine Änderungen an den Daten."
             exit 0
