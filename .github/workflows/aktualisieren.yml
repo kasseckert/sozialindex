@@ -46,7 +46,7 @@ concurrency:
 jobs:
   daten:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 50
     outputs:
       abruf: ${{ steps.abruf.outcome }}
     steps:
@@ -65,6 +65,7 @@ jobs:
       - name: Daten abrufen
         id: abruf
         continue-on-error: true
+        timeout-minutes: 35
         env:
           GENESIS_BAYERN_USER: ${{ secrets.GENESIS_BAYERN_USER }}
           GENESIS_BAYERN_PASSWORD: ${{ secrets.GENESIS_BAYERN_PASSWORD }}
@@ -88,6 +89,7 @@ jobs:
       - name: Tabellen erkunden
         if: always()
         continue-on-error: true
+        timeout-minutes: 10
         env:
           GENESIS_BAYERN_USER: ${{ secrets.GENESIS_BAYERN_USER }}
           GENESIS_BAYERN_PASSWORD: ${{ secrets.GENESIS_BAYERN_PASSWORD }}
