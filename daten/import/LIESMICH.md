@@ -10,7 +10,7 @@ wird sie beim nächsten Lauf automatisch verwendet.
 Aus den Antworten des Kultusministeriums auf die jährliche Schriftliche Anfrage
 „Übertrittsquoten in Bayern“ im Bayerischen Landtag, Drucksachen 18/3249 (2018),
 18/16091 (2020), 18/23567 (2021), 18/30611 (2022), 19/5789 (2023) und 19/7981 (2024).
-Für 2019 wurde keine entsprechende Anfrage gefunden. Jahr = Kalenderjahr des
+Für 2019 wurde keine entsprechende Anfrage gefunden. Die beigelegten Dateien enthalten zunächst nur die 13 oberfränkischen Kreise; die Erstbefüllung für ganz Bayern beschreibt die README. Jahr = Kalenderjahr des
 Übertritts (2024 = zum Schuljahr 2024/2025).
 
 | Datei | Inhalt |

@@ -1,4 +1,4 @@
-/* Datenassistent für den Sozialindex Oberfranken.
+/* Datenassistent für den Sozialindex Bayern.
    Läuft vollständig im Browser. Externe Verbindungen nur auf Ihre Aktion hin:
    Vorschau → Regionalatlas-Datenserver, Speichern/Starten → api.github.com. */
 (function () {
@@ -9,7 +9,7 @@
   const WORKFLOW = "aktualisieren.yml";
   const TYP = { kreis: 3, gemeinde: 5 };
 
-  const Z = { konfig: null, katalog: null, katalogStand: "", quellenInfo: {}, kreise: [], ziel: null, geaendert: false,
+  const Z = { praefix: "09", landName: "Bayern", konfig: null, katalog: null, katalogStand: "", quellenInfo: {}, kreise: [], ziel: null, geaendert: false,
     genesis: null, quelle: "regionalatlas" };
   const DB_NAME = { bildung: "Kommunale Bildungsdatenbank", zensus: "Zensus 2022", regio: "Regionaldatenbank", bayern: "GENESIS-Online Bayern" };
   const $ = (s) => document.querySelector(s);
@@ -47,6 +47,10 @@
     try { Z.genesis = await json("data/genesis_katalog.json"); } catch { /* erst nach Lauf mit Zugangsdaten */ }
     try {
       Z.kreise = (await json("data/kreise.geojson")).features.map((f) => f.properties);
+    } catch { /* optional */ }
+    try {
+      const meta = (await json("data/werte.json")).meta;
+      if (meta.land) { Z.praefix = meta.land.praefix; Z.landName = meta.land.name; }
     } catch { /* optional */ }
 
     $("#gh-repo").value = localStorage.getItem("si-repo") || "";
@@ -167,7 +171,7 @@
 
   function geaendert() {
     Z.geaendert = true;
-    document.title = "• Datenassistent – Sozialindex Oberfranken";
+    document.title = "• Datenassistent – Sozialindex Bayern";
   }
 
   // ---------------------------------------------------------- Katalogtreffer
@@ -276,11 +280,11 @@
     const layer = { source: { type: "dataLayer", dataSource: { type: "queryTable", geometryType: "esriGeometryPolygon",
       workspaceId: "gdb", oidFields: "id", spatialReference: { wkid: 25832 }, query: sql(tabelle, TYP[ebene], jahr) } } };
     const p = new URLSearchParams({ layer: JSON.stringify(layer), f: "json", outFields: "*", returnGeometry: "false",
-      where: "ags LIKE '094%'", spatialRel: "esriSpatialRelIntersects" });
+      where: `ags LIKE '${Z.praefix}%'`, spatialRel: "esriSpatialRelIntersects" });
     const r = await fetch(`${DATEN_URL}?${p}`);
     const d = await r.json();
     if (d.error) throw new Error(d.error.message || "Fehler des Datenservers");
-    return (d.features || []).map((f) => f.attributes).filter((a) => String(a.ags).startsWith("094"))
+    return (d.features || []).map((f) => f.attributes).filter((a) => String(a.ags).startsWith(Z.praefix))
       .map((a) => ({ ags: String(a.ags), name: gebietName(String(a.ags), a.gen || a.gen2), wert: a[feld] > 2e9 ? null : a[feld] }));
   }
 
@@ -304,11 +308,11 @@
       }
       const mitWert = zeilen.filter((z) => z.wert != null);
       const mittel = mitWert.reduce((s, z) => s + z.wert, 0) / (mitWert.length || 1);
-      const zeigen = ebene === "kreis" ? zeilen : zeilen.slice(0, 15);
-      inhalt.innerHTML = `<p class="a-leise">${ind.code}, Feld ${f.code}, ${f.einheit}. ${ebene === "kreis" ? "Kreise" : "Gemeinden"} Oberfrankens, ${genutztesJahr}: ${mitWert.length} von ${zeilen.length} mit Wert, Mittel ${fmt(mittel, 2)}.</p>
+      const zeigen = zeilen.slice(0, 20);
+      inhalt.innerHTML = `<p class="a-leise">${ind.code}, Feld ${f.code}, ${f.einheit}. ${ebene === "kreis" ? "Kreise" : "Gemeinden"} in ${Z.landName}, ${genutztesJahr}: ${mitWert.length} von ${zeilen.length} mit Wert, Mittel ${fmt(mittel, 2)}.</p>
         <table class="a-vorschau"><thead><tr><th>Gebiet</th><th>Wert</th></tr></thead><tbody>
         ${zeigen.map((z) => `<tr><td>${esc(z.name)}</td><td>${z.wert == null ? "geheim/fehlt" : fmt(z.wert, 2)}</td></tr>`).join("")}
-        </tbody></table>${ebene === "gemeinde" && zeilen.length > 15 ? `<p class="a-leise">… und ${zeilen.length - 15} weitere Gemeinden.</p>` : ""}`;
+        </tbody></table>${zeilen.length > 20 ? `<p class="a-leise">… und ${zeilen.length - 20} weitere ${ebene === "kreis" ? "Kreise" : "Gemeinden"}.</p>` : ""}`;
     } catch (e) {
       inhalt.innerHTML = `<p>Die Vorschau konnte nicht direkt im Browser geladen werden (${esc(e.message)}). Häufigster Grund: Der Datenserver erlaubt keine Abfragen von fremden Webseiten.</p>
         <p class="a-leise">Das betrifft nur die Vorschau. Beim automatischen Abruf über GitHub Actions oder <code>etl/abrufen.py</code> werden die Werte normal geholt; das Ergebnis steht danach im Protokoll des Laufs.</p>`;
@@ -383,7 +387,7 @@
       message: $("#gh-notiz").value || "Indikatoren angepasst", content: base64Utf8(konfigText()), branch, ...(sha ? { sha } : {}),
     });
     Z.geaendert = false;
-    document.title = "Datenassistent – Sozialindex Oberfranken";
+    document.title = "Datenassistent – Sozialindex Bayern";
     melden(`Gespeichert. GitHub Actions berechnet den Index jetzt neu; das dauert meist zwei bis fünf Minuten. Fortschritt: github.com/${repo}/actions`);
   }
 

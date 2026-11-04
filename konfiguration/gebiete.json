@@ -1,0 +1,83 @@
+{
+  "hinweis": "Zuordnung der Kreise zu Regionen (Aufsichtsbezirken). Jeder bayerische Kreis muss genau einer Region angehören. Die id erscheint in der Adresse der Karte (…/#oberfranken) und darf nur Kleinbuchstaben, Ziffern und Bindestriche enthalten.",
+  "land": {
+    "id": "bayern",
+    "name": "Bayern",
+    "praefix": "09"
+  },
+  "min_kreise_regionaler_vergleich": 10,
+  "min_gemeinden_regionaler_vergleich": 20,
+  "regionen": [
+    {
+      "id": "muenchen",
+      "name": "München",
+      "kreise": [
+        "09162",
+        "09184"
+      ]
+    },
+    {
+      "id": "oberbayern-ost",
+      "name": "Oberbayern-Ost",
+      "kreise": [
+        "09163",
+        "09171",
+        "09172",
+        "09173",
+        "09175",
+        "09177",
+        "09178",
+        "09182",
+        "09183",
+        "09187",
+        "09189"
+      ]
+    },
+    {
+      "id": "oberbayern-west",
+      "name": "Oberbayern-West",
+      "kreise": [
+        "09161",
+        "09174",
+        "09176",
+        "09179",
+        "09180",
+        "09181",
+        "09185",
+        "09186",
+        "09188",
+        "09190"
+      ]
+    },
+    {
+      "id": "niederbayern",
+      "name": "Niederbayern",
+      "praefix": "092"
+    },
+    {
+      "id": "oberpfalz",
+      "name": "Oberpfalz",
+      "praefix": "093"
+    },
+    {
+      "id": "oberfranken",
+      "name": "Oberfranken",
+      "praefix": "094"
+    },
+    {
+      "id": "mittelfranken",
+      "name": "Mittelfranken",
+      "praefix": "095"
+    },
+    {
+      "id": "unterfranken",
+      "name": "Unterfranken",
+      "praefix": "096"
+    },
+    {
+      "id": "schwaben",
+      "name": "Schwaben",
+      "praefix": "097"
+    }
+  ]
+}

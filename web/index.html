@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Sozialindex Oberfranken</title>
-  <meta name="description" content="Interaktive Karte zur sozialen Lage der Kreise und Gemeinden in Oberfranken.">
+  <title>Sozialindex Bayern</title>
+  <meta name="description" content="Interaktive Karte zur sozialen Lage der Kreise und Gemeinden in Bayern, gegliedert nach Aufsichtsbezirken.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232F6B3A'/><rect x='6' y='18' width='5' height='8' fill='%23fff'/><rect x='13.5' y='12' width='5' height='14' fill='%23fff'/><rect x='21' y='7' width='5' height='19' fill='%23fff'/></svg>">
   <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
   <link rel="stylesheet" href="style.css">
@@ -13,16 +13,31 @@
   <div class="layout">
     <aside class="seite" aria-label="Steuerung und Rangliste">
       <header class="kopf">
-        <h1>Sozialindex Oberfranken</h1>
-        <p class="unterzeile">Soziale Lage der Kreise und Gemeinden im Vergleich. Klicken Sie auf ein Gebiet, um Profil, Verlauf und Kennzahlen zu sehen.</p>
+        <h1 id="titel">Sozialindex Bayern</h1>
+        <p class="unterzeile">Soziale Lage der Kreise und Gemeinden im Vergleich. Wählen Sie eine Region und klicken Sie auf ein Gebiet, um Profil, Verlauf und Kennzahlen zu sehen.</p>
       </header>
 
       <section class="steuerung" aria-label="Ansicht wählen">
+        <label class="feld">
+          <span class="feld-titel">Region</span>
+          <select id="region"></select>
+        </label>
+
         <fieldset class="umschalter">
           <legend>Ebene</legend>
           <label><input type="radio" name="ebene" value="kreis" checked><span>Kreise</span></label>
           <label><input type="radio" name="ebene" value="gemeinde"><span>Gemeinden</span></label>
         </fieldset>
+
+        <div class="feld" id="massstab-feld" hidden>
+          <span class="feld-titel">100 entspricht dem Durchschnitt von</span>
+          <fieldset class="umschalter">
+            <legend>Vergleichsmaßstab</legend>
+            <label><input type="radio" name="massstab" value="land" checked><span>Bayern</span></label>
+            <label><input type="radio" name="massstab" value="region"><span id="massstab-region-text">Region</span></label>
+          </fieldset>
+          <p class="massstab-hinweis" id="massstab-hinweis"></p>
+        </div>
 
         <label class="feld">
           <span class="feld-titel">Merkmal</span>
@@ -72,7 +87,7 @@
       <div id="demo-hinweis" class="demo-hinweis" hidden>
         Demodaten: Die angezeigten Werte sind fiktiv und dienen nur zum Testen.
       </div>
-      <div id="karte" role="application" aria-label="Karte von Oberfranken"></div>
+      <div id="karte" role="application" aria-label="Karte von Bayern"></div>
       <div id="lade" class="lade">Daten werden geladen</div>
     </main>
   </div>

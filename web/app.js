@@ -1,4 +1,4 @@
-/* Sozialindex Oberfranken – Kartenanwendung
+/* Sozialindex Bayern – Kartenanwendung mit Regionen (Aufsichtsbezirken)
    Benötigt: Leaflet 1.9, Chart.js 4 (beide lokal unter vendor/). */
 (function () {
   "use strict";
@@ -8,6 +8,9 @@
     daten: null, kreise: null, gemeinden: null,
     ebene: "kreis", merkmal: "index", jahr: null,
     auswahl: null,            // ags des geöffneten Gebiets
+    region: "bayern",         // "bayern" oder Region-ID aus konfiguration/gebiete.json
+    massstab: "land",         // "land" = 100 ist Landesdurchschnitt, "region" = Regionsdurchschnitt
+    geladen: new Set(),       // Regionen, deren Gemeindedaten geladen sind
     reiter: "profil",
   };
   const Karte = { map: null, flaechen: null, grenzen: null, layerNachAgs: new Map(), popup: null, diagramm: null,
@@ -58,19 +61,78 @@
   function ebenenDaten() { return Z.daten[Z.ebene]; }
   function gebietDaten(ags, ebene = Z.ebene) { return Z.daten[ebene].gebiete[ags]; }
 
+  // ------------------------------------------------------------ Regionen und Maßstab
+  const landName = () => Z.daten.meta.land?.name || "Land";
+  function regionInfo(id = Z.region) { return Z.daten.meta.regionen.find((r) => r.id === id); }
+  function regionName(id = Z.region) { return id === "bayern" ? landName() : (regionInfo(id)?.name || id); }
+  function regionVon(ags) { return Z.daten.meta.regionen.find((r) => r.kreise.includes(String(ags).slice(0, 5)))?.id; }
+  function imFokus(ags) { return Z.region === "bayern" || regionVon(ags) === Z.region; }
+
+  /** Gebiete der Ebene im aktuellen Fokus (Region oder ganzes Land), ohne gemeindefreie Gebiete. */
+  function fokusGebiete(ebene = Z.ebene) {
+    const fc = ebene === "kreis" ? Z.kreise : Z.gemeinden;
+    return fc.features.map((f) => f.properties)
+      .filter((p) => p.bez !== "Gemeindefreies Gebiet" && imFokus(p.ags) && Z.daten[ebene].gebiete[p.ags]);
+  }
+
+  /** Ist der Vergleich innerhalb der Region für diese Ebene statistisch tragfähig? */
+  function regionalMoeglich(ebene = Z.ebene) {
+    if (Z.region === "bayern") return false;
+    const n = ebene === "kreis" ? regionInfo().kreise.length : fokusGebiete("gemeinde").length;
+    const min = ebene === "kreis" ? Z.daten.meta.min_kreise_regionaler_vergleich : Z.daten.meta.min_gemeinden_regionaler_vergleich;
+    return n >= (min || 10);
+  }
+  function regionalAktiv(ebene = Z.ebene) { return Z.massstab === "region" && regionalMoeglich(ebene); }
+  function vergleichsName(ebene = Z.ebene) { return regionalAktiv(ebene) ? regionName() : landName(); }
+
+  const statCache = new Map();
+  /** Mittel und Streuung eines Rohwerts über die Fokusgebiete (für den regionalen Maßstab). */
+  function fokusStatistik(ebene, schluessel, jahr, holen) {
+    const k = `${ebene}|${Z.region}|${schluessel}|${jahr}`;
+    if (statCache.has(k)) return statCache.get(k);
+    const werte = fokusGebiete(ebene).map((p) => holen(Z.daten[ebene].gebiete[p.ags])).filter((w) => w != null);
+    let erg = null;
+    if (werte.length >= 2) {
+      const m = werte.reduce((a, b) => a + b, 0) / werte.length;
+      const sd = Math.sqrt(werte.reduce((a, b) => a + (b - m) ** 2, 0) / werte.length) || 1;
+      erg = { m, sd };
+    }
+    statCache.set(k, erg);
+    return erg;
+  }
+
+  /** Durchschnittswert eines Indikators als Vergleichsgröße (Land oder Region). */
+  function referenzWert(id, jahr = Z.jahr, ebene = Z.ebene) {
+    const j = String(jahr);
+    if (regionalAktiv(ebene)) return fokusStatistik(ebene, "ind:" + id, j, (g) => g.werte[id]?.[j])?.m ?? null;
+    return Z.daten[ebene].referenz[id]?.[j] ?? null;
+  }
+
   /** Wert auf der 100er-Skala (höher = günstiger) für das aktuelle Merkmal. */
   function skalenwert(ags, merkmal = Z.merkmal, jahr = Z.jahr, ebene = Z.ebene) {
     const g = gebietDaten(ags, ebene);
     if (!g) return null;
     const j = String(jahr);
-    if (merkmal === "index") return g.index[j] ?? null;
-    if (merkmal.startsWith("dim:")) return g.dimensionen[merkmal.slice(4)]?.[j] ?? null;
+    const regional = regionalAktiv(ebene);
+    if (merkmal === "index" || merkmal.startsWith("dim:")) {
+      const holen = merkmal === "index" ? (x) => x.index[j] : (x) => x.dimensionen[merkmal.slice(4)]?.[j];
+      const roh = holen(g);
+      if (roh == null) return null;
+      if (!regional) return roh;
+      const st = fokusStatistik(ebene, merkmal, j, holen);
+      return st ? 100 + 10 * (roh - st.m) / st.sd : null;
+    }
     const id = merkmal.slice(4);
     const wert = g.werte[id]?.[j];
+    if (wert == null) return null;
+    const richtung = istKontext(id) ? 1 : indikator(id).polaritaet;   // Kontext: nur höher/niedriger
+    if (regional) {
+      const st = fokusStatistik(ebene, merkmal, j, (x) => x.werte[id]?.[j]);
+      return st ? 100 + 10 * richtung * (wert - st.m) / st.sd : null;
+    }
     const ref = Z.daten[ebene].referenz[id]?.[j];
     const sd = Z.daten[ebene].statistik[id]?.sd;
-    if (wert == null || ref == null || !sd) return null;
-    const richtung = istKontext(id) ? 1 : indikator(id).polaritaet;   // Kontext: nur höher/niedriger
+    if (ref == null || !sd) return null;
     return 100 + 10 * richtung * (wert - ref) / sd;
   }
 
@@ -106,17 +168,37 @@
   }
 
   // ------------------------------------------------------------ Laden
+  const holen = async (pfad) => {
+    const r = await fetch(pfad, { cache: "no-cache" });
+    if (!r.ok) throw new Error(`${pfad}: HTTP ${r.status}`);
+    return r.json();
+  };
+
   async function laden() {
     if (window.__SOZIALINDEX__) return window.__SOZIALINDEX__;   // gebündelte Vorschau
-    const holen = async (pfad) => {
-      const r = await fetch(pfad, { cache: "no-cache" });
-      if (!r.ok) throw new Error(`${pfad}: HTTP ${r.status}`);
-      return r.json();
-    };
-    const [kreise, gemeinden, werte] = await Promise.all([
-      holen("data/kreise.geojson"), holen("data/gemeinden.geojson"), holen("data/werte.json"),
-    ]);
-    return { kreise, gemeinden, werte };
+    const [kreise, werte] = await Promise.all([holen("data/kreise.geojson"), holen("data/werte.json")]);
+    return { kreise, werte };
+  }
+
+  /** Lädt Gemeindegrenzen und -werte der Regionen nach, die angezeigt werden sollen. */
+  async function gemeindenLaden(regionen) {
+    const fehlend = regionen.filter((r) => !Z.geladen.has(r));
+    if (!fehlend.length) return;
+    $("#lade").hidden = false;
+    $("#lade").textContent = "Gemeindedaten werden geladen";
+    const pakete = await Promise.all(fehlend.map(async (r) => {
+      const vorab = window.__SOZIALINDEX__?.gemeinden?.[r];
+      if (vorab) return [r, vorab.geo, vorab.werte];
+      const [geo, werte] = await Promise.all([holen(`data/gemeinden/${r}.geojson`), holen(`data/werte_gemeinden/${r}.json`)]);
+      return [r, geo, werte];
+    }));
+    for (const [r, geo, werte] of pakete) {
+      Z.gemeinden.features.push(...geo.features);
+      Object.assign(Z.daten.gemeinde.gebiete, werte.gebiete);
+      Z.geladen.add(r);
+    }
+    statCache.clear();
+    $("#lade").hidden = true;
   }
 
   // ------------------------------------------------------------ Steuerung
@@ -146,10 +228,8 @@
   }
 
   function suchlisteAufbauen() {
-    const fc = Z.ebene === "kreis" ? Z.kreise : Z.gemeinden;
-    $("#suchliste").innerHTML = fc.features
-      .filter((f) => gebietDaten(f.properties.ags))
-      .map((f) => suchText(f.properties))
+    $("#suchliste").innerHTML = fokusGebiete()
+      .map((p) => suchText(p))
       .sort((a, b) => a.localeCompare(b, "de"))
       .map((t) => `<option value="${esc(t)}"></option>`).join("");
   }
@@ -173,26 +253,82 @@
     });
     $("#merkmal").addEventListener("change", (e) => { Z.merkmal = e.target.value; aktualisieren(); });
     document.querySelectorAll('input[name="ebene"]').forEach((r) =>
-      r.addEventListener("change", (e) => {
+      r.addEventListener("change", async (e) => {
         Z.ebene = e.target.value;
         Z.auswahl = null;
         Karte.map.closePopup();
-        merkmalOptionenAufbauen();
-        suchlisteAufbauen();
-        flaechenZeichnen();
-        aktualisieren();
+        if (Z.ebene === "gemeinde") await gemeindenLaden(benoetigteRegionen());
+        neuZeichnen();
       }));
-    $("#suche").addEventListener("change", (e) => {
-      const fc = Z.ebene === "kreis" ? Z.kreise : Z.gemeinden;
-      const treffer = fc.features.find((f) => suchText(f.properties) === e.target.value)
-        || fc.features.find((f) => f.properties.name.toLowerCase() === e.target.value.trim().toLowerCase());
-      if (treffer) { gebietOeffnen(treffer.properties.ags, true); e.target.value = ""; }
+    $("#region").addEventListener("change", (e) => regionSetzen(e.target.value, true));
+    document.querySelectorAll('input[name="massstab"]').forEach((r) =>
+      r.addEventListener("change", (e) => { Z.massstab = e.target.value; statCache.clear(); neuZeichnen(); }));
+    window.addEventListener("hashchange", () => {
+      const id = location.hash.slice(1);
+      if (id !== Z.region && (id === "bayern" || regionInfo(id))) regionSetzen(id, true, false);
     });
+    $("#suche").addEventListener("change", (e) => {
+      const liste = fokusGebiete();
+      const treffer = liste.find((p) => suchText(p) === e.target.value)
+        || liste.find((p) => p.name.toLowerCase() === e.target.value.trim().toLowerCase());
+      if (treffer) { gebietOeffnen(treffer.ags, true); e.target.value = ""; }
+    });
+  }
+
+  function benoetigteRegionen() {
+    return Z.region === "bayern" ? Z.daten.meta.regionen.map((r) => r.id) : [Z.region];
+  }
+
+  function regionAuswahlAufbauen() {
+    $("#region").innerHTML = `<option value="bayern">${esc(landName())} gesamt</option>`
+      + Z.daten.meta.regionen.map((r) => `<option value="${esc(r.id)}">${esc(r.name)}</option>`).join("");
+    $("#region").value = Z.region;
+  }
+
+  function massstabAktualisieren() {
+    const moeglich = regionalMoeglich();
+    const feld = $("#massstab-feld");
+    feld.hidden = Z.region === "bayern";
+    const regionKnopf = document.querySelector('input[name="massstab"][value="region"]');
+    regionKnopf.disabled = !moeglich;
+    $("#massstab-region-text").textContent = regionName();
+    $("#massstab-hinweis").textContent = moeglich ? ""
+      : `Ein Vergleich innerhalb von ${regionName()} ist auf ${Z.ebene === "kreis" ? "Kreisebene" : "Gemeindeebene"} nicht sinnvoll, dafür sind es zu wenige Gebiete.`;
+    if (!moeglich && Z.massstab === "region") document.querySelector('input[name="massstab"][value="land"]').checked = true;
+    if (!moeglich) Z.massstab = Z.massstab === "region" ? "land" : Z.massstab;
+  }
+
+  async function regionSetzen(id, zoomen, hashSetzen = true) {
+    Z.region = id;
+    Z.auswahl = null;
+    statCache.clear();
+    Karte.map.closePopup();
+    $("#region").value = id;
+    if (hashSetzen && location.hash.slice(1) !== id) history.replaceState(null, "", `#${id}`);
+    document.title = id === "bayern" ? `Sozialindex ${landName()}` : `Sozialindex ${landName()}: ${regionName(id)}`;
+    if (Z.ebene === "gemeinde") await gemeindenLaden(benoetigteRegionen());
+    neuZeichnen();
+    if (zoomen) aufRegionZoomen();
+  }
+
+  function aufRegionZoomen() {
+    const feats = Z.kreise.features.filter((f) => imFokus(f.properties.ags));
+    const b = L.geoJSON({ type: "FeatureCollection", features: feats }).getBounds();
+    Karte.map.fitBounds(b, { padding: [24, 24], animate: !reduziert });
+  }
+
+  function neuZeichnen() {
+    massstabAktualisieren();
+    merkmalOptionenAufbauen();
+    suchlisteAufbauen();
+    flaechenZeichnen();
+    aktualisieren();
   }
 
   // ------------------------------------------------------------ Karte
   function karteAnlegen() {
     Karte.map = L.map("karte", {
+      preferCanvas: true,   // schneller bei über 2.000 Gemeindeflächen
       zoomSnap: 0.25, zoomDelta: 0.5, attributionControl: true,
       zoomAnimation: !reduziert, fadeAnimation: !reduziert, markerZoomAnimation: !reduziert,
     });
@@ -222,7 +358,8 @@
     if (Karte.flaechen) Karte.flaechen.remove();
     if (Karte.grenzen) Karte.grenzen.remove();
     Karte.layerNachAgs.clear();
-    const fc = Z.ebene === "kreis" ? Z.kreise : Z.gemeinden;
+    const fc = Z.ebene === "kreis" ? Z.kreise
+      : { type: "FeatureCollection", features: Z.gemeinden.features.filter((f) => imFokus(f.properties.ags)) };
 
     Karte.flaechen = L.geoJSON(fc, {
       style: () => ({}),
@@ -230,6 +367,15 @@
         const p = f.properties;
         Karte.layerNachAgs.set(p.ags, layer);
         const freiesGebiet = p.bez === "Gemeindefreies Gebiet";
+        if (!imFokus(p.ags)) {   // Kreis außerhalb der gewählten Region
+          if (mitMaus) layer.bindTooltip(() => `<strong>${esc(anzeigeName(p, Z.ebene))}</strong><br>${esc(regionName(regionVon(p.ags)))}: zum Wechseln klicken`,
+            { sticky: true, className: "kurzinfo", direction: "top", offset: [0, -8] });
+          layer.on({
+            mouseover: () => { hoverAus(); Karte.hoverLayer = layer; },
+            click: () => { hoverAus(); regionSetzen(regionVon(p.ags), true); },
+          });
+          return;
+        }
         if (mitMaus) layer.bindTooltip(() => freiesGebiet
           ? `<span>${esc(p.name)}</span><br><span>Gemeindefreies Gebiet, keine Daten</span>`
           : `<strong>${esc(anzeigeName(p, Z.ebene))}</strong><br>${esc(merkmalName())}: <b>${esc(anzeigeWert(p.ags))}</b>`,
@@ -258,9 +404,10 @@
   }
 
   function stilFuer(layer, p) {
+    const draussen = !imFokus(p.ags);
     layer.setStyle({
-      fillColor: p.bez === "Gemeindefreies Gebiet" ? css("--ohne-daten") : farbe(skalenwert(p.ags)),
-      fillOpacity: 1,
+      fillColor: p.bez === "Gemeindefreies Gebiet" || draussen ? css("--ohne-daten") : farbe(skalenwert(p.ags)),
+      fillOpacity: draussen ? 0.45 : 1,
       color: css("--kontur"),
       weight: Z.ebene === "kreis" ? 1.4 : 0.6,
     });
@@ -306,8 +453,8 @@
     pole[1].textContent = neutral ? "höher" : "günstiger";
     const istIndikator = Z.merkmal.startsWith("ind:");
     $("#legende-hinweis").textContent = istIndikator
-      ? `${neutral ? "Kontextindikator, geht nicht in den Index ein. Farbe zeigt, ob der Wert über oder unter dem" : "Farbe zeigt die Abweichung vom"} Durchschnitt der ${Z.ebene === "kreis" ? "Kreise" : "Gemeinden"}. ${indikator(Z.merkmal.slice(4)).beschreibung}. ${fortgeschriebenText()}`
-      : `100 = Durchschnitt der ${Z.ebene === "kreis" ? "oberfränkischen Kreise" : "oberfränkischen Gemeinden"}. Stufen: unter 85, 85–92, 92–97, 97–103, 103–108, 108–115, ab 115. ${abdeckungText()} ${fortgeschriebenText()}`.trim();
+      ? `${neutral ? "Kontextindikator, geht nicht in den Index ein. Farbe zeigt, ob der Wert über oder unter dem" : "Farbe zeigt die Abweichung vom"} Durchschnitt der ${Z.ebene === "kreis" ? "Kreise" : "Gemeinden"} in ${vergleichsName()}. ${indikator(Z.merkmal.slice(4)).beschreibung}. ${fortgeschriebenText()}`
+      : `100 = Durchschnitt der ${Z.ebene === "kreis" ? "Kreise" : "Gemeinden"} in ${vergleichsName()}. Stufen: unter 85, 85–92, 92–97, 97–103, 103–108, 108–115, ab 115. ${abdeckungText()} ${fortgeschriebenText()}`.trim();
   }
 
   /** Hinweis, wenn im gewählten Jahr Werte fortgeschrieben sind. */
@@ -331,12 +478,11 @@
   }
 
   function ranglisteZeichnen() {
-    const fc = Z.ebene === "kreis" ? Z.kreise : Z.gemeinden;
-    const zeilen = fc.features
-      .map((f) => ({ p: f.properties, w: skalenwert(f.properties.ags) }))
+    const zeilen = fokusGebiete()
+      .map((p) => ({ p, w: skalenwert(p.ags) }))
       .filter((z) => z.w != null)
       .sort((a, b) => b.w - a.w);
-    $("#rang-titel").textContent = `Rangliste, ${zeilen.length} ${Z.ebene === "kreis" ? "Kreise" : "Gemeinden"}`;
+    $("#rang-titel").textContent = `Rangliste ${regionName()}, ${zeilen.length.toLocaleString("de-DE")} ${Z.ebene === "kreis" ? "Kreise" : "Gemeinden"}`;
     $("#rang").innerHTML = zeilen.map((z, i) => {
       const abw = Math.max(-30, Math.min(30, z.w - 100));
       const links = abw < 0 ? 50 + (abw / 30) * 50 : 50;
@@ -397,12 +543,16 @@
     const div = document.createElement("div");
     div.className = "pop";
     div.dataset.ags = p.ags;
-    const anzahl = ebenenDaten().anzahl;
+    const fokus = fokusGebiete().map((x) => ({ a: x.ags, w: skalenwert(x.ags, "index") })).filter((x) => x.w != null).sort((a, b) => b.w - a.w);
+    const rangRegion = fokus.findIndex((x) => x.a === p.ags) + 1;
+    const rangText = Z.region === "bayern"
+      ? `Rang ${g.rang[j] ?? "–"} von ${ebenenDaten().anzahl.toLocaleString("de-DE")}`
+      : `Rang ${rangRegion || "–"} von ${fokus.length} in ${regionName()}, ${g.rang[j] ?? "–"} von ${ebenenDaten().anzahl.toLocaleString("de-DE")} in ${landName()}`;
     div.innerHTML = `
       <div class="pop-kopf">
         <div><p class="pop-name">${esc(anzeigeName(p, Z.ebene))}</p>
         <p class="pop-art">${esc(unterzeile(p, Z.ebene))}</p></div>
-        <div class="pop-wert"><strong>${fmt(g.index[j], 0)}</strong><span>Index ${Z.jahr}, Rang ${g.rang[j] ?? "–"} von ${anzahl}</span></div>
+        <div class="pop-wert"><strong>${fmt(skalenwert(p.ags, "index"), 0)}</strong><span>Index ${Z.jahr}${regionalAktiv() ? ` (Vergleich ${esc(regionName())})` : ""}<br>${esc(rangText)}</span></div>
       </div>
       <div class="reiter" role="tablist">
         <button type="button" role="tab" data-reiter="profil">Profil</button>
@@ -442,8 +592,8 @@
   function profilZeichnen(flaeche, notiz, ags) {
     const g = gebietDaten(ags);
     const j = String(Z.jahr);
-    const dims = Z.daten.meta.dimensionen.filter((d) => g.dimensionen[d.id]?.[j] != null);
-    const werte = dims.map((d) => g.dimensionen[d.id][j]);
+    const dims = Z.daten.meta.dimensionen.filter((d) => skalenwert(ags, "dim:" + d.id) != null);
+    const werte = dims.map((d) => skalenwert(ags, "dim:" + d.id));
     const canvas = document.createElement("canvas");
     canvas.setAttribute("role", "img");
     canvas.setAttribute("aria-label", "Profil: " + dims.map((d, i) => `${d.name} ${fmt(werte[i], 0)}`).join(", "));
@@ -455,7 +605,7 @@
       data: {
         labels: dims.map((d) => DIM_KURZ[d.id] || d.name),
         datasets: [
-          { label: "Oberfranken", data: dims.map(() => 100), borderColor: css("--leise"), borderDash: [4, 4],
+          { label: vergleichsName(), data: dims.map(() => 100), borderColor: css("--leise"), borderDash: [4, 4],
             borderWidth: 1.5, pointRadius: 0, fill: false },
           { label: "Gebiet", data: werte, borderColor: css("--s7"), backgroundColor: hexAlpha(css("--s7"), 0.22),
             borderWidth: 2.5, pointRadius: 3.5, pointBackgroundColor: werte.map(farbe), pointBorderColor: css("--tinte"), pointBorderWidth: 1, fill: true },
@@ -473,7 +623,7 @@
         } },
       },
     });
-    notiz.textContent = `Werte: ${dims.map((d, i) => `${DIM_KURZ[d.id] || d.name} ${fmt(werte[i], 0)}`).join(", ")}. Gestrichelt: Durchschnitt Oberfrankens (100); weiter außen ist günstiger.`;
+    notiz.textContent = `Werte: ${dims.map((d, i) => `${DIM_KURZ[d.id] || d.name} ${fmt(werte[i], 0)}`).join(", ")}. Gestrichelt: Durchschnitt in ${vergleichsName()} (100); weiter außen ist günstiger.`;
   }
 
   function profilBalken(canvas, dims, werte, notiz) {
@@ -490,7 +640,7 @@
         },
       },
     });
-    notiz.textContent = `Werte: ${dims.map((d, i) => `${d.name} ${fmt(werte[i], 0)}`).join(", ")}. 100 = Durchschnitt Oberfrankens; rechts ist günstiger.`;
+    notiz.textContent = `Werte: ${dims.map((d, i) => `${d.name} ${fmt(werte[i], 0)}`).join(", ")}. 100 = Durchschnitt in ${vergleichsName()}; rechts ist günstiger.`;
   }
 
   function verlaufZeichnen(flaeche, notiz, ags) {
@@ -502,17 +652,17 @@
       reihe = jahre.map((j) => skalenwert(ags, Z.merkmal, j));
       referenz = jahre.map(() => 100);
       titel = merkmalName();
-      notiz.textContent = `${titel} im Zeitverlauf. Gestrichelt: Durchschnitt Oberfrankens im jeweiligen Jahr (100).`;
+      notiz.textContent = `${titel} im Zeitverlauf. Gestrichelt: Durchschnitt in ${vergleichsName()} im jeweiligen Jahr (100).`;
     } else {
       const id = Z.merkmal.slice(4);
       const ind = indikator(id);
       reihe = jahre.map((j) => g.werte[id]?.[j] ?? null);
-      referenz = jahre.map((j) => ebenenDaten().referenz[id]?.[j] ?? null);
+      referenz = jahre.map((j) => referenzWert(id, j));
       titel = ind.name;
       einheitText = ind.einheit;
       const f = g.fortgeschrieben?.[id];
       fortgIdx = new Set((f?.jahre || []).map((j) => jahre.indexOf(j)));
-      notiz.textContent = `${ind.name} (${ind.einheit}). Gestrichelt: Durchschnitt der ${Z.ebene === "kreis" ? "Kreise" : "Gemeinden"} Oberfrankens.`
+      notiz.textContent = `${ind.name} (${ind.einheit}). Gestrichelt: Durchschnitt der ${Z.ebene === "kreis" ? "Kreise" : "Gemeinden"} in ${vergleichsName()}.`
         + (f ? ` Hohle Punkte: ${f.jahre.join(" und ")} noch nicht veröffentlicht, Wert von ${f.aus} fortgeschrieben.` : "");
     }
     const canvas = document.createElement("canvas");
@@ -525,7 +675,7 @@
       data: {
         labels: jahre,
         datasets: [
-          { label: "Oberfranken", data: referenz, borderColor: css("--leise"), borderDash: [4, 4], borderWidth: 1.5, pointRadius: 0 },
+          { label: vergleichsName(), data: referenz, borderColor: css("--leise"), borderDash: [4, 4], borderWidth: 1.5, pointRadius: 0 },
           { label: "Gebiet", data: reihe, borderColor: linie, borderWidth: 2.5, tension: 0.25,
             pointRadius: jahre.map((_, i) => (i === aktiv ? 5 : fortgIdx.has(i) ? 3.5 : 2)),
             pointBackgroundColor: jahre.map((_, i) => (fortgIdx.has(i) ? css("--papier") : linie)),
@@ -558,10 +708,10 @@
       <td class="einheit">${esc(mitEinheit(ref, ind))}</td></tr>`;
     };
 
-    let html = `<table class="kennzahlen"><colgroup><col class="c-name"><col class="c-wert"><col class="c-ref"></colgroup><thead><tr><th>${Z.jahr}</th><th>Wert</th><th>Ø Oberfr.</th></tr></thead><tbody>`;
+    let html = `<table class="kennzahlen"><colgroup><col class="c-name"><col class="c-wert"><col class="c-ref"></colgroup><thead><tr><th>${Z.jahr}</th><th>Wert</th><th>Ø ${regionalAktiv() ? "Region" : esc(landName())}</th></tr></thead><tbody>`;
     for (const id of ebenenDaten().indikatoren.filter((x) => !istKontext(x))) {
       const ind = indikator(id);
-      html += zeile(ind, g.werte[id]?.[j], ebenenDaten().referenz[id]?.[j], farbe(skalenwert(ags, "ind:" + id), false), fortgeschriebenAus(ags, id));
+      html += zeile(ind, g.werte[id]?.[j], referenzWert(id), farbe(skalenwert(ags, "ind:" + id), false), fortgeschriebenAus(ags, id));
     }
     if (Z.ebene === "gemeinde") {
       const kAgs = ags.slice(0, 5);
@@ -570,7 +720,7 @@
       if (kg && nurKreis.length) {
         html += `<tr class="zwischen"><th colspan="3">Nur auf Kreisebene verfügbar (Wert des Kreises)</th></tr>`;
         for (const id of nurKreis) {
-          html += zeile(indikator(id), kg.werte[id]?.[j], Z.daten.kreis.referenz[id]?.[j],
+          html += zeile(indikator(id), kg.werte[id]?.[j], referenzWert(id, Z.jahr, "kreis"),
             farbe(skalenwert(kAgs, "ind:" + id, Z.jahr, "kreis"), false), fortgeschriebenAus(kAgs, id, Z.jahr, "kreis"));
         }
       }
@@ -583,7 +733,7 @@
     if (kontextIds.length) {
       html += `<tr class="zwischen"><th colspan="3">Kontext, nicht im Index${Z.ebene === "gemeinde" ? " (Wert des Kreises)" : ""}</th></tr>`;
       for (const id of kontextIds) {
-        html += zeile(indikator(id), kg2.werte[id]?.[j], Z.daten[kEbene].referenz[id]?.[j],
+        html += zeile(indikator(id), kg2.werte[id]?.[j], referenzWert(id, Z.jahr, kEbene),
           farbe(skalenwert(kAgs2, "ind:" + id, Z.jahr, kEbene), true), fortgeschriebenAus(kAgs2, id, Z.jahr, kEbene));
       }
     }
@@ -646,18 +796,21 @@
 
   async function start() {
     try {
-      const { kreise, gemeinden, werte } = await laden();
-      Z.kreise = kreise; Z.gemeinden = gemeinden; Z.daten = werte;
+      const { kreise, werte } = await laden();
+      Z.kreise = kreise; Z.daten = werte;
+      Z.gemeinden = { type: "FeatureCollection", features: [] };
+      Z.daten.gemeinde.gebiete = Z.daten.gemeinde.gebiete || {};
       Z.jahr = Math.max(...werte.meta.jahre);
+      const start = location.hash.slice(1);
+      Z.region = start === "bayern" || regionInfo(start) ? start : "bayern";
+      $("#titel").textContent = `Sozialindex ${landName()}`;
       diagrammGrundlagen();
       karteAnlegen();
-      merkmalOptionenAufbauen();
-      suchlisteAufbauen();
+      regionAuswahlAufbauen();
       steuerungVerbinden();
-      flaechenZeichnen();
       fussZeichnen();
-      aktualisieren();
       $("#lade").hidden = true;
+      await regionSetzen(Z.region, Z.region !== "bayern", false);
       // Farbschema-Wechsel des Systems übernehmen
       window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
         diagrammGrundlagen(); stileSetzen(); ranglisteZeichnen();

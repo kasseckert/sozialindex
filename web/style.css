@@ -119,6 +119,10 @@ body {
 .umschalter input:focus-visible + span { outline: 2px solid var(--fokus); outline-offset: 1px; }
 
 .feld { display: grid; gap: 5px; }
+.feld[hidden] { display: none; }
+.massstab-hinweis { margin: 0; font-size: 12px; color: var(--leise); }
+.massstab-hinweis:empty { display: none; }
+.umschalter input:disabled + span { opacity: 0.45; cursor: not-allowed; }
 .feld-titel { font-weight: 700; font-size: 13px; display: flex; justify-content: space-between; }
 .feld-titel output { font-weight: 700; font-variant-numeric: tabular-nums; }
 select, input[type="search"] {
