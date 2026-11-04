@@ -51,6 +51,8 @@ jobs:
       abruf: ${{ steps.abruf.outcome }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -105,10 +107,21 @@ jobs:
           git add web/data daten/rohdaten.csv daten/quellenprotokoll.json
           if git diff --cached --quiet; then
             echo "Keine Änderungen an den Daten."
-          else
-            git commit -m "Daten aktualisiert $(date +%Y-%m-%d)"
-            git push
+            exit 0
           fi
+          git commit -m "Daten aktualisiert $(date +%Y-%m-%d)"
+          # Hat sich das Repository während des Laufs geändert (z. B. durch eine
+          # Bearbeitung im Browser), erst den neuen Stand holen, dann speichern.
+          for versuch in 1 2 3; do
+            if git pull --rebase --autostash origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME"; then
+              echo "Daten gespeichert."
+              exit 0
+            fi
+            echo "Speichern fehlgeschlagen (Versuch $versuch), neuer Versuch in 10 Sekunden."
+            sleep 10
+          done
+          echo "::error::Die Daten konnten nicht gespeichert werden."
+          exit 1
 
       - name: Website als Artefakt bereitstellen
         uses: actions/upload-artifact@v4
