@@ -64,7 +64,8 @@ def ffcsv_auswerten(zeilen: list[dict], spec: dict, ebene: str, praefix: str) ->
             auspraegung = z.get(f"{n}_Auspraegung_Label", "")
             vorgabe = next((v for k, v in filter_.items() if k.lower() in merkmal.lower()), None)
             if vorgabe is not None:
-                passt &= vorgabe.strip().lower() in auspraegung.strip().lower()
+                # mehrere zulässige Schreibweisen mit "|" getrennt, z. B. "Realschul|mittler"
+                passt &= any(v.strip().lower() in auspraegung.strip().lower() for v in vorgabe.split("|"))
             else:
                 passt &= auspraegung in ("", "Insgesamt")
         if not passt:

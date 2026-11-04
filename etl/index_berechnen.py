@@ -18,6 +18,8 @@ Methode (je Ebene getrennt: Kreise und Gemeinden)
    Zeitreihen der einzelnen Indikatoren.
 
 Gemeinden werden nur mit Indikatoren bewertet, die auf Gemeindeebene vorliegen.
+Indikatoren mit "im_index": false (Kontextindikatoren) werden mitberechnet und
+angezeigt, fließen aber nicht in Dimensionen und Gesamtindex ein.
 Kreiswerte weiterer Indikatoren werden im Popup als Kontext angezeigt.
 
 Ergebnis: web/data/werte.json
@@ -127,7 +129,8 @@ def berechne_ebene(ebene, daten, markiert=None):
     dim_roh = {d["id"]: defaultdict(dict) for d in K.DIMENSIONEN}
     for ags in gebiete:
         for d in K.DIMENSIONEN:
-            ids = [i["id"] for i in inds if i["dimension"] == d["id"] and i["id"] in statistik]
+            ids = [i["id"] for i in inds if i["dimension"] == d["id"] and i["id"] in statistik
+                   and i.get("im_index", True)]
             for j in K.JAHRE:
                 vals = [z[ags][i][j] for i in ids if j in z[ags][i]]
                 if vals:
@@ -177,6 +180,7 @@ def berechne_ebene(ebene, daten, markiert=None):
         }
     return {
         "indikatoren": [i["id"] for i in inds],
+        "kontext": [i["id"] for i in inds if not i.get("im_index", True)],
         "dimensionen": [d for d in verfuegbare_dims],
         "statistik": statistik,
         "referenz": {i: {str(j): v for j, v in r.items()} for i, r in referenz.items()},

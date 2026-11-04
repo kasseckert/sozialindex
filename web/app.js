@@ -70,7 +70,8 @@
     const ref = Z.daten[ebene].referenz[id]?.[j];
     const sd = Z.daten[ebene].statistik[id]?.sd;
     if (wert == null || ref == null || !sd) return null;
-    return 100 + 10 * indikator(id).polaritaet * (wert - ref) / sd;
+    const richtung = istKontext(id) ? 1 : indikator(id).polaritaet;   // Kontext: nur höher/niedriger
+    return 100 + 10 * richtung * (wert - ref) / sd;
   }
 
   /** Text für Kurzinfo und Rangliste. */
@@ -87,11 +88,15 @@
     return mitEinheit(gebietDaten(ags)?.werte[id]?.[String(Z.jahr)], indikator(id)) + (aus ? ` (Stand ${aus})` : "");
   }
 
-  function farbe(wert) {
+  /** Kontextindikatoren gehen nicht in den Index ein und werden neutral eingefärbt. */
+  function istKontext(id) { return indikator(id)?.im_index === false; }
+  function merkmalIstKontext(m = Z.merkmal) { return m.startsWith("ind:") && istKontext(m.slice(4)); }
+
+  function farbe(wert, neutral = merkmalIstKontext()) {
     if (wert == null) return css("--ohne-daten");
     let k = 0;
     while (k < STUFEN.length && wert >= STUFEN[k]) k++;
-    return css(`--s${k + 1}`);
+    return css(`--${neutral ? "n" : "s"}${k + 1}`);
   }
 
   function merkmalName(m = Z.merkmal) {
@@ -124,11 +129,16 @@
     gruppen.push(`<optgroup label="Dimensionen">${Z.daten.meta.dimensionen.filter((d) => dimsDa.has(d.id))
       .map((d) => `<option value="dim:${d.id}">${esc(d.name)}</option>`).join("")}</optgroup>`);
     for (const d of Z.daten.meta.dimensionen) {
-      const inds = Z.daten.meta.indikatoren.filter((i) => i.dimension === d.id && verfuegbar.has(i.id));
+      const inds = Z.daten.meta.indikatoren.filter((i) => i.dimension === d.id && verfuegbar.has(i.id) && i.im_index !== false);
       if (inds.length) {
         gruppen.push(`<optgroup label="${esc(d.name)}">${inds
           .map((i) => `<option value="ind:${i.id}">${esc(i.name)}</option>`).join("")}</optgroup>`);
       }
+    }
+    const kontext = Z.daten.meta.indikatoren.filter((i) => verfuegbar.has(i.id) && i.im_index === false);
+    if (kontext.length) {
+      gruppen.push(`<optgroup label="Kontext, nicht im Index">${kontext
+        .map((i) => `<option value="ind:${i.id}">${esc(i.name)}</option>`).join("")}</optgroup>`);
     }
     sel.innerHTML = gruppen.join("");
     if (![...sel.options].some((o) => o.value === Z.merkmal)) Z.merkmal = "index";
@@ -289,10 +299,14 @@
   // ------------------------------------------------------------ Legende & Rangliste
   function legendeZeichnen() {
     $("#legende-titel").textContent = `${merkmalName()}, ${Z.jahr}`;
-    $("#skala").innerHTML = [1, 2, 3, 4, 5, 6, 7].map((k) => `<span style="background:var(--s${k})"></span>`).join("");
+    const neutral = merkmalIstKontext();
+    $("#skala").innerHTML = [1, 2, 3, 4, 5, 6, 7].map((k) => `<span style="background:var(--${neutral ? "n" : "s"}${k})"></span>`).join("");
+    const pole = document.querySelectorAll(".skala-pole span");
+    pole[0].textContent = neutral ? "niedriger" : "ungünstiger";
+    pole[1].textContent = neutral ? "höher" : "günstiger";
     const istIndikator = Z.merkmal.startsWith("ind:");
     $("#legende-hinweis").textContent = istIndikator
-      ? `Farbe zeigt die Abweichung vom Durchschnitt der ${Z.ebene === "kreis" ? "Kreise" : "Gemeinden"}. ${indikator(Z.merkmal.slice(4)).beschreibung}. ${fortgeschriebenText()}`
+      ? `${neutral ? "Kontextindikator, geht nicht in den Index ein. Farbe zeigt, ob der Wert über oder unter dem" : "Farbe zeigt die Abweichung vom"} Durchschnitt der ${Z.ebene === "kreis" ? "Kreise" : "Gemeinden"}. ${indikator(Z.merkmal.slice(4)).beschreibung}. ${fortgeschriebenText()}`
       : `100 = Durchschnitt der ${Z.ebene === "kreis" ? "oberfränkischen Kreise" : "oberfränkischen Gemeinden"}. Stufen: unter 85, 85–92, 92–97, 97–103, 103–108, 108–115, ab 115. ${abdeckungText()} ${fortgeschriebenText()}`.trim();
   }
 
@@ -301,7 +315,7 @@
     const gebiete = Object.values(ebenenDaten().gebiete);
     const jahr = String(Z.jahr);
     const ids = Z.merkmal.startsWith("ind:") ? [Z.merkmal.slice(4)] : ebenenDaten().indikatoren
-      .filter((id) => Z.merkmal === "index" || indikator(id).dimension === Z.merkmal.slice(4));
+      .filter((id) => !istKontext(id) && (Z.merkmal === "index" || indikator(id).dimension === Z.merkmal.slice(4)));
     const betroffen = ids.filter((id) => gebiete.some((g) => g.fortgeschrieben?.[id]?.jahre.includes(jahr)));
     if (!betroffen.length) return "";
     const aus = [...new Set(betroffen.flatMap((id) => gebiete.map((g) => g.fortgeschrieben?.[id]?.aus).filter(Boolean)))].sort();
@@ -480,6 +494,7 @@
   }
 
   function verlaufZeichnen(flaeche, notiz, ags) {
+    const linie = merkmalIstKontext() ? css("--n6") : css("--s7");
     const g = gebietDaten(ags);
     const jahre = Z.daten.meta.jahre.map(String);
     let reihe, referenz, titel, einheitText = "", fortgIdx = new Set();
@@ -511,10 +526,10 @@
         labels: jahre,
         datasets: [
           { label: "Oberfranken", data: referenz, borderColor: css("--leise"), borderDash: [4, 4], borderWidth: 1.5, pointRadius: 0 },
-          { label: "Gebiet", data: reihe, borderColor: css("--s7"), borderWidth: 2.5, tension: 0.25,
+          { label: "Gebiet", data: reihe, borderColor: linie, borderWidth: 2.5, tension: 0.25,
             pointRadius: jahre.map((_, i) => (i === aktiv ? 5 : fortgIdx.has(i) ? 3.5 : 2)),
-            pointBackgroundColor: jahre.map((_, i) => (fortgIdx.has(i) ? css("--papier") : css("--s7"))),
-            pointBorderColor: css("--s7"), pointBorderWidth: 1.5,
+            pointBackgroundColor: jahre.map((_, i) => (fortgIdx.has(i) ? css("--papier") : linie)),
+            pointBorderColor: linie, pointBorderWidth: 1.5,
             segment: { borderDash: (c) => (fortgIdx.has(c.p1DataIndex) ? [5, 4] : undefined) } },
         ],
       },
@@ -544,20 +559,32 @@
     };
 
     let html = `<table class="kennzahlen"><colgroup><col class="c-name"><col class="c-wert"><col class="c-ref"></colgroup><thead><tr><th>${Z.jahr}</th><th>Wert</th><th>Ø Oberfr.</th></tr></thead><tbody>`;
-    for (const id of ebenenDaten().indikatoren) {
+    for (const id of ebenenDaten().indikatoren.filter((x) => !istKontext(x))) {
       const ind = indikator(id);
-      html += zeile(ind, g.werte[id]?.[j], ebenenDaten().referenz[id]?.[j], farbe(skalenwert(ags, "ind:" + id)), fortgeschriebenAus(ags, id));
+      html += zeile(ind, g.werte[id]?.[j], ebenenDaten().referenz[id]?.[j], farbe(skalenwert(ags, "ind:" + id), false), fortgeschriebenAus(ags, id));
     }
     if (Z.ebene === "gemeinde") {
       const kAgs = ags.slice(0, 5);
       const kg = gebietDaten(kAgs, "kreis");
-      const nurKreis = Z.daten.kreis.indikatoren.filter((id) => !Z.daten.gemeinde.indikatoren.includes(id));
+      const nurKreis = Z.daten.kreis.indikatoren.filter((id) => !Z.daten.gemeinde.indikatoren.includes(id) && !istKontext(id));
       if (kg && nurKreis.length) {
         html += `<tr class="zwischen"><th colspan="3">Nur auf Kreisebene verfügbar (Wert des Kreises)</th></tr>`;
         for (const id of nurKreis) {
           html += zeile(indikator(id), kg.werte[id]?.[j], Z.daten.kreis.referenz[id]?.[j],
-            farbe(skalenwert(kAgs, "ind:" + id, Z.jahr, "kreis")), fortgeschriebenAus(kAgs, id, Z.jahr, "kreis"));
+            farbe(skalenwert(kAgs, "ind:" + id, Z.jahr, "kreis"), false), fortgeschriebenAus(kAgs, id, Z.jahr, "kreis"));
         }
+      }
+    }
+    // Kontextindikatoren: eigener Abschnitt, neutral eingefärbt (bei Gemeinden der Kreiswert)
+    const kEbene = Z.ebene === "gemeinde" ? "kreis" : Z.ebene;
+    const kAgs2 = Z.ebene === "gemeinde" ? ags.slice(0, 5) : ags;
+    const kg2 = gebietDaten(kAgs2, kEbene);
+    const kontextIds = (Z.daten[kEbene].kontext || []).filter((id) => kg2?.werte[id]);
+    if (kontextIds.length) {
+      html += `<tr class="zwischen"><th colspan="3">Kontext, nicht im Index${Z.ebene === "gemeinde" ? " (Wert des Kreises)" : ""}</th></tr>`;
+      for (const id of kontextIds) {
+        html += zeile(indikator(id), kg2.werte[id]?.[j], Z.daten[kEbene].referenz[id]?.[j],
+          farbe(skalenwert(kAgs2, "ind:" + id, Z.jahr, kEbene), true), fortgeschriebenAus(kAgs2, id, Z.jahr, kEbene));
       }
     }
     flaeche.innerHTML = html + "</tbody></table>";

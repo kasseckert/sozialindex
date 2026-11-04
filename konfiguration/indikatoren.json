@@ -302,7 +302,7 @@
       "name": "Übertrittsquote an das Gymnasium",
       "einheit": "%",
       "nachkommastellen": 1,
-      "beschreibung": "Anteil der Kinder der 4. Klasse mit direktem Übertritt an ein Gymnasium (Mittel aus Jungen- und Mädchenquote). Spiegelt auch das Schulangebot vor Ort wider",
+      "beschreibung": "Anteil der Kinder der 4. Klasse mit direktem Übertritt an ein Gymnasium (Mittel aus Jungen- und Mädchenquote; 2019 nicht veröffentlicht). Spiegelt auch das Schulangebot vor Ort wider",
       "dimension": "bildung",
       "polaritaet": 1,
       "ebenen": [
@@ -312,6 +312,212 @@
         {
           "typ": "csv",
           "datei": "uebertritt_gymnasium.csv"
+        }
+      ]
+    },
+    {
+      "id": "uebertritt_rs",
+      "name": "Übertrittsquote an die Realschule",
+      "einheit": "%",
+      "nachkommastellen": 1,
+      "beschreibung": "Anteil der Kinder der 4. Klasse mit direktem Übertritt an eine Realschule (Mittel aus Jungen- und Mädchenquote). Kontextindikator: Ein hoher Wert ist weder günstig noch ungünstig",
+      "dimension": "bildung",
+      "polaritaet": 1,
+      "im_index": false,
+      "ebenen": [
+        "kreis"
+      ],
+      "quellen": [
+        {
+          "typ": "csv",
+          "datei": "uebertritt_realschule.csv"
+        }
+      ]
+    },
+    {
+      "id": "eignung_gym",
+      "name": "Gymnasialeignung im Übertrittszeugnis",
+      "einheit": "%",
+      "nachkommastellen": 1,
+      "beschreibung": "Anteil der übergetretenen Kinder mit Eignung für das Gymnasium (Notenschnitt 2,33 oder besser). Kontextindikator",
+      "dimension": "bildung",
+      "polaritaet": 1,
+      "im_index": false,
+      "ebenen": [
+        "kreis"
+      ],
+      "quellen": [
+        {
+          "typ": "csv",
+          "datei": "eignung_gymnasium.csv"
+        }
+      ]
+    },
+    {
+      "id": "eignung_rs",
+      "name": "Realschuleignung (ohne Gymnasialeignung)",
+      "einheit": "%",
+      "nachkommastellen": 1,
+      "beschreibung": "Anteil der übergetretenen Kinder mit Eignung für die Realschule, aber nicht für das Gymnasium (Notenschnitt 2,66 bis 2,34). Kontextindikator",
+      "dimension": "bildung",
+      "polaritaet": 1,
+      "im_index": false,
+      "ebenen": [
+        "kreis"
+      ],
+      "quellen": [
+        {
+          "typ": "csv",
+          "datei": "eignung_realschule.csv"
+        }
+      ]
+    },
+    {
+      "id": "mittlerer",
+      "name": "Abgänger mit mittlerem Schulabschluss",
+      "einheit": "%",
+      "nachkommastellen": 1,
+      "beschreibung": "Anteil der Absolventen und Abgänger allgemeinbildender Schulen mit mittlerem Schulabschluss (überwiegend Realschule). Gezählt am Schulort. Kontextindikator",
+      "dimension": "bildung",
+      "polaritaet": 1,
+      "im_index": false,
+      "ebenen": [
+        "kreis"
+      ],
+      "quellen": [
+        {
+          "typ": "regionalatlas",
+          "suche": [
+            "Schulabgänger",
+            "Absolventen"
+          ],
+          "feld_suche": [
+            "mittlere",
+            "Realschul"
+          ]
+        },
+        {
+          "typ": "quotient",
+          "faktor": 100,
+          "zaehler": {
+            "typ": "genesis",
+            "datenbank": "bayern",
+            "suche": [
+              "Absolventen Abgänger allgemeinbildende Schulen Abschlussart Kreise",
+              "Absolventen Abgänger Abschlussarten"
+            ],
+            "wert_spalte": "",
+            "filter": {
+              "Abschluss": "mittler|Realschul"
+            }
+          },
+          "nenner": {
+            "typ": "genesis",
+            "datenbank": "bayern",
+            "suche": [
+              "Absolventen Abgänger allgemeinbildende Schulen Abschlussart Kreise",
+              "Absolventen Abgänger Abschlussarten"
+            ],
+            "wert_spalte": "",
+            "filter": {
+              "Abschluss": "Insgesamt"
+            }
+          }
+        },
+        {
+          "typ": "quotient",
+          "faktor": 100,
+          "zaehler": {
+            "typ": "genesis",
+            "datenbank": "bildung",
+            "suche": [
+              "Absolventen Abgänger allgemeinbildenden Schulen Abschlussarten"
+            ],
+            "wert_spalte": "",
+            "filter": {
+              "Abschluss": "mittler|Realschul"
+            }
+          },
+          "nenner": {
+            "typ": "genesis",
+            "datenbank": "bildung",
+            "suche": [
+              "Absolventen Abgänger allgemeinbildenden Schulen Abschlussarten"
+            ],
+            "wert_spalte": "",
+            "filter": {
+              "Abschluss": "Insgesamt"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "azubi_rs",
+      "name": "Neue Azubis mit mittlerem Abschluss",
+      "einheit": "%",
+      "nachkommastellen": 1,
+      "beschreibung": "Anteil der neu abgeschlossenen Ausbildungsverträge mit Realschul- oder gleichwertigem Abschluss als schulischer Vorbildung. Gezählt am Ort des Ausbildungsbetriebs. Kontextindikator",
+      "dimension": "bildung",
+      "polaritaet": 1,
+      "im_index": false,
+      "ebenen": [
+        "kreis"
+      ],
+      "quellen": [
+        {
+          "typ": "quotient",
+          "faktor": 100,
+          "zaehler": {
+            "typ": "genesis",
+            "datenbank": "bildung",
+            "suche": [
+              "Neu abgeschlossene Ausbildungsverträge schulische Vorbildung",
+              "Auszubildende schulische Vorbildung"
+            ],
+            "wert_spalte": "",
+            "filter": {
+              "Vorbildung": "Realschul|mittler"
+            }
+          },
+          "nenner": {
+            "typ": "genesis",
+            "datenbank": "bildung",
+            "suche": [
+              "Neu abgeschlossene Ausbildungsverträge schulische Vorbildung",
+              "Auszubildende schulische Vorbildung"
+            ],
+            "wert_spalte": "",
+            "filter": {
+              "Vorbildung": "Insgesamt"
+            }
+          }
+        },
+        {
+          "typ": "quotient",
+          "faktor": 100,
+          "zaehler": {
+            "typ": "genesis",
+            "datenbank": "regio",
+            "suche": [
+              "Auszubildende neu abgeschlossene Ausbildungsverträge schulische Vorbildung"
+            ],
+            "wert_spalte": "",
+            "filter": {
+              "Vorbildung": "Realschul|mittler"
+            }
+          },
+          "nenner": {
+            "typ": "genesis",
+            "datenbank": "regio",
+            "suche": [
+              "Auszubildende neu abgeschlossene Ausbildungsverträge schulische Vorbildung"
+            ],
+            "wert_spalte": "",
+            "filter": {
+              "Vorbildung": "Insgesamt"
+            }
+          }
         }
       ]
     },

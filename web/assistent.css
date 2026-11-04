@@ -45,7 +45,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 .a-ind-kopf { display: flex; gap: 10px; align-items: baseline; justify-content: space-between; }
 .a-ind-name { font-weight: 700; font-size: 16px; }
 .a-ind-dim { color: var(--leise); font-size: 13px; }
-.a-ind-felder { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 12px; margin-top: 10px; }
+.a-ind-felder { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px 12px; margin-top: 10px; }
 .a-ind-felder label { display: grid; gap: 3px; font-size: 12px; font-weight: 700; }
 .a-ind-felder select, .a-ind-felder input[type="text"], .a-ind-felder input[type="number"] {
   font: inherit; font-size: 14px; font-weight: 400; color: var(--tinte); background: var(--papier);

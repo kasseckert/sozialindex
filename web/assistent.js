@@ -116,13 +116,16 @@
       return `<li class="a-ind" data-i="${i}" ${Z.ziel === i ? 'aria-current="true"' : ""}>
         <div class="a-ind-kopf">
           <span class="a-ind-name">${esc(ind.name)}</span>
-          <span class="a-ind-dim">${esc(ind.einheit)}</span>
+          <span class="a-ind-dim">${ind.im_index === false ? `Kontext, nicht im Index${ind.einheit ? " (" + esc(ind.einheit) + ")" : ""}` : esc(ind.einheit)}</span>
         </div>
         <div class="a-ind-felder">
           <label>Dimension<select data-feld="dimension">${dimOptionen(ind.dimension)}</select></label>
           <label>Richtung<select data-feld="polaritaet">
             <option value="1" ${ind.polaritaet === 1 ? "selected" : ""}>hoher Wert ist günstig</option>
             <option value="-1" ${ind.polaritaet === -1 ? "selected" : ""}>hoher Wert ist ungünstig</option></select></label>
+          <label>Im Index<span class="a-ebenen">
+            <label><input type="checkbox" data-feld="im_index" ${ind.im_index === false ? "" : "checked"}> berücksichtigen</label>
+          </span></label>
           <label>Ebenen<span class="a-ebenen">
             <label><input type="checkbox" data-ebene="kreis" ${ind.ebenen.includes("kreis") ? "checked" : ""}> Kreise</label>
             <label><input type="checkbox" data-ebene="gemeinde" ${ind.ebenen.includes("gemeinde") ? "checked" : ""}> Gemeinden</label>
@@ -402,7 +405,8 @@
       const li = e.target.closest(".a-ind"); if (!li) return;
       const ind = Z.konfig.indikatoren[+li.dataset.i];
       const feld = e.target.dataset.feld, ebene = e.target.dataset.ebene;
-      if (feld === "polaritaet" || feld === "nachkommastellen") ind[feld] = Number(e.target.value);
+      if (feld === "im_index") { if (e.target.checked) delete ind.im_index; else ind.im_index = false; }
+      else if (feld === "polaritaet" || feld === "nachkommastellen") ind[feld] = Number(e.target.value);
       else if (feld) ind[feld] = e.target.value;
       if (ebene) ind.ebenen = ["kreis", "gemeinde"].filter((x) => li.querySelector(`[data-ebene="${x}"]`).checked);
       geaendert();

@@ -7,14 +7,25 @@ wird sie beim nächsten Lauf automatisch verwendet.
 
 ## Bereits enthalten
 
-**uebertritt_gymnasium.csv**: Quote der direkten Übertritte aus Jahrgangsstufe 4
-an das Gymnasium, Mittel aus Jungen- und Mädchenquote (die Gesamtquote wird nicht
-veröffentlicht). Rohwerte mit Realschulquoten in `uebertritt_rohdaten.csv`.
-Quelle: Antworten des Kultusministeriums auf Schriftliche Anfragen im Bayerischen
-Landtag, Drucksachen 19/5789 (Schuljahr 2023/2024) und 19/7981 (2024/2025).
-Die Anfrage wird jährlich gestellt; neue Werte unter
-www.bayern.landtag.de/parlament/dokumente (Suche „Übertrittsquoten“) und hier als
-neue Zeilen ergänzen. Jahr = Kalenderjahr des Übertritts (2024 = zum Schuljahr 2024/2025).
+Aus den Antworten des Kultusministeriums auf die jährliche Schriftliche Anfrage
+„Übertrittsquoten in Bayern“ im Bayerischen Landtag, Drucksachen 18/3249 (2018),
+18/16091 (2020), 18/23567 (2021), 18/30611 (2022), 19/5789 (2023) und 19/7981 (2024).
+Für 2019 wurde keine entsprechende Anfrage gefunden. Jahr = Kalenderjahr des
+Übertritts (2024 = zum Schuljahr 2024/2025).
+
+| Datei | Inhalt |
+| --- | --- |
+| uebertritt_gymnasium.csv | Quote der direkten Übertritte aus Jgst. 4 an das Gymnasium |
+| uebertritt_realschule.csv | Quote der direkten Übertritte aus Jgst. 4 an die Realschule |
+| eignung_gymnasium.csv | Anteil mit Eignung für das Gymnasium im Übertrittsgutachten |
+| eignung_realschule.csv | Anteil mit Eignung für die Realschule, aber nicht das Gymnasium |
+| uebertritt_rohdaten.csv, eignung_rohdaten.csv | Ausgangswerte getrennt nach Jungen und Mädchen, mit Drucksache |
+
+Die Werte sind jeweils das Mittel aus Jungen- und Mädchenquote, da keine
+Gesamtquote veröffentlicht wird. Achtung beim Ergänzen: In Drucksache 18/3249
+stehen die Spalten in der Reihenfolge Realschule vor Gymnasium, sonst umgekehrt.
+Neue Jahrgänge unter www.bayern.landtag.de/parlament/dokumente (Suche
+„Übertrittsquoten“) als neue Zeilen ergänzen.
 
 ## Vorlagen zum Befüllen (Statistik der Bundesagentur für Arbeit)
 

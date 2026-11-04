@@ -38,6 +38,7 @@
   --ohne-daten: #D3D6D0;
   --s1: #6A2C5E; --s2: #A3729A; --s3: #D8C3D3; --s4: #EEEBE4;
   --s5: #C3DAC0; --s6: #74A673; --s7: #2C6637;
+  --n1: #E6EEF3; --n2: #C9DCE8; --n3: #A5C4D9; --n4: #7FA8C6; --n5: #5A8AB0; --n6: #3B6D95; --n7: #22517A;
   --schrift: "Atkinson Hyperlegible", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   box-sizing: border-box;
   padding-top: env(safe-area-inset-top, 0px);
@@ -51,6 +52,7 @@
     --ohne-daten: #2A3230;
     --s1: #B0629F; --s2: #8C5C83; --s3: #5A4757; --s4: #3A403D;
     --s5: #3F5A41; --s6: #5E9461; --s7: #8CC98D;
+    --n1: #22303A; --n2: #2B4252; --n3: #35566B; --n4: #436E88; --n5: #5A8AA8; --n6: #7DA9C6; --n7: #A9CBE3;
   }
 }
 :root[data-theme="dark"] {
@@ -60,6 +62,7 @@
   --ohne-daten: #2A3230;
   --s1: #B0629F; --s2: #8C5C83; --s3: #5A4757; --s4: #3A403D;
   --s5: #3F5A41; --s6: #5E9461; --s7: #8CC98D;
+  --n1: #22303A; --n2: #2B4252; --n3: #35566B; --n4: #436E88; --n5: #5A8AA8; --n6: #7DA9C6; --n7: #A9CBE3;
 }
 
 *, *::before, *::after { box-sizing: inherit; }
