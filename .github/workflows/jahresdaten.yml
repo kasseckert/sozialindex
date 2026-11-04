@@ -6,7 +6,9 @@
 # (Pull Request) an. Nach Ihrer Bestätigung („Merge“) wird die Karte neu berechnet.
 # Findet er nichts, legt er eine Erinnerung (Issue) an. Dann genügt es, unter
 # Actions → „Jahresdaten und Erinnerungen“ → Run workflow die Drucksachennummer
-# einzutragen, z. B. 19/7981.
+# einzutragen, z. B. 19/7981. Mehrere Nummern mit Komma trennen; so werden bei der
+# Ersteinrichtung alle bekannten Jahrgänge auf einmal für ganz Bayern eingelesen:
+#   18/3249, 18/16091, 18/23567, 18/30611, 19/5789, 19/7981
 #
 # Damit Pull Requests angelegt werden können: Settings → Actions → General →
 # „Allow GitHub Actions to create and approve pull requests“ anhaken. Ohne diese
@@ -22,7 +24,7 @@ on:
   workflow_dispatch:
     inputs:
       drucksache:
-        description: "Drucksachennummer der Übertrittsquoten, z. B. 19/7981 (leer lassen = automatisch suchen)"
+        description: "Drucksachennummer(n) der Übertrittsquoten, z. B. 19/7981 oder mehrere mit Komma (leer = automatisch suchen)"
         type: string
         required: false
 
@@ -75,8 +77,10 @@ jobs:
         if: steps.lesen.outputs.code == '0'
         env:
           JAHR: ${{ steps.lesen.outputs.jahr }}
+          ZWEIG: ${{ steps.lesen.outputs.zweig }}
+          TITEL: ${{ steps.lesen.outputs.titel }}
         run: |
-          zweig="uebertritt-$JAHR"
+          zweig="$ZWEIG"
           git config user.name "sozialindex-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "$zweig"
@@ -85,9 +89,9 @@ jobs:
             echo "Die Werte für $JAHR sind bereits genau so vorhanden."
             exit 0
           fi
-          git commit -m "Übertrittsquoten zum Schuljahr $JAHR/$((JAHR + 1))"
+          git commit -m "$TITEL"
           git push -f origin "$zweig"
-          titel="Übertrittsquoten zum Schuljahr $JAHR/$((JAHR + 1)) übernehmen"
+          titel="$TITEL"
           if [ "$(gh pr list --head "$zweig" --state open --json number --jq length)" != "0" ]; then
             echo "Änderungsvorschlag besteht bereits und wurde aktualisiert."
           elif ! gh pr create --base "${{ github.event.repository.default_branch }}" --head "$zweig" --title "$titel" --body-file daten/uebertritt_bericht.md; then
