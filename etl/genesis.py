@@ -34,6 +34,7 @@ import csv
 import io
 import json
 import os
+import re
 import time
 import zipfile
 
@@ -195,3 +196,86 @@ def tabelle_stueckweise(datenbank: str, tabelle: str, startjahr: int, endjahr: i
     if not zeilen:
         raise GenesisFehler(f"Tabelle {tabelle}: auch jahresweise kein Abruf möglich ({'; '.join(fehler[:3])})")
     return zeilen
+
+
+_RV_CACHE: dict = {}
+
+
+def regionalvariablen(datenbank: str, statistik: str) -> list[dict]:
+    """Regionalebenen einer Statistik laut Katalog: [{"code", "titel"}] (leer, wenn nicht ermittelbar)."""
+    if (datenbank, statistik) in _RV_CACHE:
+        return _RV_CACHE[(datenbank, statistik)]
+    ergebnis = []
+    try:
+        r = _post(datenbank, "catalogue/variables2statistic",
+                  {"name": statistik, "selection": "*", "area": "all", "pagelength": "500", "language": "de"})
+        for v in r.json().get("List") or []:
+            code, titel, typ = v.get("Code", ""), v.get("Content", ""), str(v.get("Type", ""))
+            if code and ("räum" in typ.lower() or "raum" in typ.lower() or code.upper().startswith(("GEO", "KREIS", "BY-KRE", "GEMEIN"))
+                         or re.search(r"Kreis|Gemeinde|Land|Bezirk", titel)):
+                ergebnis.append({"code": code, "titel": titel, "typ": typ})
+    except Exception:
+        pass
+    _RV_CACHE[(datenbank, statistik)] = ergebnis
+    return ergebnis
+
+
+def _gebiete_in(zeilen: list[dict], praefix: str, laenge: int) -> int:
+    """Zahl verschiedener Gebietsschlüssel der gewünschten Länge mit Präfix (beide Formate)."""
+    codes = set()
+    for z in zeilen:
+        for k, v in z.items():
+            if (k.endswith("_attribute_code") or k.endswith("_Auspraegung_Code")) and v:
+                c = re.sub(r"\D", "", v)
+                if len(c) >= laenge and c.startswith(praefix):
+                    codes.add(c[:laenge])
+    return len(codes)
+
+
+def tabelle_fuer_ebene(datenbank: str, tabelle: str, startjahr: int, endjahr: int, ebene: str,
+                       praefix: str, erwartet: int, regionalvariable: str | None = None) -> tuple[list[dict], str]:
+    """
+    Ruft eine Tabelle für alle Kreise (ebene="kreis") bzw. Gemeinden ab. Die Regionalvariable
+    heißt je Datenbank anders (KREISE, BY-KRE, GEO…); sie wird aus der Vorgabe, bekannten Namen
+    und dem Katalog der Statistik ermittelt. Ein Ergebnis zählt nur, wenn mindestens 80 % der
+    erwarteten Gebiete enthalten sind; so wird ein stillschweigend gelieferter Landeswert erkannt.
+    """
+    laenge = 5 if ebene == "kreis" else 8
+    bekannte = ["KREISE", "BY-KRE", "KRS", "KREIS"] if ebene == "kreis" else ["GEMEIN", "BY-GEM", "GEM", "GEMEINDE"]
+    kandidaten = [regionalvariable] if regionalvariable else []
+    kandidaten += [k for k in bekannte if k not in kandidaten]
+    versucht, fehler = [], []
+
+    def probieren(rv):
+        if rv in versucht:
+            return None
+        versucht.append(rv)
+        try:
+            zeilen = tabelle_stueckweise(datenbank, tabelle, startjahr, endjahr, rv, praefix + "*")
+        except GenesisFehler as e:
+            fehler.append(f"{rv}: {str(e)[:120]}")
+            return None
+        n = _gebiete_in(zeilen, praefix, laenge)
+        if n >= 0.8 * erwartet:
+            return zeilen
+        fehler.append(f"{rv}: nur {n} von {erwartet} Gebieten")
+        return None
+
+    for rv in kandidaten[:2]:                      # Vorgabe und häufigster Name zuerst
+        z = probieren(rv)
+        if z:
+            return z, rv
+    # Statistik-Code aus der Standardauswahl lesen und deren Regionalebenen abfragen
+    try:
+        standard = tabelle_ffcsv(datenbank, tabelle, endjahr, endjahr)
+        statistik = next((z.get("statistics_code") for z in standard if z.get("statistics_code")), None) or tabelle.split("-")[0]
+    except GenesisFehler:
+        statistik = tabelle.split("-")[0]
+    wort = "Kreis" if ebene == "kreis" else "Gemeind"
+    katalog = [v["code"] for v in regionalvariablen(datenbank, statistik) if wort.lower() in v["titel"].lower()]
+    for rv in katalog + kandidaten[2:]:
+        z = probieren(rv)
+        if z:
+            return z, rv
+    raise GenesisFehler(f"Tabelle {tabelle}: keine Regionalebene mit den {'Kreisen' if ebene == 'kreis' else 'Gemeinden'} gefunden "
+                        f"(versucht: {', '.join(map(str, versucht))}; {'; '.join(fehler[-3:])})")

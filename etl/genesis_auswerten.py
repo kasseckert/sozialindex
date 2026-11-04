@@ -81,6 +81,12 @@ def ffcsv_auswerten(zeilen: list[dict], spec: dict, ebene: str, praefix: str) ->
         raise ValueError("Keine Spalte mit Regionalschlüsseln gefunden.")
 
     filter_ = spec.get("filter") or {}
+    # Jeder Filter muss ein Merkmal der Tabelle treffen; ein ins Leere laufender Filter
+    # würde sonst still übergangen und z. B. „Insgesamt“ statt der gewünschten Zeile liefern.
+    merkmalnamen = {z.get(f"{n}_Merkmal_Label", "") for z in zeilen[:200] for n in nummern if n != region_nr}
+    for schluessel in filter_:
+        if not any(schluessel.lower() in m.lower() for m in merkmalnamen):
+            raise ValueError(f"Filter „{schluessel}“ passt zu keinem Merkmal der Tabelle. Vorhanden: {sorted(merkmalnamen)}")
     ergebnis: dict[tuple[str, int], float] = {}
     for z in zeilen:
         ags = _ags_normalisieren(z.get(f"{region_nr}_Auspraegung_Code", ""), ebene)
@@ -95,8 +101,10 @@ def ffcsv_auswerten(zeilen: list[dict], spec: dict, ebene: str, praefix: str) ->
             auspraegung = z.get(f"{n}_Auspraegung_Label", "")
             vorgabe = next((v for k, v in filter_.items() if k.lower() in merkmal.lower()), None)
             if vorgabe is not None:
-                # mehrere zulässige Schreibweisen mit "|" getrennt, z. B. "Realschul|mittler"
-                passt &= any(v.strip().lower() in auspraegung.strip().lower() for v in vorgabe.split("|"))
+                # mehrere zulässige Schreibweisen mit "|" getrennt, z. B. "Realschul|mittler";
+                # ein vorangestelltes "=" verlangt Gleichheit statt Enthaltensein ("=Realschulen")
+                passt &= any((auspraegung.strip().lower() == v.strip()[1:].strip().lower()) if v.strip().startswith("=")
+                             else (v.strip().lower() in auspraegung.strip().lower()) for v in vorgabe.split("|"))
             else:
                 passt &= auspraegung in ("", "Insgesamt")
         if not passt:
@@ -105,5 +113,10 @@ def ffcsv_auswerten(zeilen: list[dict], spec: dict, ebene: str, praefix: str) ->
         m = re.search(r"(19|20)\d\d", jahr_text)
         wert = _zahl(z.get(wertspalte))
         if m and wert is not None:
-            ergebnis[(ags, int(m.group(0)))] = wert
+            k = (ags, int(m.group(0)))
+            if k in ergebnis and ergebnis[k] != wert:
+                # zwei verschiedene Zeilen für denselben Kreis und dasselbe Jahr: Filter nicht eindeutig
+                raise ValueError(f"Filter nicht eindeutig: {k[0]} {k[1]} hat mehrere passende Zeilen "
+                                 f"({ergebnis[k]} und {wert}); bitte genauer filtern, z. B. mit „=“")
+            ergebnis[k] = wert
     return ergebnis

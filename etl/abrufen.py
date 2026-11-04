@@ -136,29 +136,22 @@ GENESIS_BUDGET_S = 240          # höchstens 4 Minuten je GENESIS-Quelle
 
 
 def _genesis_zeilen(datenbank: str, tabelle: str, ebene: str, spec: dict):
-    """Ruft eine Tabelle ab; probiert gängige Namen der Regionalvariable durch."""
-    from genesis import tabelle_stueckweise as tabelle_ffcsv, GenesisFehler
+    """Ruft eine Tabelle für alle Kreise bzw. Gemeinden ab; die Regionalebene wird ermittelt und geprüft."""
+    from genesis import GenesisFehler, tabelle_fuer_ebene
     schluessel = (datenbank, tabelle, ebene)
     if schluessel in _genesis_cache:
         return _genesis_cache[schluessel]
     if schluessel in _genesis_fehler:          # nicht zweimal am selben Fehler warten
         raise _genesis_fehler[schluessel]
-    varianten = [spec["regionalvariable"]] if spec.get("regionalvariable") else (
-        ["KREISE", "KRS", "KREIS"] if ebene == "kreis" else ["GEMEIN", "GEM", "GEMEINDE"])
     zusatz = spec.get("jahre", 0) if spec.get("berechnung") == "veraenderung" else 0
-    fehler = None
-    for rv in varianten:
-        try:
-            zeilen = tabelle_ffcsv(datenbank, tabelle, min(K.JAHRE) - zusatz, max(K.JAHRE),
-                                   rv, K.REGIERUNGSBEZIRK_PRAEFIX + "*")
-            _genesis_cache[schluessel] = zeilen
-            return zeilen
-        except GenesisFehler as e:
-            fehler = e
-            if "HTTP" in str(e) or "fehlgeschlagen" in str(e):   # Server- oder Netzfehler: andere Variante hilft nicht
-                break
-    _genesis_fehler[schluessel] = fehler
-    raise fehler
+    try:
+        zeilen, rv = tabelle_fuer_ebene(datenbank, tabelle, min(K.JAHRE) - zusatz, max(K.JAHRE), ebene,
+                                        K.REGIERUNGSBEZIRK_PRAEFIX, len(gebiete(ebene)), spec.get("regionalvariable"))
+    except GenesisFehler as e:
+        _genesis_fehler[schluessel] = e
+        raise
+    _genesis_cache[schluessel] = zeilen
+    return zeilen
 
 
 def quelle_genesis(spec: dict, ebene: str):
