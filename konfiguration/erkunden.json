@@ -1,0 +1,29 @@
+{
+  "hinweis": "Tabellen, deren Aufbau der Workflow erkundet (Ergebnis: daten/genesis_struktur.md). Dient der Vorbereitung neuer Indikatoren.",
+  "tabellen": [
+    {
+      "datenbank": "bildung",
+      "tabelle": "BY-D07.11i"
+    },
+    {
+      "datenbank": "bildung",
+      "tabelle": "BY-D07.1i"
+    },
+    {
+      "datenbank": "bildung",
+      "tabelle": "BY-D09.1i"
+    },
+    {
+      "datenbank": "bildung",
+      "tabelle": "BY-D11.1i"
+    },
+    {
+      "datenbank": "bildung",
+      "tabelle": "BY-D12.1i"
+    },
+    {
+      "datenbank": "bildung",
+      "tabelle": "BY-D12.3i"
+    }
+  ]
+}

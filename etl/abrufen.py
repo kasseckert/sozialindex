@@ -225,13 +225,20 @@ def genesis_katalog_schreiben():
     """Tabellenlisten von Bildungsdatenbank und Zensus für den Datenassistenten."""
     from genesis import hat_zugang, tabellen_katalog
     katalog = {}
-    for db, auswahl in (("bildung", "*"), ("zensus", "2000S*")):
+    for db, auswahlen in (("bildung", ("*", "BY-*")), ("zensus", ("2000S*",))):
         if not hat_zugang(db):
+            print(f"  · Tabellenliste {db}: keine Zugangsdaten hinterlegt")
             continue
-        try:
-            katalog[db] = tabellen_katalog(db, auswahl)
-        except Exception as e:
-            print(f"  ! Tabellenliste {db}: {str(e)[:160]}")
+        gesehen = {}
+        for auswahl in auswahlen:
+            try:
+                for t in tabellen_katalog(db, auswahl):
+                    gesehen[t["code"]] = t
+            except Exception as e:
+                print(f"  ! Tabellenliste {db} ({auswahl}): {str(e)[:200]}")
+        if gesehen:
+            katalog[db] = sorted(gesehen.values(), key=lambda t: t["code"])
+            print(f"  · Tabellenliste {db}: {len(gesehen)} Tabellen")
     if katalog:
         (WEB_DATEN / "genesis_katalog.json").write_text(
             json.dumps({"stand": date.today().isoformat(), **katalog}, ensure_ascii=False, separators=(",", ":")),
