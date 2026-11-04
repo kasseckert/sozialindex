@@ -72,6 +72,22 @@
    "feld_titel": "Ganztagsbetreuung 3 bis 5 Jahre am 01.03.",
    "einheit": "Prozent"
   },
+  "uebertritt": {
+   "herkunft": "csv:uebertritt_gymnasium.csv",
+   "quelle": "Bayerischer Landtag, Antworten des Kultusministeriums auf Schriftliche Anfragen"
+  },
+  "uebertritt_rs": {
+   "herkunft": "csv:uebertritt_realschule.csv",
+   "quelle": "Bayerischer Landtag, Antworten des Kultusministeriums auf Schriftliche Anfragen"
+  },
+  "eignung_gym": {
+   "herkunft": "csv:eignung_gymnasium.csv",
+   "quelle": "Bayerischer Landtag, Antworten des Kultusministeriums auf Schriftliche Anfragen"
+  },
+  "eignung_rs": {
+   "herkunft": "csv:eignung_realschule.csv",
+   "quelle": "Bayerischer Landtag, Antworten des Kultusministeriums auf Schriftliche Anfragen"
+  },
   "mittlerer": {
    "herkunft": "regionalatlas:AI003-2/ai0304",
    "quelle": "Regionalatlas Deutschland",
