@@ -64,16 +64,18 @@ Die Dimension „Bildung und Familie“ greift auf sechs Quellen zurück:
 | Indikator | Quelle | Ebene | Zugang |
 | --- | --- | --- | --- |
 | Betreuungsquote unter 3, Ganztagsbetreuung | Regionalatlas | Kreise | ohne Anmeldung |
-| Schulabgänger ohne Abschluss | Regionalatlas, sonst Kommunale Bildungsdatenbank | Kreise | Bildungsdatenbank: Registrierung |
+| Schulabgänger ohne Abschluss, Abgänger mit Hochschulreife (Kontext) | Regionalatlas | Kreise | ohne Anmeldung |
+| Kontext: ausländische Schüler, Schüler je Lehrkraft, Teilzeitlehrkräfte, früh/spät eingeschulte Kinder | Kommunale Bildungsdatenbank (BY-D07.1i, D09.1i, D11.1i), öffentliche Schulen | Kreise | Registrierung |
+| Kontext: Fünftklässler nach Schulart (am Schulort), Schulartwechsel Klassen 7–9 | Kommunale Bildungsdatenbank (BY-D12.1i, D12.3i) | Kreise | Registrierung |
 | Ohne beruflichen Abschluss | BA-Datei (jährlich), sonst Zensus 2022 (Stand 15.05.2022, fortgeschrieben) | Kreise | Zensus: Registrierung |
 | Übertrittsquote an das Gymnasium | Landtagsdrucksachen 2018, 2020–2024, als Datei beigelegt | Kreise | ohne Anmeldung |
 | Kontext: Übertrittsquote Realschule, Gymnasial- und Realschuleignung | Landtagsdrucksachen, als Datei beigelegt | Kreise | ohne Anmeldung |
-| Kontext: Abgänger mit mittlerem Abschluss | Regionalatlas, sonst GENESIS Bayern oder Bildungsdatenbank | Kreise | Bildungsdatenbank: Registrierung |
-| Kontext: neue Azubis mit mittlerem Abschluss | Bildungsdatenbank, sonst Regionaldatenbank | Kreise | Registrierung |
 | Bewerber je Ausbildungsstelle | Statistik der BA, Datei selbst befüllen | Kreise | ohne Anmeldung |
 | Entfernung zur nächsten Grundschule / zum nächsten Gymnasium | Schulstandorte Bayern (Kultusministerium, WFS, CC BY 4.0) | Gemeinden und Kreise | ohne Anmeldung |
 
 **Zensus 2022 und Kommunale Bildungsdatenbank** brauchen je eine kostenlose Registrierung (ergebnisse.zensus2022.de und www.bildungsmonitoring.de, jeweils „Registrieren“). Benutzername und Passwort als Secrets `GENESIS_ZENSUS_USER`, `GENESIS_ZENSUS_PASSWORD`, `GENESIS_BILDUNG_USER`, `GENESIS_BILDUNG_PASSWORD` eintragen (wie in der Anleitung, Schritt 4). Ohne Zugangsdaten werden diese Quellen übersprungen; die übrigen laufen weiter. Nach dem ersten Lauf mit Zugangsdaten zeigt der Datenassistent die Tabellen beider Datenbanken zur Auswahl an.
+
+**Nicht verfügbar für Bayern:** Abgänger nach Abschlussart (also mit mittlerem Abschluss) und Ausbildungsverträge nach schulischer Vorbildung führt die Bildungsdatenbank für Bayern nicht, Klassenwiederholungen (BY-D13.1i) nur als Landeswert ohne Kreise (Kennzahl D15.1 „in Bayern nicht verfügbar“; Vorbildung nur für andere Länder). Auf Kreisebene veröffentlicht sie Schuldaten außerdem nur für staatliche und kommunale Schulen; Summen einschließlich Privatschulen sind gesperrt. Die Übergänge nach der Grundschule zählt sie am Ort der weiterführenden Schule; für den Übertritt der Kinder eines Kreises bleiben die Landtagsdaten maßgeblich.
 
 **Grenzen:** Die Bildungsfragen des Zensus gibt es nur für Kreise sowie für Gemeinden ab 10 000 Einwohnern, deshalb nur auf Kreisebene genutzt. Die Schulentfernung ist Luftlinie vom Flächenmittelpunkt der Gemeinde, kein Schulweg. Die Übertrittsquote hängt auch vom Schulangebot vor Ort ab und ist in den Städten traditionell höher. Übertrittsquoten liegen bisher für 2023 und 2024 vor; neue Jahrgänge nach `daten/import/LIESMICH.md` ergänzen.
 
