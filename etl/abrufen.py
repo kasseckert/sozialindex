@@ -182,7 +182,22 @@ def quelle_genesis(spec: dict, ebene: str):
             werte = {(a, j): (w / werte[(a, j - n)] - 1) * 100
                      for (a, j), w in werte.items() if werte.get((a, j - n))}
         if werte:
-            return werte, f"genesis:{db}/{kand['code']}", {
+            # Hinweis, wenn die Tabelle später Jahre hat, die keine Werte liefern (gesperrt oder fehlend)
+            from genesis_auswerten import LETZTE_JAHRE
+            letztes = max(j for _, j in werte)
+            spaeter = {j: s for j, s in LETZTE_JAHRE.items() if j > letztes}
+            hinweis = ""
+            if letztes < max(K.JAHRE):
+                if spaeter:
+                    hinweis = (f"Werte nur bis {letztes}; danach je Jahr passende Zeilen/gesperrt: "
+                               + ", ".join(f"{j}: {s['zeilen']}/{s['gesperrt']}" for j, s in sorted(spaeter.items())))
+                else:
+                    from genesis_auswerten import LETZTE_JAHRE_ALLE
+                    danach = {j: n for j, n in LETZTE_JAHRE_ALLE.items() if j > letztes}
+                    hinweis = (f"Werte nur bis {letztes}; spätere Jahre sind in der Tabelle vorhanden ({', '.join(map(str, sorted(danach)))}), "
+                               "aber keine Zeile passt dort zu den Filtern; Bezeichnungen könnten sich geändert haben"
+                               if danach else f"Werte nur bis {letztes}; die Tabelle enthält keine späteren Jahre")
+            return werte, f"genesis:{db}/{kand['code']}", {"hinweis": hinweis,
                 "quelle": {"bildung": "Kommunale Bildungsdatenbank", "zensus": "Zensus 2022",
                            "regio": "Regionaldatenbank Deutschland", "bayern": "GENESIS-Online Bayern"}.get(db, f"GENESIS {db}"),
                 "code": kand["code"], "titel": kand.get("titel", "")}
@@ -248,8 +263,7 @@ def genesis_katalog_schreiben():
         katalog = json.loads(ziel.read_text(encoding="utf-8"))
     except Exception:
         katalog = {}
-    for db, auswahlen, gast in (("bildung", ("*", "BY-*"), False), ("zensus", ("2000S*",), False),
-                                ("bayern", ("211*", "212*"), True)):
+    for db, auswahlen, gast in (("bildung", ("*", "BY-*"), False), ("zensus", ("2000S*",), False)):
         if not hat_zugang(db) and not gast:
             print(f"  · Tabellenliste {db}: keine Zugangsdaten hinterlegt")
             continue
@@ -329,7 +343,9 @@ def main():
             for (ags, jahr), wert in sorted(werte.items()):
                 if jahr in K.JAHRE:
                     zeilen.append([ebene, ags, jahr, ind["id"], round(wert, 4), herkunft])
-            quellenprotokoll[ebene][ind["id"]] = {"herkunft": herkunft, **(info or {})}
+            if (info or {}).get("hinweis"):
+                protokoll.append(f"  · {ind['id']} ({ebene}): {info['hinweis']}")
+            quellenprotokoll[ebene][ind["id"]] = {"herkunft": herkunft, **{k: v for k, v in (info or {}).items() if k != "hinweis"}}
             protokoll.append(f"{ebene:<9} {ind['id']:<11} {len(werte):>5} Werte  {herkunft}")
 
     if not nur_demo:

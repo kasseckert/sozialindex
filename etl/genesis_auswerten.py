@@ -52,6 +52,11 @@ def normalisieren(zeilen: list[dict]) -> list[dict]:
     return ergebnis
 
 
+# Jahresstatistik des letzten Aufrufs: {jahr: {"zeilen": n, "zahl": n, "gesperrt": n}}
+LETZTE_JAHRE: dict = {}
+LETZTE_JAHRE_ALLE: dict = {}     # Zeilen je Jahr vor dem Filtern
+
+
 def ffcsv_auswerten(zeilen: list[dict], spec: dict, ebene: str, praefix: str) -> dict[tuple[str, int], float]:
     """Holt aus einer Flat-File-CSV die Werte {(ags, jahr): wert}."""
     zeilen = normalisieren(zeilen)
@@ -89,11 +94,16 @@ def ffcsv_auswerten(zeilen: list[dict], spec: dict, ebene: str, praefix: str) ->
             raise ValueError(f"Filter „{schluessel}“ passt zu keinem Merkmal der Tabelle. Vorhanden: {sorted(merkmalnamen)}")
     ergebnis: dict[tuple[str, int], float] = {}
     zaehler = {"kreis": 0, "filter": 0, "jahr": 0, "wert": 0}
+    LETZTE_JAHRE.clear()
+    LETZTE_JAHRE_ALLE.clear()
     for z in zeilen:
         ags = _ags_normalisieren(z.get(f"{region_nr}_Auspraegung_Code", ""), ebene)
         if not ags or not ags.startswith(praefix):
             continue
         zaehler["kreis"] += 1
+        m0 = re.search(r"(19|20)\d\d", z.get("Zeit") or "")
+        if m0:
+            LETZTE_JAHRE_ALLE[int(m0.group(0))] = LETZTE_JAHRE_ALLE.get(int(m0.group(0)), 0) + 1
         # Filter und "Insgesamt"-Logik für alle übrigen Merkmale
         passt = True
         for n in nummern:
@@ -118,6 +128,11 @@ def ffcsv_auswerten(zeilen: list[dict], spec: dict, ebene: str, praefix: str) ->
         wert = 0.0 if (spec.get("strich_als_null") and roh in ("-", "–")) else _zahl(roh)
         zaehler["jahr"] += bool(m)
         zaehler["wert"] += bool(m and wert is not None)
+        if m:
+            st = LETZTE_JAHRE.setdefault(int(m.group(0)), {"zeilen": 0, "zahl": 0, "gesperrt": 0})
+            st["zeilen"] += 1
+            st["zahl"] += wert is not None
+            st["gesperrt"] += roh in (".", "x", "/", "...")
         if m and wert is not None:
             k = (ags, int(m.group(0)))
             if k in ergebnis and ergebnis[k] != wert:

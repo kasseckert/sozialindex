@@ -469,6 +469,40 @@
     return `Für ${jahr} noch nicht veröffentlicht und mit dem Wert von ${aus.join(" bzw. ")} fortgeschrieben: ${betroffen.map((id) => indikator(id).name).join(", ")}.`;
   }
 
+  /** Jüngstes Jahr, in dem mindestens ein Gebiet im Fokus einen Wert hat (oder null). */
+  function letztesJahrMitDaten(merkmal = Z.merkmal) {
+    const jahre = [...Z.daten.meta.jahre].sort((a, b) => b - a);
+    const gebiete = fokusGebiete();
+    return jahre.find((j) => gebiete.some((p) => skalenwert(p.ags, merkmal, j) != null)) ?? null;
+  }
+
+  /** Text zum jüngsten Jahr; nennt das Erhebungsjahr, wenn spätere Jahre fortgeschrieben sind. */
+  function erhebungText(letztes) {
+    const id = Z.merkmal.startsWith("ind:") ? Z.merkmal.slice(4) : null;
+    const bis = id ? Z.daten.meta.datenstand?.[id]?.[Z.ebene] : null;
+    return bis && bis < letztes
+      ? `Erhoben wurde zuletzt ${bis}; bis ${letztes} wird dieser Wert fortgeschrieben.`
+      : `Die jüngsten Werte stammen aus ${letztes}.`;
+  }
+
+  /** Hinweis samt Knopf, wenn im gewählten Jahr keine Werte vorliegen. */
+  function keineDatenHinweis() {
+    const el = $("#jahr-hinweis");
+    const hatWerte = fokusGebiete().some((p) => skalenwert(p.ags) != null);
+    if (hatWerte) { el.hidden = true; return; }
+    const letztes = letztesJahrMitDaten();
+    el.hidden = false;
+    el.innerHTML = letztes
+      ? `Für ${Z.jahr} liegen zu „${esc(merkmalName())}“ keine Werte vor. ${erhebungText(letztes)} <button type="button" id="zum-jahr" class="klein-knopf">${letztes} anzeigen</button>`
+      : `Zu „${esc(merkmalName())}“ liegen in ${esc(regionName())} keine Werte vor.`;
+    $("#zum-jahr")?.addEventListener("click", () => {
+      Z.jahr = letztes;
+      $("#jahr").value = letztes;
+      $("#jahr-anzeige").textContent = letztes;
+      aktualisieren();
+    });
+  }
+
   function abdeckungText() {
     const e = ebenenDaten();
     const nDims = (e.dimensionen || []).length, alle = Z.daten.meta.dimensionen.length;
@@ -753,6 +787,7 @@
   function aktualisieren() {
     stileSetzen();
     legendeZeichnen();
+    keineDatenHinweis();
     ranglisteZeichnen();
     if (Z.auswahl && Karte.map.hasLayer(Karte.popup)) {
       const p = Karte.layerNachAgs.get(Z.auswahl)?.feature.properties;

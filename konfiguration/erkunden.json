@@ -1,29 +1,10 @@
 {
-  "hinweis": "Tabellen, deren Aufbau der Workflow erkundet (Ergebnis: daten/genesis_struktur.md). Einträge mit „suche“ werden über die Volltextsuche der Datenbank aufgelöst.",
+  "hinweis": "Tabellen, deren Aufbau der Workflow erkundet (Ergebnis: daten/genesis_struktur.md). Derzeit leer; für neue Indikatoren hier Einträge wie {\"datenbank\": \"bildung\", \"tabelle\": \"BY-D13.1i\", \"regionalvariable\": \"BY-KRE\"} ergänzen.",
   "tabellen": [
     {
-      "datenbank": "bayern",
-      "suche": [
-        "Schüler allgemeinbildende Schulen Staatsangehörigkeit Kreise",
-        "ausländische Schüler Kreise"
-      ],
-      "anzahl": 3
-    },
-    {
-      "datenbank": "bayern",
-      "suche": [
-        "Lehrkräfte allgemeinbildende Schulen Kreise",
-        "Lehrkräfte Beschäftigungsumfang"
-      ],
-      "anzahl": 3
-    },
-    {
-      "datenbank": "bayern",
-      "suche": [
-        "Einschulungen Kreise",
-        "Schulanfänger vorzeitig zurückgestellt"
-      ],
-      "anzahl": 3
+      "datenbank": "bildung",
+      "tabelle": "BY-D13.1i",
+      "regionalvariable": "BY-KRE"
     }
   ]
 }

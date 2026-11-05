@@ -140,6 +140,11 @@ input[type="range"] { width: 100%; accent-color: var(--s7); margin: 2px 0; }
 .skala span { display: block; }
 .skala-pole { display: flex; justify-content: space-between; font-size: 13px; color: var(--leise); margin-top: 4px; }
 .legende-hinweis { margin: 6px 0 0; font-size: 13px; color: var(--leise); }
+.jahr-hinweis { margin: 8px 0 0; font-size: 13px; padding: 7px 10px; border-radius: 6px; background: var(--grund); border-left: 4px solid var(--s2); }
+.jahr-hinweis[hidden] { display: none; }
+.klein-knopf { font: inherit; font-size: 13px; font-weight: 700; margin-top: 6px; display: block; padding: 4px 10px; border-radius: 5px;
+  border: 1px solid var(--linie); background: var(--papier); color: var(--tinte); cursor: pointer; }
+.klein-knopf:hover { border-color: var(--tinte); }
 
 /* ----------------------------------------------------------- Rangliste */
 .rangliste { flex: 0 0 auto; }
