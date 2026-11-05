@@ -1,11 +1,5 @@
   · Tabellenliste bildung: 907 Tabellen
   · Tabellenliste zensus: 420 Tabellen
-  ! Tabellenliste bayern (211*): https://www.statistikdaten.bayern.de/genesisWS/rest/2020/catalogue/tables fehlgeschlagen: HTTP 403: <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-  "h
-  ! Tabellenliste bayern (212*): https://www.statistikdaten.bayern.de/genesisWS/rest/2020/catalogue/tables fehlgeschlagen: HTTP 403: <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-  "h
 kreis     alq           960 Werte  regionalatlas:AI008-1-5/ai0801
 kreis     sgb2          960 Werte  regionalatlas:AI-S-04/ai2102
 kreis     eink          768 Werte  regionalatlas:AI-S-01/ai1601
@@ -20,25 +14,36 @@ kreis     uebertritt_rs   576 Werte  csv:uebertritt_realschule.csv
 kreis     eignung_gym   576 Werte  csv:eignung_gymnasium.csv
 kreis     eignung_rs    576 Werte  csv:eignung_realschule.csv
 kreis     abi           960 Werte  regionalatlas:AI003-2/ai0304
-kreis     mittlerer       – keine Daten, entfällt auf dieser Ebene
-kreis     azubi_rs        – keine Daten, entfällt auf dieser Ebene
-  · sch_ausl (kreis, quotient): 76 s
+  · sch_ausl (kreis, quotient): 67 s
 kreis     sch_ausl      960 Werte  summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i) / summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i)
-  · sch_je_lk (kreis, quotient): 121 s
+  · sch_je_lk (kreis, quotient): 111 s
 kreis     sch_je_lk     960 Werte  summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i) / summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i)
 kreis     lk_teilzeit   960 Werte  summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i) / summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i)
-  · einsch_spaet (kreis, quotient): 65 s
+  · einsch_spaet (kreis, quotient): 63 s
 kreis     einsch_spaet   960 Werte  summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)
 kreis     einsch_frueh   960 Werte  summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)
-  · ue_ms (kreis, genesis): 101 s
-kreis     ue_ms         768 Werte  genesis:bildung/BY-D12.1i
-kreis     ue_gym_kbd    752 Werte  genesis:bildung/BY-D12.1i
-kreis     ue_rs_kbd     768 Werte  genesis:bildung/BY-D12.1i
-  · wechsel_gym_rs (kreis, genesis): 283 s
-kreis     wechsel_gym_rs   384 Werte  genesis:bildung/BY-D12.3i
-kreis     wechsel_rs_ms   384 Werte  genesis:bildung/BY-D12.3i
-kreis     wechsel_ms_rs   341 Werte  genesis:bildung/BY-D12.3i
+  · ue_ms (kreis, genesis): 31 s
+kreis     ue_ms         960 Werte  genesis:bildung/BY-D12.1i
+kreis     ue_gym_kbd    940 Werte  genesis:bildung/BY-D12.1i
+kreis     ue_rs_kbd     960 Werte  genesis:bildung/BY-D12.1i
+  · wechsel_gym_rs (kreis, genesis): 63 s
+kreis     wechsel_gym_rs   960 Werte  genesis:bildung/BY-D12.3i
+kreis     wechsel_rs_ms   960 Werte  genesis:bildung/BY-D12.3i
+kreis     wechsel_ms_rs   858 Werte  genesis:bildung/BY-D12.3i
+  ! wiederh_ges (kreis, genesis, 33 s): Tabelle BY-D13.1i: keine Regionalebene mit den Kreisen gefunden (versucht: BY-KRE, KREISE, KRS, KREIS; KREISE: nur 0 von 96 Gebieten; KRS: nur 0 von 96 Gebieten; KREIS: nur 0 von 96 Gebieten)
+  ! wiederh_ges (kreis, quotient, 0 s): Tabelle BY-D13.1i: keine Regionalebene mit den Kreisen gefunden (versucht: BY-KRE, KREISE, KRS, KREIS; KREISE: nur 0 von 96 Gebieten; KRS: nur 0 von 96 Gebieten; KREIS: nur 0 von 96 Gebieten)
+kreis     wiederh_ges     – keine Daten, entfällt auf dieser Ebene
+  ! wiederh_rs (kreis, genesis, 0 s): Tabelle BY-D13.1i: keine Regionalebene mit den Kreisen gefunden (versucht: BY-KRE, KREISE, KRS, KREIS; KREISE: nur 0 von 96 Gebieten; KRS: nur 0 von 96 Gebieten; KREIS: nur 0 von 96 Gebieten)
+  ! wiederh_rs (kreis, quotient, 0 s): Tabelle BY-D13.1i: keine Regionalebene mit den Kreisen gefunden (versucht: BY-KRE, KREISE, KRS, KREIS; KREISE: nur 0 von 96 Gebieten; KRS: nur 0 von 96 Gebieten; KREIS: nur 0 von 96 Gebieten)
+kreis     wiederh_rs      – keine Daten, entfällt auf dieser Ebene
+  ! wiederh_gym (kreis, genesis, 0 s): Tabelle BY-D13.1i: keine Regionalebene mit den Kreisen gefunden (versucht: BY-KRE, KREISE, KRS, KREIS; KREISE: nur 0 von 96 Gebieten; KRS: nur 0 von 96 Gebieten; KREIS: nur 0 von 96 Gebieten)
+  ! wiederh_gym (kreis, quotient, 0 s): Tabelle BY-D13.1i: keine Regionalebene mit den Kreisen gefunden (versucht: BY-KRE, KREISE, KRS, KREIS; KREISE: nur 0 von 96 Gebieten; KRS: nur 0 von 96 Gebieten; KREIS: nur 0 von 96 Gebieten)
+kreis     wiederh_gym     – keine Daten, entfällt auf dieser Ebene
+  ! wiederh_ms (kreis, genesis, 0 s): Tabelle BY-D13.1i: keine Regionalebene mit den Kreisen gefunden (versucht: BY-KRE, KREISE, KRS, KREIS; KREISE: nur 0 von 96 Gebieten; KRS: nur 0 von 96 Gebieten; KREIS: nur 0 von 96 Gebieten)
+  ! wiederh_ms (kreis, quotient, 0 s): Tabelle BY-D13.1i: keine Regionalebene mit den Kreisen gefunden (versucht: BY-KRE, KREISE, KRS, KREIS; KREISE: nur 0 von 96 Gebieten; KRS: nur 0 von 96 Gebieten; KREIS: nur 0 von 96 Gebieten)
+kreis     wiederh_ms      – keine Daten, entfällt auf dieser Ebene
   · ohne_beruf (kreis, quotient): 27 s
+  · ohne_beruf (kreis): Werte nur bis 2022; die Tabelle enthält keine späteren Jahre
 kreis     ohne_beruf    960 Werte  genesis:zensus/2000S-1003 / genesis:zensus/2000S-1003 (konstant fortgeschrieben)
 kreis     ausbildung      – keine Daten, entfällt auf dieser Ebene
 kreis     weg_gs        960 Werte  schulen:grundschule (konstant fortgeschrieben)
@@ -58,9 +63,7 @@ gemeinde  weg_gs      20560 Werte  schulen:grundschule (konstant fortgeschrieben
 gemeinde  weg_gym     20560 Werte  schulen:gymnasium (konstant fortgeschrieben)
 gemeinde  wfl             – keine Daten, entfällt auf dieser Ebene
 
-106290 Zeilen geschrieben nach daten/rohdaten.csv
-Geschrieben: web/data/werte.json (458 KB)
+108531 Zeilen geschrieben nach daten/rohdaten.csv
+Geschrieben: web/data/werte.json (441 KB)
 kreis: günstigste ['München', 'München', 'Starnberg'], ungünstigste ['Schweinfurt', 'Wunsiedel i. Fichtelgebirge', 'Hof']
-Suche ['Schüler allgemeinbildende Schulen Staatsangehörigkeit Kreise', 'ausländische Schüler Kreise'] (bayern): []
-Suche ['Lehrkräfte allgemeinbildende Schulen Kreise', 'Lehrkräfte Beschäftigungsumfang'] (bayern): []
-Suche ['Einschulungen Kreise', 'Schulanfänger vorzeitig zurückgestellt'] (bayern): []
+BY-D13.1i: ok

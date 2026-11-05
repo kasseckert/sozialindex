@@ -351,46 +351,6 @@
       ]
     },
     {
-      "id": "mittlerer",
-      "name": "Abgänger mit mittlerem Schulabschluss",
-      "einheit": "%",
-      "nachkommastellen": 1,
-      "beschreibung": "Anteil der Absolventen und Abgänger allgemeinbildender Schulen mit mittlerem Schulabschluss (überwiegend Realschule). Gezählt am Schulort. Kontextindikator",
-      "dimension": "bildung",
-      "polaritaet": 1,
-      "im_index": false,
-      "ebenen": [
-        "kreis"
-      ],
-      "quellen": [
-        {
-          "typ": "csv",
-          "datei": "mittlerer_abschluss.csv",
-          "hinweis": "Platzhalter, bis die passende Tabelle der Bildungsdatenbank erkundet ist"
-        }
-      ]
-    },
-    {
-      "id": "azubi_rs",
-      "name": "Neue Azubis mit mittlerem Abschluss",
-      "einheit": "%",
-      "nachkommastellen": 1,
-      "beschreibung": "Anteil der neu abgeschlossenen Ausbildungsverträge mit Realschul- oder gleichwertigem Abschluss als schulischer Vorbildung. Gezählt am Ort des Ausbildungsbetriebs. Kontextindikator",
-      "dimension": "bildung",
-      "polaritaet": 1,
-      "im_index": false,
-      "ebenen": [
-        "kreis"
-      ],
-      "quellen": [
-        {
-          "typ": "csv",
-          "datei": "azubi_vorbildung.csv",
-          "hinweis": "Platzhalter, bis die passende Tabelle der Bildungsdatenbank erkundet ist"
-        }
-      ]
-    },
-    {
       "id": "sch_ausl",
       "name": "Ausländische Schülerinnen und Schüler (öffentliche Schulen)",
       "einheit": "%",
@@ -923,6 +883,356 @@
             "Zielschule": "=Realschulen"
           },
           "quellenangabe": "Kommunale Bildungsdatenbank, Bayern – Allgemeinbildende Schulen (09--D)"
+        }
+      ]
+    },
+    {
+      "id": "wiederh_ges",
+      "name": "Klassenwiederholungen (alle Schularten)",
+      "einheit": "%",
+      "nachkommastellen": 1,
+      "beschreibung": "Anteil der Schülerinnen und Schüler, die eine Jahrgangsstufe wiederholen, an allgemeinbildenden Schulen insgesamt (BY-D13.1i). Gezählt am Schulort. Kontextindikator",
+      "dimension": "bildung",
+      "polaritaet": -1,
+      "im_index": false,
+      "ebenen": [
+        "kreis"
+      ],
+      "quellen": [
+        {
+          "typ": "genesis",
+          "datenbank": "bildung",
+          "tabelle": "BY-D13.1i",
+          "regionalvariable": "BY-KRE",
+          "wert_spalte": "anteil",
+          "filter": {}
+        },
+        {
+          "typ": "quotient",
+          "faktor": 100,
+          "zaehler": {
+            "typ": "summe",
+            "teile": [
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D13.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "__anzahl",
+                "filter": {
+                  "Trägerschaft": "=staatlich"
+                },
+                "strich_als_null": true
+              },
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D13.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "__anzahl",
+                "filter": {
+                  "Trägerschaft": "=kommunal"
+                },
+                "strich_als_null": true
+              }
+            ]
+          },
+          "nenner": {
+            "typ": "summe",
+            "teile": [
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D07.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w01",
+                "filter": {
+                  "Nationalität": "=Insgesamt",
+                  "Trägerschaft": "=staatlich"
+                },
+                "strich_als_null": true
+              },
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D07.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w01",
+                "filter": {
+                  "Nationalität": "=Insgesamt",
+                  "Trägerschaft": "=kommunal"
+                },
+                "strich_als_null": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "wiederh_rs",
+      "name": "Klassenwiederholungen (Realschulen)",
+      "einheit": "%",
+      "nachkommastellen": 1,
+      "beschreibung": "Anteil der Schülerinnen und Schüler, die eine Jahrgangsstufe wiederholen, an Realschulen (BY-D13.1i). Gezählt am Schulort. Kontextindikator",
+      "dimension": "bildung",
+      "polaritaet": -1,
+      "im_index": false,
+      "ebenen": [
+        "kreis"
+      ],
+      "quellen": [
+        {
+          "typ": "genesis",
+          "datenbank": "bildung",
+          "tabelle": "BY-D13.1i",
+          "regionalvariable": "BY-KRE",
+          "wert_spalte": "anteil",
+          "filter": {
+            "Schulart": "=Realschulen"
+          }
+        },
+        {
+          "typ": "quotient",
+          "faktor": 100,
+          "zaehler": {
+            "typ": "summe",
+            "teile": [
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D13.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "__anzahl",
+                "filter": {
+                  "Schulart": "=Realschulen",
+                  "Trägerschaft": "=staatlich"
+                },
+                "strich_als_null": true
+              },
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D13.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "__anzahl",
+                "filter": {
+                  "Schulart": "=Realschulen",
+                  "Trägerschaft": "=kommunal"
+                },
+                "strich_als_null": true
+              }
+            ]
+          },
+          "nenner": {
+            "typ": "summe",
+            "teile": [
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D07.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w01",
+                "filter": {
+                  "Schulart": "=Realschulen",
+                  "Nationalität": "=Insgesamt",
+                  "Trägerschaft": "=staatlich"
+                },
+                "strich_als_null": true
+              },
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D07.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w01",
+                "filter": {
+                  "Schulart": "=Realschulen",
+                  "Nationalität": "=Insgesamt",
+                  "Trägerschaft": "=kommunal"
+                },
+                "strich_als_null": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "wiederh_gym",
+      "name": "Klassenwiederholungen (Gymnasien)",
+      "einheit": "%",
+      "nachkommastellen": 1,
+      "beschreibung": "Anteil der Schülerinnen und Schüler, die eine Jahrgangsstufe wiederholen, an Gymnasien (BY-D13.1i). Gezählt am Schulort. Kontextindikator",
+      "dimension": "bildung",
+      "polaritaet": -1,
+      "im_index": false,
+      "ebenen": [
+        "kreis"
+      ],
+      "quellen": [
+        {
+          "typ": "genesis",
+          "datenbank": "bildung",
+          "tabelle": "BY-D13.1i",
+          "regionalvariable": "BY-KRE",
+          "wert_spalte": "anteil",
+          "filter": {
+            "Schulart": "=Gymnasien"
+          }
+        },
+        {
+          "typ": "quotient",
+          "faktor": 100,
+          "zaehler": {
+            "typ": "summe",
+            "teile": [
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D13.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "__anzahl",
+                "filter": {
+                  "Schulart": "=Gymnasien",
+                  "Trägerschaft": "=staatlich"
+                },
+                "strich_als_null": true
+              },
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D13.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "__anzahl",
+                "filter": {
+                  "Schulart": "=Gymnasien",
+                  "Trägerschaft": "=kommunal"
+                },
+                "strich_als_null": true
+              }
+            ]
+          },
+          "nenner": {
+            "typ": "summe",
+            "teile": [
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D07.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w01",
+                "filter": {
+                  "Schulart": "=Gymnasien",
+                  "Nationalität": "=Insgesamt",
+                  "Trägerschaft": "=staatlich"
+                },
+                "strich_als_null": true
+              },
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D07.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w01",
+                "filter": {
+                  "Schulart": "=Gymnasien",
+                  "Nationalität": "=Insgesamt",
+                  "Trägerschaft": "=kommunal"
+                },
+                "strich_als_null": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "wiederh_ms",
+      "name": "Klassenwiederholungen (Mittel-/Hauptschulen)",
+      "einheit": "%",
+      "nachkommastellen": 1,
+      "beschreibung": "Anteil der Schülerinnen und Schüler, die eine Jahrgangsstufe wiederholen, an Mittel-/Hauptschulen (BY-D13.1i). Gezählt am Schulort. Kontextindikator",
+      "dimension": "bildung",
+      "polaritaet": -1,
+      "im_index": false,
+      "ebenen": [
+        "kreis"
+      ],
+      "quellen": [
+        {
+          "typ": "genesis",
+          "datenbank": "bildung",
+          "tabelle": "BY-D13.1i",
+          "regionalvariable": "BY-KRE",
+          "wert_spalte": "anteil",
+          "filter": {
+            "Schulart": "=Mittel-/Hauptschulen"
+          }
+        },
+        {
+          "typ": "quotient",
+          "faktor": 100,
+          "zaehler": {
+            "typ": "summe",
+            "teile": [
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D13.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "__anzahl",
+                "filter": {
+                  "Schulart": "=Mittel-/Hauptschulen",
+                  "Trägerschaft": "=staatlich"
+                },
+                "strich_als_null": true
+              },
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D13.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "__anzahl",
+                "filter": {
+                  "Schulart": "=Mittel-/Hauptschulen",
+                  "Trägerschaft": "=kommunal"
+                },
+                "strich_als_null": true
+              }
+            ]
+          },
+          "nenner": {
+            "typ": "summe",
+            "teile": [
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D07.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w01",
+                "filter": {
+                  "Schulart": "=Mittel-/Hauptschulen",
+                  "Nationalität": "=Insgesamt",
+                  "Trägerschaft": "=staatlich"
+                },
+                "strich_als_null": true
+              },
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D07.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w01",
+                "filter": {
+                  "Schulart": "=Mittel-/Hauptschulen",
+                  "Nationalität": "=Insgesamt",
+                  "Trägerschaft": "=kommunal"
+                },
+                "strich_als_null": true
+              }
+            ]
+          }
         }
       ]
     },

@@ -1,26 +1,24 @@
 # Aufbau erkundeter GENESIS-Tabellen
 
-## BY-D07.1i (bildung)
+## BY-D13.1i (bildung)
 
-**Titel:** D7.1: Schülerinnen- und Schülerzahlen nach Schulart und Nationalität oder Migrationshintergrund an allgemeinbildenden Schulen
+**Titel:** D13.1: Anzahl und Anteile der Klassenwiederholungen
 
-Regionalvariable: `BY-KRE` · Zeilen: 226980 · Jahre: 2010, 2011, 2012, 2015, 2016, 2017, 2018, 2024, 2025
+Regionalvariable: `Standard (nur Aufbau, keine Kreise)` · Zeilen: 2070 · Jahre: 2023, 2024, 2025
 
-- Merkmal 1: **Kreise, kreisfreie Städte und Land** (Region, 96 Kreise)
-- Merkmal 2: **Geschlecht und Nationalität** (5 Ausprägungen): Insgesamt; Weiblich; Deutsche; Ausländer; Männlich
-- Merkmal 3: **Schulart (allgemeinbildend)** (13 Ausprägungen): Grundschulen; Gymnasien; Kollegs; Schulartunabhängige Orientierungsstufe; Insgesamt; Realschulen; Abendgymnasien; Freie Waldorfschulen; Abendrealschulen; Mittel-/Hauptschulen; Integrierte Gesamtschulen; Förderzentren; Realschulen zur sonderpädagogischen Förderung
-- Merkmal 4: **Trägerschaft (staatlich/kommunal/privat)** (4 Ausprägungen): privat; Insgesamt; staatlich; kommunal
+Hinweise beim Abruf:
+- Tabelle BY-D13.1i: keine Regionalebene mit den Kreisen gefunden (versucht: BY-KRE, KREISE, KRS, KREIS; KREISE: nur 0 von 96 Gebieten; KRS: nur 0 von 96 Gebieten; KREIS: nur 0 von 96 Gebieten)
+
+- Merkmal 1: **Kreise, kreisfreie Städte und Land** (Region, 0 Kreise)
+- Merkmal 2: **Klassen-/ Jahrgangsstufen** (17 Ausprägungen): 6; 13; 3; 11; 10; 9; 5; 12; 4; 7; 8; Realschulen; Schulartunabhängige Orientierungsstufe; Gymnasien; Integrierte Gesamtschulen; Mittel-/Hauptschulen; Grundschulen
+- Merkmal 3: **Schulart (allgemeinbildend)** (11 Ausprägungen): Integrierte Gesamtschulen; Schulartunabhängige Orientierungsstufe; Mittel-/Hauptschulen; Grundschulen; Gymnasien; Realschulen; Insgesamt; Ausländer; Weiblich; Deutsche; Männlich
+- Merkmal 4: **Geschlecht und Nationalität** (6 Ausprägungen): Insgesamt; Weiblich; Ausländer; Männlich; Deutsche; 
 
 Wertspalten (mit Zahl belegter Zeilen):
-- `BY-W01__Schüler/innen__Anzahl` (29419)
+- `BY-W30__Anteil der Wiederholer__Prozent` (365)
+- `BY-W06__Schülerinnen und Schüler, Klassenwiederholungen__Anzahl` (440)
 
 Beispiel Bamberg (Stadt):
 
 ```
-{"Zeit": "2010-P1Y", "1_Auspraegung_Label": "Bamberg", "2_Auspraegung_Label": "Insgesamt", "3_Auspraegung_Label": "Insgesamt", "4_Auspraegung_Label": "kommunal", "BY-W01__Schüler/innen__Anzahl": "1088"}
-{"Zeit": "2010-P1Y", "1_Auspraegung_Label": "Bamberg", "2_Auspraegung_Label": "Deutsche", "3_Auspraegung_Label": "Insgesamt", "4_Auspraegung_Label": "Insgesamt", "BY-W01__Schüler/innen__Anzahl": "."}
-{"Zeit": "2010-P1Y", "1_Auspraegung_Label": "Bamberg", "2_Auspraegung_Label": "Ausländer", "3_Auspraegung_Label": "Schulartunabhängige Orientierungsstufe", "4_Auspraegung_Label": "staatlich", "BY-W01__Schüler/innen__Anzahl": "-"}
-{"Zeit": "2010-P1Y", "1_Auspraegung_Label": "Bamberg", "2_Auspraegung_Label": "Ausländer", "3_Auspraegung_Label": "Insgesamt", "4_Auspraegung_Label": "kommunal", "BY-W01__Schüler/innen__Anzahl": "51"}
-{"Zeit": "2010-P1Y", "1_Auspraegung_Label": "Bamberg", "2_Auspraegung_Label": "Insgesamt", "3_Auspraegung_Label": "Insgesamt", "4_Auspraegung_Label": "Insgesamt", "BY-W01__Schüler/innen__Anzahl": "."}
-{"Zeit": "2010-P1Y", "1_Auspraegung_Label": "Bamberg", "2_Auspraegung_Label": "Ausländer", "3_Auspraegung_Label": "Kollegs", "4_Auspraegung_Label": "staatlich", "BY-W01__Schüler/innen__Anzahl": "-"}
 ```
