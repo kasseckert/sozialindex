@@ -3,11 +3,6 @@
   "tabellen": [
     {
       "datenbank": "bildung",
-      "tabelle": "BY-D07.11i",
-      "regionalvariable": "BY-KRE"
-    },
-    {
-      "datenbank": "bildung",
       "tabelle": "BY-D07.1i",
       "regionalvariable": "BY-KRE"
     },

@@ -185,7 +185,7 @@ def tabelle_stueckweise(datenbank: str, tabelle: str, startjahr: int, endjahr: i
     try:
         return tabelle_ffcsv(datenbank, tabelle, startjahr, endjahr, regionalvariable, regionalschluessel)
     except GenesisFehler as e:
-        if "zu gross" not in str(e) and "'Code': 98" not in str(e):
+        if not any(k in str(e) for k in ("zu gross", "'Code': 98", "timed out", "Timeout")):
             raise
     zeilen, fehler = [], []
     for jahr in range(startjahr, endjahr + 1):

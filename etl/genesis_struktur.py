@@ -158,9 +158,10 @@ def main():
             ergebnisse.append(beschreiben(t["datenbank"], t["tabelle"], t.get("regionalvariable")))
         except Exception as e:      # eine fehlerhafte Tabelle soll die anderen nicht verhindern
             ergebnisse.append({"datenbank": t["datenbank"], "tabelle": t["tabelle"], "titel": "", "fehler": [str(e)[:300]]})
-        print(f"{t['tabelle']}: {'ok' if ergebnisse[-1].get('zeilen') else 'Fehler'}")
-    ZIEL_JSON.write_text(json.dumps(ergebnisse, ensure_ascii=False, indent=1), encoding="utf-8")
-    ZIEL_MD.write_text(markdown(ergebnisse), encoding="utf-8")
+        print(f"{t['tabelle']}: {'ok' if ergebnisse[-1].get('zeilen') else 'Fehler'}", flush=True)
+        # nach jeder Tabelle speichern, damit ein Zeitlimit nicht alles verwirft
+        ZIEL_JSON.write_text(json.dumps(ergebnisse, ensure_ascii=False, indent=1), encoding="utf-8")
+        ZIEL_MD.write_text(markdown(ergebnisse), encoding="utf-8")
 
 
 if __name__ == "__main__":

@@ -88,10 +88,12 @@ def ffcsv_auswerten(zeilen: list[dict], spec: dict, ebene: str, praefix: str) ->
         if not any(schluessel.lower() in m.lower() for m in merkmalnamen):
             raise ValueError(f"Filter „{schluessel}“ passt zu keinem Merkmal der Tabelle. Vorhanden: {sorted(merkmalnamen)}")
     ergebnis: dict[tuple[str, int], float] = {}
+    zaehler = {"kreis": 0, "filter": 0, "jahr": 0, "wert": 0}
     for z in zeilen:
         ags = _ags_normalisieren(z.get(f"{region_nr}_Auspraegung_Code", ""), ebene)
         if not ags or not ags.startswith(praefix):
             continue
+        zaehler["kreis"] += 1
         # Filter und "Insgesamt"-Logik für alle übrigen Merkmale
         passt = True
         for n in nummern:
@@ -106,12 +108,15 @@ def ffcsv_auswerten(zeilen: list[dict], spec: dict, ebene: str, praefix: str) ->
                 passt &= any((auspraegung.strip().lower() == v.strip()[1:].strip().lower()) if v.strip().startswith("=")
                              else (v.strip().lower() in auspraegung.strip().lower()) for v in vorgabe.split("|"))
             else:
-                passt &= auspraegung in ("", "Insgesamt")
+                passt &= auspraegung.strip().lower() in ("", "insgesamt")
         if not passt:
             continue
+        zaehler["filter"] += 1
         jahr_text = z.get("Zeit") or z.get("Zeit_Label") or ""
         m = re.search(r"(19|20)\d\d", jahr_text)
         wert = _zahl(z.get(wertspalte))
+        zaehler["jahr"] += bool(m)
+        zaehler["wert"] += bool(m and wert is not None)
         if m and wert is not None:
             k = (ags, int(m.group(0)))
             if k in ergebnis and ergebnis[k] != wert:
@@ -119,4 +124,17 @@ def ffcsv_auswerten(zeilen: list[dict], spec: dict, ebene: str, praefix: str) ->
                 raise ValueError(f"Filter nicht eindeutig: {k[0]} {k[1]} hat mehrere passende Zeilen "
                                  f"({ergebnis[k]} und {wert}); bitte genauer filtern, z. B. mit „=“")
             ergebnis[k] = wert
+    if not ergebnis:
+        # nachvollziehbar machen, wo die Zeilen verloren gingen
+        auspr = {}
+        for n in nummern:
+            if n == region_nr:
+                continue
+            werte_n = list(dict.fromkeys(z.get(f"{n}_Auspraegung_Label", "") for z in zeilen))
+            auspr[zeilen[0].get(f"{n}_Merkmal_Label", n)] = werte_n[:12]
+        codes = list(dict.fromkeys(z.get(f"{region_nr}_Auspraegung_Code", "") for z in zeilen))[:6]
+        beleg = [z.get(wertspalte) for z in zeilen if z.get(wertspalte) not in (None, "")][:5]
+        raise ValueError(f"Keine Werte aus {len(zeilen)} Zeilen: {zaehler['kreis']} mit Kreisschlüssel, "
+                         f"{zaehler['filter']} passend zu Filtern/Insgesamt, {zaehler['wert']} mit Zahlwert. "
+                         f"Gebietscodes z. B. {codes}; Wertbeispiele {beleg}; Ausprägungen {auspr}")
     return ergebnis

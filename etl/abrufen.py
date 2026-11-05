@@ -150,6 +150,8 @@ def _genesis_zeilen(datenbank: str, tabelle: str, ebene: str, spec: dict):
     except GenesisFehler as e:
         _genesis_fehler[schluessel] = e
         raise
+    from genesis_auswerten import normalisieren
+    zeilen = normalisieren(zeilen)            # kompakte Form im Speicher halten, Rohzeilen verwerfen
     _genesis_cache[schluessel] = zeilen
     return zeilen
 
@@ -281,7 +283,7 @@ def main():
                     try:
                         res = QUELLEN[spec["typ"]](spec, ebene)
                     except Exception as e:  # Quelle gestört → nächste Quelle
-                        protokoll.append(f"  ! {ind['id']} ({ebene}, {spec['typ']}, {time.time() - t0:.0f} s): {str(e)[:300]}")
+                        protokoll.append(f"  ! {ind['id']} ({ebene}, {spec['typ']}, {time.time() - t0:.0f} s): {str(e)[:900]}")
                         continue
                     if time.time() - t0 > 20:
                         protokoll.append(f"  · {ind['id']} ({ebene}, {spec['typ']}): {time.time() - t0:.0f} s")
