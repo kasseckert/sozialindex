@@ -35,7 +35,7 @@ def abrufen(db: str, code: str, regionalvariable: str | None = None):
     from genesis import tabelle_fuer_ebene, tabelle_ffcsv
     fehler = []
     try:
-        roh, rv = tabelle_fuer_ebene(db, code, min(K.JAHRE) - 5, max(K.JAHRE) + 1, "kreis",
+        roh, rv = tabelle_fuer_ebene(db, code, max(K.JAHRE) - 2, max(K.JAHRE) + 1, "kreis",
                                      K.REGIERUNGSBEZIRK_PRAEFIX, 96, regionalvariable)
         return roh, rv, fehler
     except GenesisFehler as e:
@@ -151,7 +151,24 @@ def main():
     if not LISTE.exists():
         print("Keine Tabellen zum Erkunden (konfiguration/erkunden.json fehlt).")
         return
-    tabellen = json.loads(LISTE.read_text(encoding="utf-8")).get("tabellen", [])
+    eintraege = json.loads(LISTE.read_text(encoding="utf-8")).get("tabellen", [])
+    # Einträge mit "suche" werden über die Volltextsuche der Datenbank in Tabellencodes aufgelöst
+    from genesis import finde_tabellen
+    tabellen, gesehen = [], set()
+    for t in eintraege:
+        if t.get("tabelle"):
+            kandidaten = [{"code": t["tabelle"]}]
+        else:
+            try:
+                kandidaten = finde_tabellen(t["datenbank"], t["suche"], t.get("anzahl", 3))
+            except Exception as e:
+                print(f"Suche {t['suche']}: {e}")
+                kandidaten = []
+            print(f"Suche {t['suche']} ({t['datenbank']}): {[k['code'] for k in kandidaten]}", flush=True)
+        for k in kandidaten:
+            if (t["datenbank"], k["code"]) not in gesehen:
+                gesehen.add((t["datenbank"], k["code"]))
+                tabellen.append({**t, "tabelle": k["code"]})
     ergebnisse = []
     for t in tabellen:
         try:

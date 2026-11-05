@@ -191,6 +191,16 @@ def quelle_genesis(spec: dict, ebene: str):
     return None
 
 
+def quelle_summe(spec: dict, ebene: str):
+    """Summe mehrerer Quellen; ein Gebiet und Jahr zählt nur, wenn alle Teile einen Wert haben."""
+    teile = [QUELLEN[t["typ"]](t, ebene) for t in spec["teile"]]
+    if not all(teile):
+        return None
+    schluessel = set(teile[0][0]).intersection(*[set(t[0]) for t in teile[1:]])
+    werte = {k: sum(t[0][k] for t in teile) for k in schluessel}
+    return werte, "summe(" + ", ".join(t[1] for t in teile) + ")", dict(teile[0][2])
+
+
 def quelle_quotient(spec: dict, ebene: str):
     z = QUELLEN[spec["zaehler"]["typ"]](spec["zaehler"], ebene)
     n = QUELLEN[spec["nenner"]["typ"]](spec["nenner"], ebene)
@@ -228,11 +238,19 @@ def zeitlich_konstant(werte: dict) -> dict:
 
 
 def genesis_katalog_schreiben():
-    """Tabellenlisten von Bildungsdatenbank und Zensus für den Datenassistenten."""
+    """
+    Tabellenlisten für den Datenassistenten. Eine bestehende Liste wird nur ersetzt,
+    wenn die neue erfolgreich geladen wurde (ein gestörter Server löscht sie also nicht).
+    """
     from genesis import hat_zugang, tabellen_katalog
-    katalog = {}
-    for db, auswahlen in (("bildung", ("*", "BY-*")), ("zensus", ("2000S*",))):
-        if not hat_zugang(db):
+    ziel = WEB_DATEN / "genesis_katalog.json"
+    try:
+        katalog = json.loads(ziel.read_text(encoding="utf-8"))
+    except Exception:
+        katalog = {}
+    for db, auswahlen, gast in (("bildung", ("*", "BY-*"), False), ("zensus", ("2000S*",), False),
+                                ("bayern", ("211*", "212*"), True)):
+        if not hat_zugang(db) and not gast:
             print(f"  · Tabellenliste {db}: keine Zugangsdaten hinterlegt")
             continue
         gesehen = {}
@@ -245,14 +263,15 @@ def genesis_katalog_schreiben():
         if gesehen:
             katalog[db] = sorted(gesehen.values(), key=lambda t: t["code"])
             print(f"  · Tabellenliste {db}: {len(gesehen)} Tabellen")
-    if katalog:
-        (WEB_DATEN / "genesis_katalog.json").write_text(
-            json.dumps({"stand": date.today().isoformat(), **katalog}, ensure_ascii=False, separators=(",", ":")),
-            encoding="utf-8")
+        elif db in katalog:
+            print(f"  · Tabellenliste {db}: bisherige Liste mit {len(katalog[db])} Tabellen beibehalten")
+    if any(isinstance(v, list) for v in katalog.values()):
+        katalog["stand"] = date.today().isoformat()
+        ziel.write_text(json.dumps(katalog, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
 
 QUELLEN = {"regionalatlas": quelle_regionalatlas, "csv": quelle_csv, "genesis": quelle_genesis,
-           "quotient": quelle_quotient, "schulen": quelle_schulen}
+           "quotient": quelle_quotient, "schulen": quelle_schulen, "summe": quelle_summe}
 
 
 def abdeckung(werte: dict, anzahl_gebiete: int) -> float:

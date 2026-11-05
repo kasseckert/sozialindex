@@ -114,7 +114,8 @@ def ffcsv_auswerten(zeilen: list[dict], spec: dict, ebene: str, praefix: str) ->
         zaehler["filter"] += 1
         jahr_text = z.get("Zeit") or z.get("Zeit_Label") or ""
         m = re.search(r"(19|20)\d\d", jahr_text)
-        wert = _zahl(z.get(wertspalte))
+        roh = (z.get(wertspalte) or "").strip()
+        wert = 0.0 if (spec.get("strich_als_null") and roh in ("-", "–")) else _zahl(roh)
         zaehler["jahr"] += bool(m)
         zaehler["wert"] += bool(m and wert is not None)
         if m and wert is not None:

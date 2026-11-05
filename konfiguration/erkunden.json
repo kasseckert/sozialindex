@@ -1,34 +1,29 @@
 {
-  "hinweis": "Tabellen, deren Aufbau der Workflow erkundet (Ergebnis: daten/genesis_struktur.md). Dient der Vorbereitung neuer Indikatoren.",
+  "hinweis": "Tabellen, deren Aufbau der Workflow erkundet (Ergebnis: daten/genesis_struktur.md). Einträge mit „suche“ werden über die Volltextsuche der Datenbank aufgelöst.",
   "tabellen": [
     {
-      "datenbank": "bildung",
-      "tabelle": "BY-D07.1i",
-      "regionalvariable": "BY-KRE"
+      "datenbank": "bayern",
+      "suche": [
+        "Schüler allgemeinbildende Schulen Staatsangehörigkeit Kreise",
+        "ausländische Schüler Kreise"
+      ],
+      "anzahl": 3
     },
     {
-      "datenbank": "bildung",
-      "tabelle": "BY-D09.1i",
-      "regionalvariable": "BY-KRE"
+      "datenbank": "bayern",
+      "suche": [
+        "Lehrkräfte allgemeinbildende Schulen Kreise",
+        "Lehrkräfte Beschäftigungsumfang"
+      ],
+      "anzahl": 3
     },
     {
-      "datenbank": "bildung",
-      "tabelle": "BY-D11.1i",
-      "regionalvariable": "BY-KRE"
-    },
-    {
-      "datenbank": "bildung",
-      "tabelle": "BY-D12.1i",
-      "regionalvariable": "BY-KRE"
-    },
-    {
-      "datenbank": "bildung",
-      "tabelle": "BY-D12.3i",
-      "regionalvariable": "BY-KRE"
-    },
-    {
-      "datenbank": "zensus",
-      "tabelle": "2000S-1003"
+      "datenbank": "bayern",
+      "suche": [
+        "Einschulungen Kreise",
+        "Schulanfänger vorzeitig zurückgestellt"
+      ],
+      "anzahl": 3
     }
   ]
 }

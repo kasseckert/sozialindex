@@ -98,6 +98,7 @@
       if (q.suche) return `${db}, automatische Suche: „${[].concat(q.suche).join("“ oder „")}“${filter}`;
       return `${db}, Tabelle noch nicht festgelegt`;
     }
+    if (q.typ === "summe") return `Summe aus ${q.teile.map(quelleText).join(" und ")}`;
     if (q.typ === "quotient") return `Anteil berechnet aus ${quelleText(q.zaehler)}${q.zeitlich_konstant ? ", für alle Jahre fortgeschrieben" : ""}`;
     if (q.typ === "schulen") {
       const art = { grundschule: "Grundschule", gymnasium: "Gymnasium", realschule: "Realschule", mittelschule: "Mittelschule" }[q.schulart] || q.schulart;
