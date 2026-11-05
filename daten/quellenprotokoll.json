@@ -106,6 +106,36 @@
    "feld_titel": "Anteil Schulabgänger/-innen mit allgem. Hochschulreife",
    "einheit": "Prozent"
   },
+  "sch_ausl": {
+   "herkunft": "summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i) / summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i)",
+   "quelle": "Kommunale Bildungsdatenbank",
+   "code": "BY-D07.1i",
+   "titel": ""
+  },
+  "sch_je_lk": {
+   "herkunft": "summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i) / summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i)",
+   "quelle": "Kommunale Bildungsdatenbank",
+   "code": "BY-D07.1i",
+   "titel": ""
+  },
+  "lk_teilzeit": {
+   "herkunft": "summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i) / summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i)",
+   "quelle": "Kommunale Bildungsdatenbank",
+   "code": "BY-D09.1i",
+   "titel": ""
+  },
+  "einsch_spaet": {
+   "herkunft": "summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)",
+   "quelle": "Kommunale Bildungsdatenbank",
+   "code": "BY-D11.1i",
+   "titel": ""
+  },
+  "einsch_frueh": {
+   "herkunft": "summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)",
+   "quelle": "Kommunale Bildungsdatenbank",
+   "code": "BY-D11.1i",
+   "titel": ""
+  },
   "ue_ms": {
    "herkunft": "genesis:bildung/BY-D12.1i",
    "quelle": "Kommunale Bildungsdatenbank",

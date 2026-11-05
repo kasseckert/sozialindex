@@ -1,6 +1,11 @@
-  ! Tabellenliste bildung (*): https://www.bildungsmonitoring.de/bildungws/rest/2020/catalogue/tables fehlgeschlagen: HTTPSConnectionPool(host='www.bildungsmonitoring.de', port=443): Max retries exceeded with url: /bildungws/rest/2
-  ! Tabellenliste bildung (BY-*): https://www.bildungsmonitoring.de/bildungws/rest/2020/catalogue/tables fehlgeschlagen: HTTPSConnectionPool(host='www.bildungsmonitoring.de', port=443): Max retries exceeded with url: /bildungws/rest/2
+  · Tabellenliste bildung: 907 Tabellen
   · Tabellenliste zensus: 420 Tabellen
+  ! Tabellenliste bayern (211*): https://www.statistikdaten.bayern.de/genesisWS/rest/2020/catalogue/tables fehlgeschlagen: HTTP 403: <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "h
+  ! Tabellenliste bayern (212*): https://www.statistikdaten.bayern.de/genesisWS/rest/2020/catalogue/tables fehlgeschlagen: HTTP 403: <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "h
 kreis     alq           960 Werte  regionalatlas:AI008-1-5/ai0801
 kreis     sgb2          960 Werte  regionalatlas:AI-S-04/ai2102
 kreis     eink          768 Werte  regionalatlas:AI-S-01/ai1601
@@ -17,27 +22,23 @@ kreis     eignung_rs    576 Werte  csv:eignung_realschule.csv
 kreis     abi           960 Werte  regionalatlas:AI003-2/ai0304
 kreis     mittlerer       – keine Daten, entfällt auf dieser Ebene
 kreis     azubi_rs        – keine Daten, entfällt auf dieser Ebene
-  ! sch_ausl (kreis, quotient, 69 s): Keine Werte aus 252200 Zeilen: 249600 mit Kreisschlüssel, 960 passend zu Filtern/Insgesamt, 0 mit Zahlwert. Gebietscodes z. B. ['09774', '09277', '09674', '09178', '09271', '09183']; Wertbeispiele ['.', '-', '.', '.', '-']; Ausprägungen {'Geschlecht und Nationalität': ['Deutsche', 'Ausländer', 'Weiblich', 'Insgesamt', 'Männlich'], 'Schulart (allgemeinbildend)': ['Integrierte Gesamtschulen', 'Gymnasien', 'Abendrealschulen', 'Mittel-/Hauptschulen', 'Grundschulen', 'Realschulen zur sonderpädagogischen Förderung', 'Realschulen', 'Kollegs', 'Abendgymnasien', 'Freie Waldorfschulen', 'Insgesamt', 'Schulartunabhängige Orientierungsstufe'], 'Trägerschaft (staatlich/kommunal/privat)': ['privat', 'kommunal', 'staatlich', 'Insgesamt']}
-kreis     sch_ausl        – keine Daten, entfällt auf dieser Ebene
-  ! sch_privat (kreis, quotient, 2 s): Keine Werte aus 252200 Zeilen: 249600 mit Kreisschlüssel, 960 passend zu Filtern/Insgesamt, 0 mit Zahlwert. Gebietscodes z. B. ['09774', '09277', '09674', '09178', '09271', '09183']; Wertbeispiele ['.', '-', '.', '.', '-']; Ausprägungen {'Geschlecht und Nationalität': ['Deutsche', 'Ausländer', 'Weiblich', 'Insgesamt', 'Männlich'], 'Schulart (allgemeinbildend)': ['Integrierte Gesamtschulen', 'Gymnasien', 'Abendrealschulen', 'Mittel-/Hauptschulen', 'Grundschulen', 'Realschulen zur sonderpädagogischen Förderung', 'Realschulen', 'Kollegs', 'Abendgymnasien', 'Freie Waldorfschulen', 'Insgesamt', 'Schulartunabhängige Orientierungsstufe'], 'Trägerschaft (staatlich/kommunal/privat)': ['privat', 'kommunal', 'staatlich', 'Insgesamt']}
-kreis     sch_privat      – keine Daten, entfällt auf dieser Ebene
-  ! sch_je_lk (kreis, quotient, 2 s): Keine Werte aus 252200 Zeilen: 249600 mit Kreisschlüssel, 960 passend zu Filtern/Insgesamt, 0 mit Zahlwert. Gebietscodes z. B. ['09774', '09277', '09674', '09178', '09271', '09183']; Wertbeispiele ['.', '-', '.', '.', '-']; Ausprägungen {'Geschlecht und Nationalität': ['Deutsche', 'Ausländer', 'Weiblich', 'Insgesamt', 'Männlich'], 'Schulart (allgemeinbildend)': ['Integrierte Gesamtschulen', 'Gymnasien', 'Abendrealschulen', 'Mittel-/Hauptschulen', 'Grundschulen', 'Realschulen zur sonderpädagogischen Förderung', 'Realschulen', 'Kollegs', 'Abendgymnasien', 'Freie Waldorfschulen', 'Insgesamt', 'Schulartunabhängige Orientierungsstufe'], 'Trägerschaft (staatlich/kommunal/privat)': ['privat', 'kommunal', 'staatlich', 'Insgesamt']}
-kreis     sch_je_lk       – keine Daten, entfällt auf dieser Ebene
-  ! lk_teilzeit (kreis, quotient, 115 s): Keine Werte aus 453960 Zeilen: 449280 mit Kreisschlüssel, 2880 passend zu Filtern/Insgesamt, 0 mit Zahlwert. Gebietscodes z. B. ['09462', '09676', '09479', '09673', '09772', '09186']; Wertbeispiele ['.', '.', '-', '.', '.']; Ausprägungen {'Beschäftigungsumfang': ['Teilzeitbeschäftigt', 'Insgesamt', 'Vollzeitbeschäftigt'], 'Schulart (allgemeinbildend)': ['Integrierte Gesamtschulen', 'Realschulen zur sonderpädagogischen Förderung', 'Insgesamt', 'Förderzentren', 'Gymnasien', 'Mittel-/Hauptschulen', 'Abendgymnasien', 'Abendrealschulen', 'Schulartunabhängige Orientierungsstufe', 'Freie Waldorfschulen', 'Realschulen', 'Kollegs'], 'Trägerschaft (staatlich/kommunal/privat)': ['privat', 'Insgesamt', 'kommunal', 'staatlich']}
-kreis     lk_teilzeit     – keine Daten, entfällt auf dieser Ebene
-  ! einsch_spaet (kreis, genesis, 63 s): Keine Werte aus 69840 Zeilen: 69120 mit Kreisschlüssel, 5760 passend zu Filtern/Insgesamt, 0 mit Zahlwert. Gebietscodes z. B. ['09771', '09372', '09475', '09271', '09762', '09186']; Wertbeispiele ['.', '.', '8,5', '18,2', '18,7']; Ausprägungen {'Trägerschaft (staatlich/kommunal/privat)': ['Insgesamt', 'privat', 'staatlich', 'kommunal'], 'Geschlecht': ['Männlich', 'Insgesamt', 'Weiblich']}
-kreis     einsch_spaet     – keine Daten, entfällt auf dieser Ebene
-  ! einsch_frueh (kreis, genesis, 0 s): Keine Werte aus 69840 Zeilen: 69120 mit Kreisschlüssel, 5760 passend zu Filtern/Insgesamt, 0 mit Zahlwert. Gebietscodes z. B. ['09771', '09372', '09475', '09271', '09762', '09186']; Wertbeispiele ['.', '.', '1,8', '1,1', '-']; Ausprägungen {'Trägerschaft (staatlich/kommunal/privat)': ['Insgesamt', 'privat', 'staatlich', 'kommunal'], 'Geschlecht': ['Männlich', 'Insgesamt', 'Weiblich']}
-kreis     einsch_frueh     – keine Daten, entfällt auf dieser Ebene
-  · ue_ms (kreis, genesis): 70 s
-kreis     ue_ms         864 Werte  genesis:bildung/BY-D12.1i
-kreis     ue_gym_kbd    846 Werte  genesis:bildung/BY-D12.1i
-kreis     ue_rs_kbd     864 Werte  genesis:bildung/BY-D12.1i
-  · wechsel_gym_rs (kreis, genesis): 272 s
-kreis     wechsel_gym_rs   480 Werte  genesis:bildung/BY-D12.3i
-kreis     wechsel_rs_ms   480 Werte  genesis:bildung/BY-D12.3i
-kreis     wechsel_ms_rs   422 Werte  genesis:bildung/BY-D12.3i
-  · ohne_beruf (kreis, quotient): 28 s
+  · sch_ausl (kreis, quotient): 76 s
+kreis     sch_ausl      960 Werte  summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i) / summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i)
+  · sch_je_lk (kreis, quotient): 121 s
+kreis     sch_je_lk     960 Werte  summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i) / summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i)
+kreis     lk_teilzeit   960 Werte  summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i) / summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i)
+  · einsch_spaet (kreis, quotient): 65 s
+kreis     einsch_spaet   960 Werte  summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)
+kreis     einsch_frueh   960 Werte  summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)
+  · ue_ms (kreis, genesis): 101 s
+kreis     ue_ms         768 Werte  genesis:bildung/BY-D12.1i
+kreis     ue_gym_kbd    752 Werte  genesis:bildung/BY-D12.1i
+kreis     ue_rs_kbd     768 Werte  genesis:bildung/BY-D12.1i
+  · wechsel_gym_rs (kreis, genesis): 283 s
+kreis     wechsel_gym_rs   384 Werte  genesis:bildung/BY-D12.3i
+kreis     wechsel_rs_ms   384 Werte  genesis:bildung/BY-D12.3i
+kreis     wechsel_ms_rs   341 Werte  genesis:bildung/BY-D12.3i
+  · ohne_beruf (kreis, quotient): 27 s
 kreis     ohne_beruf    960 Werte  genesis:zensus/2000S-1003 / genesis:zensus/2000S-1003 (konstant fortgeschrieben)
 kreis     ausbildung      – keine Daten, entfällt auf dieser Ebene
 kreis     weg_gs        960 Werte  schulen:grundschule (konstant fortgeschrieben)
@@ -57,7 +58,9 @@ gemeinde  weg_gs      20560 Werte  schulen:grundschule (konstant fortgeschrieben
 gemeinde  weg_gym     20560 Werte  schulen:gymnasium (konstant fortgeschrieben)
 gemeinde  wfl             – keine Daten, entfällt auf dieser Ebene
 
-102049 Zeilen geschrieben nach daten/rohdaten.csv
-Geschrieben: web/data/werte.json (363 KB)
+106290 Zeilen geschrieben nach daten/rohdaten.csv
+Geschrieben: web/data/werte.json (458 KB)
 kreis: günstigste ['München', 'München', 'Starnberg'], ungünstigste ['Schweinfurt', 'Wunsiedel i. Fichtelgebirge', 'Hof']
-BY-D07.1i: ok
+Suche ['Schüler allgemeinbildende Schulen Staatsangehörigkeit Kreise', 'ausländische Schüler Kreise'] (bayern): []
+Suche ['Lehrkräfte allgemeinbildende Schulen Kreise', 'Lehrkräfte Beschäftigungsumfang'] (bayern): []
+Suche ['Einschulungen Kreise', 'Schulanfänger vorzeitig zurückgestellt'] (bayern): []

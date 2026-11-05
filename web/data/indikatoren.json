@@ -392,10 +392,10 @@
     },
     {
       "id": "sch_ausl",
-      "name": "Ausländische Schülerinnen und Schüler",
+      "name": "Ausländische Schülerinnen und Schüler (öffentliche Schulen)",
       "einheit": "%",
       "nachkommastellen": 1,
-      "beschreibung": "Anteil der Schülerinnen und Schüler ohne deutsche Staatsangehörigkeit an allgemeinbildenden Schulen (Tabelle BY-D07.1i). Gezählt am Schulort. Kontextindikator",
+      "beschreibung": "Anteil der Schülerinnen und Schüler ohne deutsche Staatsangehörigkeit an allgemeinbildenden Schulen (BY-D07.1i). Öffentliche Schulen (staatlich und kommunal); Privatschulen veröffentlicht die Bildungsdatenbank auf Kreisebene nicht. Gezählt am Schulort. Kontextindikator",
       "dimension": "bildung",
       "polaritaet": 1,
       "im_index": false,
@@ -407,77 +407,72 @@
           "typ": "quotient",
           "faktor": 100,
           "zaehler": {
-            "typ": "genesis",
-            "datenbank": "bildung",
-            "tabelle": "BY-D07.1i",
-            "regionalvariable": "BY-KRE",
-            "wert_spalte": "by-w01",
-            "filter": {
-              "Nationalität": "=Ausländer"
-            },
-            "quellenangabe": "Kommunale Bildungsdatenbank, Bayern – Allgemeinbildende Schulen (09--D)"
+            "typ": "summe",
+            "teile": [
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D07.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w01",
+                "filter": {
+                  "Nationalität": "=Ausländer",
+                  "Trägerschaft": "=staatlich"
+                },
+                "strich_als_null": true
+              },
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D07.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w01",
+                "filter": {
+                  "Nationalität": "=Ausländer",
+                  "Trägerschaft": "=kommunal"
+                },
+                "strich_als_null": true
+              }
+            ]
           },
           "nenner": {
-            "typ": "genesis",
-            "datenbank": "bildung",
-            "tabelle": "BY-D07.1i",
-            "regionalvariable": "BY-KRE",
-            "wert_spalte": "by-w01",
-            "filter": {
-              "Nationalität": "=Insgesamt"
-            },
-            "quellenangabe": "Kommunale Bildungsdatenbank, Bayern – Allgemeinbildende Schulen (09--D)"
-          }
-        }
-      ]
-    },
-    {
-      "id": "sch_privat",
-      "name": "Schülerinnen und Schüler an privaten Schulen",
-      "einheit": "%",
-      "nachkommastellen": 1,
-      "beschreibung": "Anteil der Schülerinnen und Schüler an allgemeinbildenden Schulen in privater Trägerschaft (Tabelle BY-D07.1i). Gezählt am Schulort. Kontextindikator",
-      "dimension": "bildung",
-      "polaritaet": 1,
-      "im_index": false,
-      "ebenen": [
-        "kreis"
-      ],
-      "quellen": [
-        {
-          "typ": "quotient",
-          "faktor": 100,
-          "zaehler": {
-            "typ": "genesis",
-            "datenbank": "bildung",
-            "tabelle": "BY-D07.1i",
-            "regionalvariable": "BY-KRE",
-            "wert_spalte": "by-w01",
-            "filter": {
-              "Trägerschaft": "=privat"
-            },
-            "quellenangabe": "Kommunale Bildungsdatenbank, Bayern – Allgemeinbildende Schulen (09--D)"
-          },
-          "nenner": {
-            "typ": "genesis",
-            "datenbank": "bildung",
-            "tabelle": "BY-D07.1i",
-            "regionalvariable": "BY-KRE",
-            "wert_spalte": "by-w01",
-            "filter": {
-              "Trägerschaft": "=Insgesamt"
-            },
-            "quellenangabe": "Kommunale Bildungsdatenbank, Bayern – Allgemeinbildende Schulen (09--D)"
+            "typ": "summe",
+            "teile": [
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D07.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w01",
+                "filter": {
+                  "Nationalität": "=Insgesamt",
+                  "Trägerschaft": "=staatlich"
+                },
+                "strich_als_null": true
+              },
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D07.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w01",
+                "filter": {
+                  "Nationalität": "=Insgesamt",
+                  "Trägerschaft": "=kommunal"
+                },
+                "strich_als_null": true
+              }
+            ]
           }
         }
       ]
     },
     {
       "id": "sch_je_lk",
-      "name": "Schülerinnen und Schüler je Lehrkraft",
+      "name": "Schülerinnen und Schüler je Lehrkraft (öffentliche Schulen)",
       "einheit": "je Lehrkraft",
       "nachkommastellen": 1,
-      "beschreibung": "Schülerinnen und Schüler je Lehrkraft an allgemeinbildenden Schulen; Lehrkräfte nach Köpfen, nicht nach Vollzeitstellen (Tabellen BY-D07.1i und BY-D09.1i). Gezählt am Schulort. Kontextindikator",
+      "beschreibung": "Schülerinnen und Schüler je Lehrkraft an allgemeinbildenden Schulen; Lehrkräfte nach Köpfen, nicht nach Vollzeitstellen (BY-D07.1i, BY-D09.1i). Öffentliche Schulen (staatlich und kommunal); Privatschulen veröffentlicht die Bildungsdatenbank auf Kreisebene nicht. Gezählt am Schulort. Kontextindikator",
       "dimension": "bildung",
       "polaritaet": 1,
       "im_index": false,
@@ -489,36 +484,72 @@
           "typ": "quotient",
           "faktor": 1,
           "zaehler": {
-            "typ": "genesis",
-            "datenbank": "bildung",
-            "tabelle": "BY-D07.1i",
-            "regionalvariable": "BY-KRE",
-            "wert_spalte": "by-w01",
-            "filter": {
-              "Nationalität": "=Insgesamt"
-            },
-            "quellenangabe": "Kommunale Bildungsdatenbank, Bayern – Allgemeinbildende Schulen (09--D)"
+            "typ": "summe",
+            "teile": [
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D07.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w01",
+                "filter": {
+                  "Nationalität": "=Insgesamt",
+                  "Trägerschaft": "=staatlich"
+                },
+                "strich_als_null": true
+              },
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D07.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w01",
+                "filter": {
+                  "Nationalität": "=Insgesamt",
+                  "Trägerschaft": "=kommunal"
+                },
+                "strich_als_null": true
+              }
+            ]
           },
           "nenner": {
-            "typ": "genesis",
-            "datenbank": "bildung",
-            "tabelle": "BY-D09.1i",
-            "regionalvariable": "BY-KRE",
-            "wert_spalte": "by-w12",
-            "filter": {
-              "Beschäftigungsumfang": "=Insgesamt"
-            },
-            "quellenangabe": "Kommunale Bildungsdatenbank, Bayern – Allgemeinbildende Schulen (09--D)"
+            "typ": "summe",
+            "teile": [
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D09.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w12",
+                "filter": {
+                  "Beschäftigungsumfang": "=Insgesamt",
+                  "Trägerschaft": "=staatlich"
+                },
+                "strich_als_null": true
+              },
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D09.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w12",
+                "filter": {
+                  "Beschäftigungsumfang": "=Insgesamt",
+                  "Trägerschaft": "=kommunal"
+                },
+                "strich_als_null": true
+              }
+            ]
           }
         }
       ]
     },
     {
       "id": "lk_teilzeit",
-      "name": "Teilzeitlehrkräfte",
+      "name": "Teilzeitlehrkräfte (öffentliche Schulen)",
       "einheit": "%",
       "nachkommastellen": 1,
-      "beschreibung": "Anteil der teilzeitbeschäftigten Lehrkräfte an allgemeinbildenden Schulen (Tabelle BY-D09.1i). Gezählt am Schulort. Kontextindikator",
+      "beschreibung": "Anteil der teilzeitbeschäftigten Lehrkräfte an allgemeinbildenden Schulen (BY-D09.1i). Öffentliche Schulen (staatlich und kommunal); Privatschulen veröffentlicht die Bildungsdatenbank auf Kreisebene nicht. Gezählt am Schulort. Kontextindikator",
       "dimension": "bildung",
       "polaritaet": 1,
       "im_index": false,
@@ -530,36 +561,72 @@
           "typ": "quotient",
           "faktor": 100,
           "zaehler": {
-            "typ": "genesis",
-            "datenbank": "bildung",
-            "tabelle": "BY-D09.1i",
-            "regionalvariable": "BY-KRE",
-            "wert_spalte": "by-w12",
-            "filter": {
-              "Beschäftigungsumfang": "=Teilzeitbeschäftigt"
-            },
-            "quellenangabe": "Kommunale Bildungsdatenbank, Bayern – Allgemeinbildende Schulen (09--D)"
+            "typ": "summe",
+            "teile": [
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D09.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w12",
+                "filter": {
+                  "Beschäftigungsumfang": "=Teilzeitbeschäftigt",
+                  "Trägerschaft": "=staatlich"
+                },
+                "strich_als_null": true
+              },
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D09.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w12",
+                "filter": {
+                  "Beschäftigungsumfang": "=Teilzeitbeschäftigt",
+                  "Trägerschaft": "=kommunal"
+                },
+                "strich_als_null": true
+              }
+            ]
           },
           "nenner": {
-            "typ": "genesis",
-            "datenbank": "bildung",
-            "tabelle": "BY-D09.1i",
-            "regionalvariable": "BY-KRE",
-            "wert_spalte": "by-w12",
-            "filter": {
-              "Beschäftigungsumfang": "=Insgesamt"
-            },
-            "quellenangabe": "Kommunale Bildungsdatenbank, Bayern – Allgemeinbildende Schulen (09--D)"
+            "typ": "summe",
+            "teile": [
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D09.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w12",
+                "filter": {
+                  "Beschäftigungsumfang": "=Insgesamt",
+                  "Trägerschaft": "=staatlich"
+                },
+                "strich_als_null": true
+              },
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D09.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w12",
+                "filter": {
+                  "Beschäftigungsumfang": "=Insgesamt",
+                  "Trägerschaft": "=kommunal"
+                },
+                "strich_als_null": true
+              }
+            ]
           }
         }
       ]
     },
     {
       "id": "einsch_spaet",
-      "name": "Spät eingeschulte Kinder",
+      "name": "Spät eingeschulte Kinder (öffentliche Schulen)",
       "einheit": "%",
       "nachkommastellen": 1,
-      "beschreibung": "Anteil der spät eingeschulten Kinder an allen Schulanfängerinnen und Schulanfängern (Tabelle BY-D11.1i). Gezählt am Schulort. Kontextindikator",
+      "beschreibung": "Anteil der spät eingeschulten Kinder an allen Schulanfängerinnen und Schulanfängern (BY-D11.1i). Öffentliche Schulen (staatlich und kommunal); Privatschulen veröffentlicht die Bildungsdatenbank auf Kreisebene nicht. Gezählt am Schulort. Kontextindikator",
       "dimension": "bildung",
       "polaritaet": 1,
       "im_index": false,
@@ -568,22 +635,71 @@
       ],
       "quellen": [
         {
-          "typ": "genesis",
-          "datenbank": "bildung",
-          "tabelle": "BY-D11.1i",
-          "regionalvariable": "BY-KRE",
-          "wert_spalte": "by-w20",
-          "filter": {},
-          "quellenangabe": "Kommunale Bildungsdatenbank, Bayern – Allgemeinbildende Schulen (09--D)"
+          "typ": "quotient",
+          "faktor": 100,
+          "zaehler": {
+            "typ": "summe",
+            "teile": [
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D11.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w18",
+                "filter": {
+                  "Trägerschaft": "=staatlich"
+                },
+                "strich_als_null": true
+              },
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D11.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w18",
+                "filter": {
+                  "Trägerschaft": "=kommunal"
+                },
+                "strich_als_null": true
+              }
+            ]
+          },
+          "nenner": {
+            "typ": "summe",
+            "teile": [
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D11.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w15",
+                "filter": {
+                  "Trägerschaft": "=staatlich"
+                },
+                "strich_als_null": true
+              },
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D11.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w15",
+                "filter": {
+                  "Trägerschaft": "=kommunal"
+                },
+                "strich_als_null": true
+              }
+            ]
+          }
         }
       ]
     },
     {
       "id": "einsch_frueh",
-      "name": "Früh eingeschulte Kinder",
+      "name": "Früh eingeschulte Kinder (öffentliche Schulen)",
       "einheit": "%",
       "nachkommastellen": 1,
-      "beschreibung": "Anteil der früh eingeschulten Kinder an allen Schulanfängerinnen und Schulanfängern (Tabelle BY-D11.1i). Gezählt am Schulort. Kontextindikator",
+      "beschreibung": "Anteil der früh eingeschulten Kinder an allen Schulanfängerinnen und Schulanfängern (BY-D11.1i). Öffentliche Schulen (staatlich und kommunal); Privatschulen veröffentlicht die Bildungsdatenbank auf Kreisebene nicht. Gezählt am Schulort. Kontextindikator",
       "dimension": "bildung",
       "polaritaet": 1,
       "im_index": false,
@@ -592,22 +708,71 @@
       ],
       "quellen": [
         {
-          "typ": "genesis",
-          "datenbank": "bildung",
-          "tabelle": "BY-D11.1i",
-          "regionalvariable": "BY-KRE",
-          "wert_spalte": "by-w19",
-          "filter": {},
-          "quellenangabe": "Kommunale Bildungsdatenbank, Bayern – Allgemeinbildende Schulen (09--D)"
+          "typ": "quotient",
+          "faktor": 100,
+          "zaehler": {
+            "typ": "summe",
+            "teile": [
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D11.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w17",
+                "filter": {
+                  "Trägerschaft": "=staatlich"
+                },
+                "strich_als_null": true
+              },
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D11.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w17",
+                "filter": {
+                  "Trägerschaft": "=kommunal"
+                },
+                "strich_als_null": true
+              }
+            ]
+          },
+          "nenner": {
+            "typ": "summe",
+            "teile": [
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D11.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w15",
+                "filter": {
+                  "Trägerschaft": "=staatlich"
+                },
+                "strich_als_null": true
+              },
+              {
+                "typ": "genesis",
+                "datenbank": "bildung",
+                "tabelle": "BY-D11.1i",
+                "regionalvariable": "BY-KRE",
+                "wert_spalte": "by-w15",
+                "filter": {
+                  "Trägerschaft": "=kommunal"
+                },
+                "strich_als_null": true
+              }
+            ]
+          }
         }
       ]
     },
     {
       "id": "ue_ms",
-      "name": "Übergänge an die Mittelschule",
+      "name": "Fünftklässler an Mittelschulen (am Schulort)",
       "einheit": "%",
       "nachkommastellen": 1,
-      "beschreibung": "Anteil der Übergänge von der Grundschule an Mittel-/Hauptschulen (Tabelle BY-D12.1i). Gezählt am Schulort. Kontextindikator",
+      "beschreibung": "Anteil der Mittel-/Hauptschulen an den Eingangsklassen der weiterführenden Schulen im Kreis (BY-D12.1i). Gezählt am Ort der weiterführenden Schule. Kontextindikator",
       "dimension": "bildung",
       "polaritaet": 1,
       "im_index": false,
@@ -630,10 +795,10 @@
     },
     {
       "id": "ue_gym_kbd",
-      "name": "Übergänge an das Gymnasium (Bildungsdatenbank)",
+      "name": "Fünftklässler an Gymnasien (am Schulort)",
       "einheit": "%",
       "nachkommastellen": 1,
-      "beschreibung": "Anteil der Übergänge von der Grundschule an Gymnasien laut Bildungsdatenbank; zum Abgleich mit der Übertrittsquote aus dem Landtag (Tabelle BY-D12.1i). Gezählt am Schulort. Kontextindikator",
+      "beschreibung": "Anteil der Gymnasien an den Eingangsklassen der weiterführenden Schulen im Kreis (BY-D12.1i). Gezählt am Ort der weiterführenden Schule, deshalb in Städten mit großem Einzugsgebiet höher; für den Übertritt der Kinder eines Kreises gilt die Übertrittsquote aus den Landtagsdaten. Kontextindikator",
       "dimension": "bildung",
       "polaritaet": 1,
       "im_index": false,
@@ -656,10 +821,10 @@
     },
     {
       "id": "ue_rs_kbd",
-      "name": "Übergänge an die Realschule (Bildungsdatenbank)",
+      "name": "Fünftklässler an Realschulen (am Schulort)",
       "einheit": "%",
       "nachkommastellen": 1,
-      "beschreibung": "Anteil der Übergänge von der Grundschule an Realschulen laut Bildungsdatenbank; zum Abgleich mit der Übertrittsquote aus dem Landtag (Tabelle BY-D12.1i). Gezählt am Schulort. Kontextindikator",
+      "beschreibung": "Anteil der Realschulen an den Eingangsklassen der weiterführenden Schulen im Kreis (BY-D12.1i). Gezählt am Ort der weiterführenden Schule. Kontextindikator",
       "dimension": "bildung",
       "polaritaet": 1,
       "im_index": false,
