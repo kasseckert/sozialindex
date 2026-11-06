@@ -29,7 +29,7 @@
   color-scheme: light;
   --pin: #1F4E9A; --pin-rand: #FFFFFF;
   --pin-realschule: #1F4E9A; --pin-gymnasium: #9A5B0B; --pin-mittelschule: #3F4652;
-  --pin-grundschule: #0E7490; --pin-berufliche: #9D174D; --pin-foerderzentrum: #4D7C0F;
+  --pin-grundschule: #0E7490; --pin-berufliche: #9D174D; --pin-foerderzentrum: #4D7C0F; --pin-fos: #B91C1C;
   --grund: #E7EAE4;
   --papier: #FAFAF7;
   --tinte: #1D2826;
@@ -57,7 +57,7 @@
     --s5: #3F5A41; --s6: #5E9461; --s7: #8CC98D;
     --pin: #7FA9E8; --pin-rand: #141A19;
     --pin-realschule: #7FA9E8; --pin-gymnasium: #E0A55A; --pin-mittelschule: #B8C0CC;
-    --pin-grundschule: #67C7DD; --pin-berufliche: #F08DB5; --pin-foerderzentrum: #A9D46B;
+    --pin-grundschule: #67C7DD; --pin-berufliche: #F08DB5; --pin-foerderzentrum: #A9D46B; --pin-fos: #F28B82;
     --n1: #22303A; --n2: #2B4252; --n3: #35566B; --n4: #436E88; --n5: #5A8AA8; --n6: #7DA9C6; --n7: #A9CBE3;
   }
 }
@@ -71,7 +71,7 @@
   --n1: #22303A; --n2: #2B4252; --n3: #35566B; --n4: #436E88; --n5: #5A8AA8; --n6: #7DA9C6; --n7: #A9CBE3;
   --pin: #7FA9E8; --pin-rand: #141A19;
   --pin-realschule: #7FA9E8; --pin-gymnasium: #E0A55A; --pin-mittelschule: #B8C0CC;
-  --pin-grundschule: #67C7DD; --pin-berufliche: #F08DB5; --pin-foerderzentrum: #A9D46B;
+  --pin-grundschule: #67C7DD; --pin-berufliche: #F08DB5; --pin-foerderzentrum: #A9D46B; --pin-fos: #F28B82;
 }
 
 *, *::before, *::after { box-sizing: inherit; }

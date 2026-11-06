@@ -328,9 +328,9 @@
 
   // ------------------------------------------------------------ Schulstandorte
   const SCHULARTEN_NAMEN = { realschule: "Realschulen", gymnasium: "Gymnasien", mittelschule: "Mittelschulen",
-    grundschule: "Grundschulen", berufliche: "Berufliche Schulen", foerderzentrum: "Förderzentren" };
+    grundschule: "Grundschulen", berufliche: "Berufliche Schulen", foerderzentrum: "Förderzentren", fos: "Fachoberschulen (FOS)" };
   const SCHULART_EINZAHL = { realschule: "Realschule", gymnasium: "Gymnasium", mittelschule: "Mittelschule",
-    grundschule: "Grundschule", berufliche: "Berufliche Schule", foerderzentrum: "Förderzentrum" };
+    grundschule: "Grundschule", berufliche: "Berufliche Schule", foerderzentrum: "Förderzentrum", fos: "Fachoberschule" };
   const Schulen = { daten: {}, ebenen: {}, an: new Set() };
 
   function pinSymbol(art) {
@@ -343,9 +343,10 @@
     const arten = Z.daten.meta.schulstandorte || [];
     if (!arten.length) return;
     $("#schulschalter").hidden = false;
+    // Das Häkchen trägt die Farbe der Schulart; so bleibt die Zuordnung ohne zusätzliches Symbol erkennbar
     $("#schulschalter-liste").innerHTML = arten.map((a) => `<label>
-        <input type="checkbox" data-schulart="${esc(a)}">
-        <span class="pin-symbol">${pinSymbol(esc(a))}</span>${esc(SCHULARTEN_NAMEN[a] || a)}
+        <input type="checkbox" data-schulart="${esc(a)}" style="accent-color: var(--pin-${esc(a)}, var(--pin))">
+        ${esc(SCHULARTEN_NAMEN[a] || a)}
         <span class="anzahl" data-anzahl="${esc(a)}"></span></label>`).join("");
     $("#schulschalter-liste").addEventListener("change", async (e) => {
       const art = e.target.dataset.schulart;

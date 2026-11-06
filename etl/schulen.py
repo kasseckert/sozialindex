@@ -40,6 +40,7 @@ SCHULARTEN = {
     "gymnasium": "Gymnas",
     "berufliche": "Beruflich",
     "foerderzentrum": "Foerderzentr",
+    "fos": "Fachoberschul",
 }
 
 # Schreibweisen der Schulart in gemischten Ebenen (Feld „Schulart“)
@@ -50,6 +51,7 @@ SCHULART_MUSTER = {
     "gymnasium": ["gymnas"],
     "berufliche": ["berufs", "fachoberschul", "berufsoberschul", "wirtschaftsschul"],
     "foerderzentrum": ["förder", "foerder"],
+    "fos": ["fachoberschul", "fos/bos", "fos-bos", "fos und bos"],
 }
 
 SITZUNG = requests.Session()
