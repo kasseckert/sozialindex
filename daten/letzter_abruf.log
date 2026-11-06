@@ -1,5 +1,8 @@
-  · Tabellenliste bildung: 907 Tabellen
+  ! Tabellenliste bildung (*): https://www.bildungsmonitoring.de/bildungws/rest/2020/catalogue/tables fehlgeschlagen: HTTPSConnectionPool(host='www.bildungsmonitoring.de', port=443): Max retries exceeded with url: /bildungws/rest/2
+  ! Tabellenliste bildung (BY-*): https://www.bildungsmonitoring.de/bildungws/rest/2020/catalogue/tables fehlgeschlagen: HTTPSConnectionPool(host='www.bildungsmonitoring.de', port=443): Max retries exceeded with url: /bildungws/rest/2
+  · Tabellenliste bildung: bisherige Liste mit 907 Tabellen beibehalten
   · Tabellenliste zensus: 420 Tabellen
+  · Schulstandorte realschule: 238 Standorte, davon ohne Namen 0; Felder im Dienst: ['ort', 'postleitzahl', 'schulart', 'schulname', 'strasse']
 kreis     alq           960 Werte  regionalatlas:AI008-1-5/ai0801
 kreis     sgb2          960 Werte  regionalatlas:AI-S-04/ai2102
 kreis     eink          768 Werte  regionalatlas:AI-S-01/ai1601
@@ -14,27 +17,28 @@ kreis     uebertritt_rs   576 Werte  csv:uebertritt_realschule.csv
 kreis     eignung_gym   576 Werte  csv:eignung_gymnasium.csv
 kreis     eignung_rs    576 Werte  csv:eignung_realschule.csv
 kreis     abi           960 Werte  regionalatlas:AI003-2/ai0304
-  · sch_ausl (kreis, quotient): 77 s
+  · sch_ausl (kreis, quotient): 67 s
 kreis     sch_ausl      960 Werte  summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i) / summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i)
-  · sch_je_lk (kreis, quotient): 127 s
+  · sch_je_lk (kreis, quotient): 110 s
 kreis     sch_je_lk     960 Werte  summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i) / summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i)
-  · lk_teilzeit (kreis, quotient): 20 s
 kreis     lk_teilzeit   960 Werte  summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i) / summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i)
-  · einsch_spaet (kreis, quotient): 69 s
-kreis     einsch_spaet   960 Werte  summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)
-kreis     einsch_frueh   960 Werte  summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)
-  · ue_ms (kreis, genesis): 37 s
-kreis     ue_ms         960 Werte  genesis:bildung/BY-D12.1i
-kreis     ue_gym_kbd    940 Werte  genesis:bildung/BY-D12.1i
-kreis     ue_rs_kbd     960 Werte  genesis:bildung/BY-D12.1i
-  · wechsel_gym_rs (kreis, genesis): 295 s
-  · wechsel_gym_rs (kreis): Werte nur bis 2019; die Tabelle enthält keine späteren Jahre
-kreis     wechsel_gym_rs   384 Werte  genesis:bildung/BY-D12.3i
-  · wechsel_rs_ms (kreis): Werte nur bis 2019; die Tabelle enthält keine späteren Jahre
-kreis     wechsel_rs_ms   384 Werte  genesis:bildung/BY-D12.3i
-  · wechsel_ms_rs (kreis): Werte nur bis 2019; die Tabelle enthält keine späteren Jahre
-kreis     wechsel_ms_rs   339 Werte  genesis:bildung/BY-D12.3i
-  · ohne_beruf (kreis, quotient): 26 s
+  · einsch_spaet (kreis, quotient): 187 s
+  · einsch_spaet (kreis): Werte nur bis 2020; die Tabelle enthält keine späteren Jahre
+kreis     einsch_spaet   576 Werte  summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)
+  · einsch_frueh (kreis): Werte nur bis 2020; die Tabelle enthält keine späteren Jahre
+kreis     einsch_frueh   576 Werte  summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)
+  · ue_ms (kreis, genesis): 228 s
+  · ue_ms (kreis): Werte nur bis 2019; die Tabelle enthält keine späteren Jahre
+kreis     ue_ms         480 Werte  genesis:bildung/BY-D12.1i
+  · ue_gym_kbd (kreis): Werte nur bis 2019; die Tabelle enthält keine späteren Jahre
+kreis     ue_gym_kbd    470 Werte  genesis:bildung/BY-D12.1i
+  · ue_rs_kbd (kreis): Werte nur bis 2019; die Tabelle enthält keine späteren Jahre
+kreis     ue_rs_kbd     480 Werte  genesis:bildung/BY-D12.1i
+  · wechsel_gym_rs (kreis, genesis): 225 s
+kreis     wechsel_gym_rs   480 Werte  genesis:bildung/BY-D12.3i
+kreis     wechsel_rs_ms   480 Werte  genesis:bildung/BY-D12.3i
+kreis     wechsel_ms_rs   429 Werte  genesis:bildung/BY-D12.3i
+  · ohne_beruf (kreis, quotient): 29 s
   · ohne_beruf (kreis): Werte nur bis 2022; die Tabelle enthält keine späteren Jahre
 kreis     ohne_beruf    960 Werte  genesis:zensus/2000S-1003 / genesis:zensus/2000S-1003 (konstant fortgeschrieben)
 kreis     ausbildung      – keine Daten, entfällt auf dieser Ebene
@@ -55,6 +59,6 @@ gemeinde  weg_gs      20560 Werte  schulen:grundschule (konstant fortgeschrieben
 gemeinde  weg_gym     20560 Werte  schulen:gymnasium (konstant fortgeschrieben)
 gemeinde  wfl             – keine Daten, entfällt auf dieser Ebene
 
-106860 Zeilen geschrieben nach daten/rohdaten.csv
-Geschrieben: web/data/werte.json (443 KB)
+104944 Zeilen geschrieben nach daten/rohdaten.csv
+Geschrieben: web/data/werte.json (434 KB)
 kreis: günstigste ['München', 'München', 'Starnberg'], ungünstigste ['Schweinfurt', 'Wunsiedel i. Fichtelgebirge', 'Hof']
