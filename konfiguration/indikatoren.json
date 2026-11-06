@@ -12,7 +12,7 @@
   },
   "fortschreiben_jahre": 2,
   "schulstandorte_karte": [
-    "realschule"
+    "realschule", "gymnasium", "mittelschule"
   ],
   "dimensionen": [
     {
