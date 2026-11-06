@@ -17,6 +17,7 @@ bricht das Skript mit Fehlercode ab und lässt die bisherigen Daten unverändert
 from __future__ import annotations
 
 import csv
+import io
 import json
 import re
 import sys
@@ -227,16 +228,72 @@ def quelle_quotient(spec: dict, ebene: str):
     return werte, f"{z[1]} / {n[1]}", info
 
 
-def _aus_letztem_lauf(indikator: str, ebene: str) -> dict:
-    """Werte eines Indikators aus der Rohdatei des letzten Laufs (Rückfall bei Ausfall einer Quelle)."""
-    werte = {}
-    datei = DATEN / "rohdaten.csv"
-    if datei.exists():
-        with datei.open(encoding="utf-8") as f:
-            for z in csv.DictReader(f, delimiter=";"):
-                if z["indikator"] == indikator and z["ebene"] == ebene and z["herkunft"] != "demo":
-                    werte[(z["ags"], int(z["jahr"]))] = float(z["wert"])
-    return werte
+ARCHIV = DATEN / "werte_archiv.csv"
+_ARCHIV: dict | None = None
+
+
+def _quelle_kern(herkunft: str) -> str:
+    """Quelle ohne Zusätze wie „(konstant fortgeschrieben)“ – zum Vergleich, ob ein Archivwert passt."""
+    return herkunft.split(" (")[0].strip()
+
+
+def _rohdaten_lesen(text: str, ziel: dict):
+    for z in csv.DictReader(io.StringIO(text), delimiter=";"):
+        h = z.get("herkunft", "")
+        if h != "demo" and "teils aus letztem Lauf" not in h:
+            ziel[(z["ebene"], z["indikator"], z["ags"], int(z["jahr"]))] = (float(z["wert"]), _quelle_kern(h))
+
+
+def archiv() -> dict:
+    """
+    Zuletzt erfolgreich abgerufener Wert je (Ebene, Indikator, Gebiet, Jahr). Fehlt die Archivdatei,
+    wird sie aus den letzten Versionen von daten/rohdaten.csv in der Git-Geschichte aufgebaut
+    (ältere zuerst, neuere überschreiben), damit auch Werte vor einem gestörten Lauf erhalten bleiben.
+    """
+    global _ARCHIV
+    if _ARCHIV is not None:
+        return _ARCHIV
+    _ARCHIV = {}
+    if ARCHIV.exists():
+        _rohdaten_lesen(ARCHIV.read_text(encoding="utf-8"), _ARCHIV)
+        return _ARCHIV
+    import subprocess
+    try:
+        shas = subprocess.run(["git", "log", "-n", "15", "--format=%H", "--", "daten/rohdaten.csv"], cwd=WURZEL,
+                              capture_output=True, text=True, timeout=60).stdout.split()
+        for sha in reversed(shas):
+            inhalt = subprocess.run(["git", "show", f"{sha}:daten/rohdaten.csv"], cwd=WURZEL,
+                                    capture_output=True, text=True, timeout=60).stdout
+            if inhalt:
+                _rohdaten_lesen(inhalt, _ARCHIV)
+        print(f"  · Werte-Archiv aus {len(shas)} früheren Läufen aufgebaut ({len(_ARCHIV)} Werte)", flush=True)
+    except Exception as e:
+        print(f"  · Werte-Archiv konnte nicht aus der Versionsgeschichte aufgebaut werden: {e}", flush=True)
+    if not _ARCHIV and (DATEN / "rohdaten.csv").exists():
+        _rohdaten_lesen((DATEN / "rohdaten.csv").read_text(encoding="utf-8"), _ARCHIV)
+    return _ARCHIV
+
+
+def archiv_schreiben(zeilen: list):
+    """Archiv mit den Werten dieses Laufs aktualisieren (nie verkleinern)."""
+    a = archiv()
+    for ebene, ags, jahr, ind, wert, herkunft in zeilen:
+        if herkunft != "demo" and "teils aus letztem Lauf" not in herkunft:
+            a[(ebene, ind, ags, int(jahr))] = (float(wert), _quelle_kern(herkunft))
+    with ARCHIV.open("w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f, delimiter=";", lineterminator="\n")
+        w.writerow(["ebene", "ags", "jahr", "indikator", "wert", "herkunft"])
+        for (ebene, ind, ags, jahr), (wert, quelle) in sorted(a.items()):
+            w.writerow([ebene, ags, jahr, ind, round(wert, 4), quelle])
+
+
+def _aus_letztem_lauf(indikator: str, ebene: str, quelle: str | None = None) -> dict:
+    """
+    Archivierte Werte eines Indikators (Rückfall bei Ausfall einer Quelle). Mit quelle nur Werte
+    genau dieser Quelle, damit nie Werte einer früheren, anders definierten Quelle zurückkommen.
+    """
+    return {(ags, jahr): w for (e, i, ags, jahr), (w, q) in archiv().items()
+            if e == ebene and i == indikator and (quelle is None or q == _quelle_kern(quelle))}
 
 
 def quelle_schulen(spec: dict, ebene: str):
@@ -420,6 +477,17 @@ def main():
                         continue
                     werte, herkunft, info = w, h, i
                     break
+            if werte and herkunft != "demo":
+                # Jahre, die beim letzten Lauf vorhanden waren und diesmal fehlen (gestörter Server),
+                # aus dem letzten Lauf übernehmen, damit die Karte nicht schlechter wird
+                alt = _aus_letztem_lauf(ind["id"], ebene, herkunft)
+                neue_jahre = {j for _, j in werte}
+                fehlend = {k: v for k, v in alt.items() if k[1] not in neue_jahre and k[1] in K.JAHRE}
+                if fehlend:
+                    werte = {**fehlend, **werte}
+                    jahre_txt = ", ".join(map(str, sorted({j for _, j in fehlend})))
+                    protokoll.append(f"  · {ind['id']} ({ebene}): Jahre {jahre_txt} diesmal nicht geliefert, aus dem letzten Lauf übernommen")
+                    herkunft += " (teils aus letztem Lauf)"
             if werte:
                 echte_werte += len(werte)
             elif nur_demo or auffuellen:
@@ -436,6 +504,12 @@ def main():
             quellenprotokoll[ebene][ind["id"]] = {"herkunft": herkunft, **{k: v for k, v in (info or {}).items() if k != "hinweis"}}
             protokoll.append(f"{ebene:<9} {ind['id']:<11} {len(werte):>5} Werte  {herkunft}")
 
+    try:
+        from genesis import LUECKEN
+        for meldung in LUECKEN:
+            protokoll.append(f"  ! {meldung}")
+    except ImportError:
+        pass
     if not nur_demo:
         genesis_katalog_schreiben()
         schulstandorte_schreiben()
@@ -443,6 +517,8 @@ def main():
         print("\nFEHLER: Keine Quelle hat echte Daten geliefert. Bisherige Daten bleiben unverändert.")
         sys.exit(1)
 
+    if not nur_demo:
+        archiv_schreiben(zeilen)
     with (DATEN / "rohdaten.csv").open("w", encoding="utf-8", newline="") as f:
         w = csv.writer(f, delimiter=";", lineterminator="\n")
         w.writerow(["ebene", "ags", "jahr", "indikator", "wert", "herkunft"])

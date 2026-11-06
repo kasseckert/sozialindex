@@ -176,6 +176,9 @@ def finde_tabellen(datenbank: str, suchbegriffe: list[str], anzahl: int = 3) -> 
     return _FUND_CACHE[schluessel]
 
 
+LUECKEN: list = []      # Meldungen über Jahre, die beim jahresweisen Abruf ausfielen
+
+
 def tabelle_stueckweise(datenbank: str, tabelle: str, startjahr: int, endjahr: int,
                         regionalvariable: str | None = None, regionalschluessel: str | None = None) -> list[dict]:
     """
@@ -187,12 +190,21 @@ def tabelle_stueckweise(datenbank: str, tabelle: str, startjahr: int, endjahr: i
     except GenesisFehler as e:
         if not any(k in str(e) for k in ("zu gross", "'Code': 98", "timed out", "Timeout")):
             raise
-    zeilen, fehler = [], []
-    for jahr in range(startjahr, endjahr + 1):
-        try:
-            zeilen += tabelle_ffcsv(datenbank, tabelle, jahr, jahr, regionalvariable, regionalschluessel)
-        except GenesisFehler as e:
-            fehler.append(f"{jahr}: {str(e)[:120]}")
+    zeilen, fehler, offen = [], [], list(range(startjahr, endjahr + 1))
+    for runde in (1, 2):                     # gescheiterte Jahre ein zweites Mal versuchen
+        noch_offen = []
+        for jahr in offen:
+            try:
+                zeilen += tabelle_ffcsv(datenbank, tabelle, jahr, jahr, regionalvariable, regionalschluessel)
+            except GenesisFehler as e:
+                noch_offen.append(jahr)
+                if runde == 2:
+                    fehler.append(f"{jahr}: {str(e)[:120]}")
+        offen = noch_offen
+        if not offen:
+            break
+    if offen:
+        LUECKEN.append(f"{tabelle}: Jahre {', '.join(map(str, offen))} nicht abrufbar")
     if not zeilen:
         raise GenesisFehler(f"Tabelle {tabelle}: auch jahresweise kein Abruf möglich ({'; '.join(fehler[:3])})")
     return zeilen
