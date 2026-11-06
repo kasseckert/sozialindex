@@ -125,49 +125,49 @@
    "titel": ""
   },
   "einsch_spaet": {
-   "herkunft": "summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)",
+   "herkunft": "summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) (teils aus letztem Lauf)",
    "quelle": "Kommunale Bildungsdatenbank",
    "code": "BY-D11.1i",
    "titel": ""
   },
   "einsch_frueh": {
-   "herkunft": "summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)",
+   "herkunft": "summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) (teils aus letztem Lauf)",
    "quelle": "Kommunale Bildungsdatenbank",
    "code": "BY-D11.1i",
    "titel": ""
   },
   "ue_ms": {
-   "herkunft": "genesis:bildung/BY-D12.1i",
+   "herkunft": "genesis:bildung/BY-D12.1i (teils aus letztem Lauf)",
    "quelle": "Kommunale Bildungsdatenbank",
    "code": "BY-D12.1i",
    "titel": ""
   },
   "ue_gym_kbd": {
-   "herkunft": "genesis:bildung/BY-D12.1i",
+   "herkunft": "genesis:bildung/BY-D12.1i (teils aus letztem Lauf)",
    "quelle": "Kommunale Bildungsdatenbank",
    "code": "BY-D12.1i",
    "titel": ""
   },
   "ue_rs_kbd": {
-   "herkunft": "genesis:bildung/BY-D12.1i",
+   "herkunft": "genesis:bildung/BY-D12.1i (teils aus letztem Lauf)",
    "quelle": "Kommunale Bildungsdatenbank",
    "code": "BY-D12.1i",
    "titel": ""
   },
   "wechsel_gym_rs": {
-   "herkunft": "genesis:bildung/BY-D12.3i",
+   "herkunft": "genesis:bildung/BY-D12.3i (teils aus letztem Lauf)",
    "quelle": "Kommunale Bildungsdatenbank",
    "code": "BY-D12.3i",
    "titel": ""
   },
   "wechsel_rs_ms": {
-   "herkunft": "genesis:bildung/BY-D12.3i",
+   "herkunft": "genesis:bildung/BY-D12.3i (teils aus letztem Lauf)",
    "quelle": "Kommunale Bildungsdatenbank",
    "code": "BY-D12.3i",
    "titel": ""
   },
   "wechsel_ms_rs": {
-   "herkunft": "genesis:bildung/BY-D12.3i",
+   "herkunft": "genesis:bildung/BY-D12.3i (teils aus letztem Lauf)",
    "quelle": "Kommunale Bildungsdatenbank",
    "code": "BY-D12.3i",
    "titel": ""
