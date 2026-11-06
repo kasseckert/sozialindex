@@ -1,7 +1,8 @@
   · Tabellenliste bildung: 907 Tabellen
   · Tabellenliste zensus: 420 Tabellen
-  · Schulstandorte realschule: 238 Standorte, davon ohne Namen 0; Felder im Dienst: ['ort', 'postleitzahl', 'schulart', 'schulname', 'strasse', 'Ebenen: SchulstandorteRealschulen: 238 realschule (Schulart: Realschulen)']
-  · Schulstandorte gymnasium: 323 Standorte, davon ohne Namen 0; Felder im Dienst: ['ort', 'postleitzahl', 'schulart', 'schulname', 'strasse', 'Ebenen: SchulstandorteGymnasien: 323 gymnasium (Schulart: Gymnasien)']
+  · Schulstandorte realschule: 3 Standorte, davon ohne Namen 0; Felder im Dienst: ['hausnummer', 'ort', 'plz', 'schulart', 'schulname', 'strasse', 'Ebenen: Dienst schulstandorte_bayern-wfs mit 8 Ebenen: SchulenZurSonderpaedagogischenFoerderung, WeitereSchulen, BeruflicheSchulen, MittelUndHauptschulen, Wirtschaftsschulen, Realschulen, Grundschulen, Gymnasien; SchulenZurSonderpaedagogischenFoerderung: 3 realschule (Schulart: Realschule z. sp. F.)']
+  · Schulstandorte gymnasium: 412 Standorte, davon ohne Namen 0; Felder im Dienst: ['hausnummer', 'ort', 'plz', 'schulart', 'schulname', 'strasse', 'Ebenen: Dienst schulstandorte_bayern-wfs mit 8 Ebenen: SchulenZurSonderpaedagogischenFoerderung, WeitereSchulen, BeruflicheSchulen, MittelUndHauptschulen, Wirtschaftsschulen, Realschulen, Grundschulen, Gymnasien; Gymnasien: 412 gymnasium (Schulart: Abendgymnasium, Gymnasium, Integrierte Gesamtschule, Kolleg)']
+  · Schulstandorte fos: 2 Standorte, davon ohne Namen 0; Felder im Dienst: ['hausnummer', 'ort', 'plz', 'schulart', 'schulname', 'strasse', 'Ebenen: Dienst schulstandorte_bayern-wfs mit 8 Ebenen: SchulenZurSonderpaedagogischenFoerderung, WeitereSchulen, BeruflicheSchulen, MittelUndHauptschulen, Wirtschaftsschulen, Realschulen, Grundschulen, Gymnasien; SchulenZurSonderpaedagogischenFoerderung: 2 fos (Schulart: Fachoberschule z. sp. F.)']
 kreis     alq           960 Werte  regionalatlas:AI008-1-5/ai0801
 kreis     sgb2          960 Werte  regionalatlas:AI-S-04/ai2102
 kreis     eink          768 Werte  regionalatlas:AI-S-01/ai1601
@@ -16,31 +17,27 @@ kreis     uebertritt_rs   576 Werte  csv:uebertritt_realschule.csv
 kreis     eignung_gym   576 Werte  csv:eignung_gymnasium.csv
 kreis     eignung_rs    576 Werte  csv:eignung_realschule.csv
 kreis     abi           960 Werte  regionalatlas:AI003-2/ai0304
-  · sch_ausl (kreis, quotient): 73 s
+  · sch_ausl (kreis, quotient): 64 s
 kreis     sch_ausl      960 Werte  summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i) / summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i)
-  · sch_je_lk (kreis, quotient): 120 s
+  · sch_je_lk (kreis, quotient): 106 s
 kreis     sch_je_lk     960 Werte  summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i) / summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i)
-  · lk_teilzeit (kreis, quotient): 22 s
 kreis     lk_teilzeit   960 Werte  summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i) / summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i)
-  · einsch_spaet (kreis, quotient): 64 s
+  · einsch_spaet (kreis, quotient): 63 s
 kreis     einsch_spaet   960 Werte  summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)
 kreis     einsch_frueh   960 Werte  summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)
-  · ue_ms (kreis, genesis): 35 s
+  · ue_ms (kreis, genesis): 33 s
 kreis     ue_ms         960 Werte  genesis:bildung/BY-D12.1i
 kreis     ue_gym_kbd    940 Werte  genesis:bildung/BY-D12.1i
 kreis     ue_rs_kbd     960 Werte  genesis:bildung/BY-D12.1i
-  · wechsel_gym_rs (kreis, genesis): 262 s
-  · wechsel_gym_rs (kreis): Werte nur bis 2022; die Tabelle enthält keine späteren Jahre
-kreis     wechsel_gym_rs   480 Werte  genesis:bildung/BY-D12.3i
-  · wechsel_rs_ms (kreis): Werte nur bis 2022; die Tabelle enthält keine späteren Jahre
-kreis     wechsel_rs_ms   480 Werte  genesis:bildung/BY-D12.3i
-  · wechsel_ms_rs (kreis): Werte nur bis 2022; die Tabelle enthält keine späteren Jahre
-kreis     wechsel_ms_rs   429 Werte  genesis:bildung/BY-D12.3i
-  · ohne_beruf (kreis, quotient): 27 s
+  · wechsel_gym_rs (kreis, genesis): 62 s
+kreis     wechsel_gym_rs   960 Werte  genesis:bildung/BY-D12.3i
+kreis     wechsel_rs_ms   960 Werte  genesis:bildung/BY-D12.3i
+kreis     wechsel_ms_rs   858 Werte  genesis:bildung/BY-D12.3i
+  · ohne_beruf (kreis, quotient): 31 s
   · ohne_beruf (kreis): Werte nur bis 2022; die Tabelle enthält keine späteren Jahre
 kreis     ohne_beruf    960 Werte  genesis:zensus/2000S-1003 / genesis:zensus/2000S-1003 (konstant fortgeschrieben)
 kreis     ausbildung      – keine Daten, entfällt auf dieser Ebene
-  · weg_gs (kreis, schulen): 504 s
+  · weg_gs (kreis, schulen): 336 s
 kreis     weg_gs        960 Werte  schulen:grundschule (konstant fortgeschrieben)
 kreis     weg_gym       960 Werte  schulen:gymnasium (konstant fortgeschrieben)
 kreis     wfl             – keine Daten, entfällt auf dieser Ebene
@@ -58,6 +55,6 @@ gemeinde  weg_gs      20560 Werte  schulen:grundschule (konstant fortgeschrieben
 gemeinde  weg_gym     20560 Werte  schulen:gymnasium (konstant fortgeschrieben)
 gemeinde  wfl             – keine Daten, entfällt auf dieser Ebene
 
-107142 Zeilen geschrieben nach daten/rohdaten.csv
-Geschrieben: web/data/werte.json (447 KB)
+108531 Zeilen geschrieben nach daten/rohdaten.csv
+Geschrieben: web/data/werte.json (440 KB)
 kreis: günstigste ['München', 'München', 'Starnberg'], ungünstigste ['Schweinfurt', 'Wunsiedel i. Fichtelgebirge', 'Hof']

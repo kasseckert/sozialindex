@@ -12,7 +12,9 @@
   },
   "fortschreiben_jahre": 2,
   "schulstandorte_karte": [
-    "realschule", "gymnasium"
+    "realschule",
+    "gymnasium",
+    "fos"
   ],
   "dimensionen": [
     {
