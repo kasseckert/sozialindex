@@ -292,5 +292,7 @@ input[type="range"] { width: 100%; accent-color: var(--s7); margin: 2px 0; }
 .pins-klein .schul-pin:hover svg { transform: scale(.85); }
 .schul-pop { font-size: 14px; line-height: 1.45; min-width: 200px; }
 .schul-pop strong { display: block; font-size: 15px; margin-bottom: 2px; }
+.schul-pop .schul-eintrag + .schul-eintrag { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--linie); }
+.schul-pop p.leise { margin: 0 0 6px; }
 .schul-pop .leise { color: var(--leise); font-size: 13px; }
 .schul-pop a { display: inline-block; margin-top: 6px; margin-right: 12px; }

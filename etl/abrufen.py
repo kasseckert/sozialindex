@@ -274,6 +274,17 @@ def schulstandorte_schreiben():
                 s["kreis"] = ags
                 imland.append(s)
         ordner.mkdir(parents=True, exist_ok=True)
+        # Plausibilität: ein gestörter Abruf darf die Karte nicht leeren. Sinkt die Zahl um mehr als
+        # 30 % gegenüber der bisherigen Datei, bleibt diese stehen (bewusste Bereinigungen sind selten).
+        bisher_datei = ordner / f"{art}.geojson"
+        try:
+            bisher = len(json.loads(bisher_datei.read_text(encoding="utf-8"))["features"])
+        except Exception:
+            bisher = 0
+        if bisher >= 20 and len(imland) < 0.7 * bisher:
+            print(f"  ! Schulstandorte {art}: nur {len(imland)} statt bisher {bisher} Standorte, "
+                  f"vermutlich unvollständiger Abruf; bisherige Datei bleibt")
+            continue
         fc = {"type": "FeatureCollection", "stand": date.today().isoformat(), "features": [
             {"type": "Feature", "geometry": {"type": "Point", "coordinates": [s["lon"], s["lat"]]},
              "properties": {k: v for k, v in s.items() if k not in ("lon", "lat") and v}} for s in imland]}

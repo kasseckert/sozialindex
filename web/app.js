@@ -367,14 +367,20 @@
     });
   }
 
-  function schulPopup(p, lat, lon, art) {
+  function schulEintrag(p, art) {
     const adresse = [p.strasse, [p.plz, p.ort].filter(Boolean).join(" ")].filter(Boolean).join(", ");
     const kreis = Z.kreise.features.find((f) => f.properties.ags === p.kreis)?.properties;
     const url = p.url ? (/^https?:\/\//i.test(p.url) ? p.url : `https://${p.url}`) : "";
-    return `<div class="schul-pop"><strong>${esc(p.name)}</strong>
-      ${adresse ? esc(adresse) + "<br>" : ""}
-      <span class="leise">${[p.schulart ? esc(p.schulart) : esc(SCHULART_EINZAHL[art] || ""), p.traeger ? "Träger: " + esc(p.traeger) : "", kreis ? esc(anzeigeName(kreis, "kreis")) : ""].filter(Boolean).join("<br>")}</span><br>
-      ${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">Website</a>` : ""}
+    const zusatz = [p.schulart || SCHULART_EINZAHL[art] || "", p.traeger ? "Träger: " + p.traeger : "",
+                    kreis ? anzeigeName(kreis, "kreis") : ""].filter(Boolean).map(esc).join("<br>");
+    return `<strong>${esc(p.name)}</strong>${adresse ? esc(adresse) + "<br>" : ""}<span class="leise">${zusatz}</span>`
+      + (url ? `<br><a href="${esc(url)}" target="_blank" rel="noopener">Website</a>` : "");
+  }
+
+  /** Popup für einen Standort; mehrere Schulen an derselben Adresse werden gemeinsam aufgelistet. */
+  function schulPopup(schulen, lat, lon, art) {
+    const kopf = schulen.length > 1 ? `<p class="leise">${schulen.length} Schulen an diesem Standort</p>` : "";
+    return `<div class="schul-pop">${kopf}${schulen.map((p) => `<div class="schul-eintrag">${schulEintrag(p, art)}</div>`).join("")}
       <a href="https://www.openstreetmap.org/?mlat=${lat}&amp;mlon=${lon}#map=17/${lat}/${lon}" target="_blank" rel="noopener">In OpenStreetMap öffnen</a></div>`;
   }
 
@@ -386,11 +392,19 @@
     if (!Schulen.an.has(art) || !Schulen.daten[art]) { if (anzeige) anzeige.textContent = ""; return; }
     const feats = Schulen.daten[art].features.filter((f) => imFokus(f.properties.kreis || ""));
     const icon = L.divIcon({ className: "schul-pin", html: pinSymbol(art), iconSize: [24, 32], iconAnchor: [12, 31], popupAnchor: [0, -28] });
-    Schulen.ebenen[art] = L.layerGroup(feats.map((f) => {
+    // Schulen mit identischen Koordinaten (z. B. Gymnasium und Abendgymnasium im selben Gebäude)
+    // teilen sich eine Nadel; sonst läge eine unsichtbar unter der anderen.
+    const standorte = new Map();
+    for (const f of feats) {
       const [lon, lat] = f.geometry.coordinates;
-      const p = f.properties;
-      const m = L.marker([lat, lon], { icon, title: p.name, alt: p.name, keyboard: true, riseOnHover: true });
-      m.bindPopup(() => schulPopup(p, lat, lon, art), { maxWidth: 300 });
+      const k = `${lat.toFixed(5)},${lon.toFixed(5)}`;
+      if (!standorte.has(k)) standorte.set(k, { lat, lon, schulen: [] });
+      standorte.get(k).schulen.push(f.properties);
+    }
+    Schulen.ebenen[art] = L.layerGroup([...standorte.values()].map(({ lat, lon, schulen }) => {
+      const titel = schulen.length > 1 ? `${schulen.length} Schulen: ${schulen.map((p) => p.name).join("; ")}` : schulen[0].name;
+      const m = L.marker([lat, lon], { icon, title: titel, alt: titel, keyboard: true, riseOnHover: true });
+      m.bindPopup(() => schulPopup(schulen, lat, lon, art), { maxWidth: 320 });
       return m;
     })).addTo(Karte.map);
     if (anzeige) anzeige.textContent = `(${feats.length.toLocaleString("de-DE")})`;

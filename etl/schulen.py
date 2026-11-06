@@ -140,7 +140,10 @@ def _ebene_lesen(name: str) -> list[tuple[float, float, dict]]:
                 return roh
         except (SchulFehler, ValueError, AttributeError):
             continue
-    return _eigenschaften_aus_gml(_get(basis).content)
+    inhalt = _get(basis).content
+    if b"ExceptionReport" in inhalt[:500] or b"ServiceException" in inhalt[:500]:
+        raise SchulFehler("Fehlermeldung des Dienstes: " + inhalt[:200].decode("utf-8", "replace"))
+    return _eigenschaften_aus_gml(inhalt)
 
 
 def _traeger_aus(titel: str, name: str, schulname: str) -> str:
@@ -165,7 +168,7 @@ def _traeger_aus(titel: str, name: str, schulname: str) -> str:
         return "staatlich"
     if any(w in t for w in ("privat", "kirchl")):
         return "privat oder kirchlich"
-    if any(w in t for w in ("weitere", "nichtstaatl", "freie")):
+    if any(w in t for w in ("nichtstaatl", "freie")):
         return "nichtstaatlich"
     return ""
 
@@ -182,12 +185,18 @@ def schulen_einer_art(schulart: str) -> tuple[list[tuple[float, float, dict]], l
     schluessel = SCHULARTEN.get(schulart, schulart).lower()
     protokoll, ergebnis, gesehen = [], [], set()
     for name, titel in ebenen_mit_titel():
-        if name not in _ALLE_CACHE:
-            try:
-                _ALLE_CACHE[name] = _ebene_lesen(name)
-            except SchulFehler as e:
-                protokoll.append(f"{name}: nicht lesbar ({str(e)[:80]})")
-                _ALLE_CACHE[name] = []
+        if not _ALLE_CACHE.get(name):         # nur erfolgreich gelesene Ebenen merken; leere erneut versuchen
+            fehler = "leere Antwort"
+            for versuch in (1, 2):
+                try:
+                    _ALLE_CACHE[name] = _ebene_lesen(name)
+                except SchulFehler as e:
+                    _ALLE_CACHE[name] = []
+                    fehler = str(e)[:120]
+                if _ALLE_CACHE[name]:
+                    break
+            if not _ALLE_CACHE[name]:
+                protokoll.append(f"{titel or name}: NICHT LESBAR ({fehler})")
         objekte = _ALLE_CACHE[name]
         muster = SCHULART_MUSTER.get(schulart, [schluessel])
         if schluessel in f"{name} {titel}".lower():
@@ -209,6 +218,23 @@ def schulen_einer_art(schulart: str) -> tuple[list[tuple[float, float, dict]], l
         if treffer:
             arten = sorted({_feld(o[2], "schulart") for o in treffer if _feld(o[2], "schulart")})[:4]
             protokoll.append(f"{titel or name}: {neu} {schulart}" + (f" (Schulart: {', '.join(arten)})" if arten else ""))
+    # Schulen, die nur im Dienst der staatlichen Schulen stehen, ergänzen (z. B. fehlende Einträge im
+    # umfassenden Dienst). Dort ist jede Schule staatlich.
+    if WFS_URL != URL_STAATLICH:
+        staatliche_schulen()
+        ergaenzt = []
+        for n, t, x, y, p in _STAATLICH_OBJEKTE:
+            passt = schluessel in f"{n} {t}".lower() or any(m in _feld(p, "schulart").lower() for m in SCHULART_MUSTER.get(schulart, [schluessel]))
+            if not passt:
+                continue
+            kandidat = (x, y, p)
+            if any(_gleiche_schule(kandidat, vorh) for vorh in ergebnis):
+                continue
+            p = dict(p, _traeger="staatlich")
+            ergebnis.append((x, y, p))
+            ergaenzt.append(_feld(p, "schulname", "name"))
+        if ergaenzt:
+            protokoll.append(f"ergänzt aus dem Dienst der staatlichen Schulen: {len(ergaenzt)} (z. B. {', '.join(ergaenzt[:3])})")
     dienst = WFS_URL.rsplit("/", 1)[-1]
     protokoll.insert(0, f"Dienst {dienst} mit {len(ebenen_mit_titel())} Ebenen: " + ", ".join(t or n for n, t in ebenen_mit_titel())[:600])
     return ergebnis, protokoll
@@ -392,9 +418,85 @@ def standorte_fuer_karte(schulart: str) -> tuple[list[dict], list[str]]:
             "strasse": _feld(p, "strasse", "straße", "anschrift", "adresse"),
             "plz": _feld(p, "plz", "postleit"),
             "ort": _feld(p, "ort", "gemeinde", "stadt"),
-            "traeger": _feld(p, "traeger", "träger", "rechtsform", "schultraeger") or p.get("_traeger", ""),
+            "traeger": _feld(p, "traeger", "träger", "rechtsform", "schultraeger") or p.get("_traeger") or traeger_bestimmen(x, y, p),
             "url": _feld(p, "homepage", "internet", "url", "web"),
             "nummer": _feld(p, "schulnummer", "schulnr", "nummer"),
             "schulart": _feld(p, "schulart"),
         })
     return standorte, felder
+
+
+_STAATLICH_CACHE: set | None = None
+_STAATLICH_OBJEKTE: list = []        # [(ebene, titel, x, y, props)] aus dem Dienst der staatlichen Schulen
+URL_STAATLICH = "https://gdiserv.bayern.de/srv112940/services/schulstandortebayern-wfs"
+
+
+def staatliche_schulen() -> set:
+    """
+    Kennungen (gerundete Lage, normierter Name) aller Schulen des Dienstes für staatliche
+    Schulen; die Objekte selbst werden für die Ergänzung fehlender Schulen gemerkt.
+    Leer, wenn der Dienst nicht erreichbar ist.
+    """
+    global _STAATLICH_CACHE, WFS_URL
+    if _STAATLICH_CACHE is not None:
+        return _STAATLICH_CACHE
+    _STAATLICH_CACHE = set()
+    vorher = WFS_URL
+    try:
+        WFS_URL = URL_STAATLICH
+        r = _get({"SERVICE": "WFS", "REQUEST": "GetCapabilities", "VERSION": "2.0.0"})
+        typen = []
+        for el in ET.fromstring(r.content).iter():
+            if _lokal(el.tag) == "FeatureType":
+                n = next((k.text.strip() for k in el if _lokal(k.tag) == "Name" and k.text), None)
+                t = next((k.text.strip() for k in el if _lokal(k.tag) == "Title" and k.text), "")
+                if n:
+                    typen.append((n, t))
+        for n, t in typen:
+            for versuch in (1, 2):
+                try:
+                    objekte = _ebene_lesen(n)
+                except SchulFehler:
+                    objekte = []
+                if objekte:
+                    break
+            for x, y, p in objekte:
+                _STAATLICH_OBJEKTE.append((n, t, x, y, p))
+                _STAATLICH_CACHE.add(("lage", round(x / 50), round(y / 50)))
+                _STAATLICH_CACHE.add(("name", _name_norm(_feld(p, "schulname", "name"))))
+    except (SchulFehler, ET.ParseError):
+        pass
+    finally:
+        WFS_URL = vorher
+    return _STAATLICH_CACHE
+
+
+def _gleiche_schule(a: tuple, b: tuple) -> bool:
+    """Gleiche Schule in zwei Diensten: gleicher Name, oder nah beieinander mit gemeinsamem Namensteil."""
+    (xa, ya, pa), (xb, yb, pb) = a, b
+    na, nb = _feld(pa, "schulname", "name"), _feld(pb, "schulname", "name")
+    if _name_norm(na) == _name_norm(nb):
+        return True
+    if math.hypot(xa - xb, ya - yb) > 150:
+        return False
+    woerter = lambda n: {w for w in re.findall(r"[a-zäöüß]{5,}", n.lower())} - {"staatliche", "staatliches", "gymnasium", "realschule", "schule", "mittelschule", "grundschule"}
+    return bool(woerter(na) & woerter(nb))
+
+
+def _name_norm(name: str) -> str:
+    return re.sub(r"[^a-z0-9äöüß]", "", name.lower())
+
+
+def traeger_bestimmen(x: float, y: float, props: dict) -> str:
+    """Träger über den Namen; sonst über den Abgleich mit dem Dienst der staatlichen Schulen."""
+    name = _feld(props, "schulname", "name", "bezeichnung")
+    aus_name = _traeger_aus("", "", name)
+    if aus_name:
+        return aus_name
+    st = staatliche_schulen()
+    if not st:
+        return ""
+    zx, zy = round(x / 50), round(y / 50)
+    if any(("lage", zx + dx, zy + dy) in st for dx in (-1, 0, 1) for dy in (-1, 0, 1)) or ("name", _name_norm(name)) in st:
+        return "staatlich"
+    return "nichtstaatlich"
