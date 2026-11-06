@@ -1,0 +1,21 @@
+{
+  "hinweis": "Eigene Korrekturen an den Schulstandorten. 'entfernen': Schulen, deren Name den Text enthält, werden weggelassen (z. B. nach Zusammenlegung). 'ergaenzen': fehlende Schulen mit Koordinaten (in OpenStreetMap: Rechtsklick auf die Schule → 'Adresse anzeigen' zeigt Breite und Länge). schulart: realschule, gymnasium, fos, mittelschule, grundschule. traeger: staatlich, kommunal, kirchlich oder privat.",
+  "entfernen": [
+    {
+      "schulart": "realschule",
+      "name_enthaelt": "BEISPIEL – hier den Namen einer nicht mehr bestehenden Schule eintragen"
+    }
+  ],
+  "ergaenzen": [
+    {
+      "schulart": "realschule",
+      "name": "Graf-Stauffenberg-Realschule",
+      "strasse": "Kloster-Langheim-Straße 11",
+      "plz": "96050",
+      "ort": "Bamberg",
+      "traeger": "kommunal",
+      "lat": 49.8979924,
+      "lon": 10.9137396
+    }
+  ]
+}

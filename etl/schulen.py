@@ -261,7 +261,9 @@ def schulen_einer_art(schulart: str) -> tuple[list[tuple[float, float, dict]], l
             if not passt:
                 continue
             kandidat = (x, y, p)
-            gleich = next((vorh for vorh in ergebnis if _gleiche_schule(kandidat, vorh)), None)
+            gleich = next((vorh for vorh in ergebnis if _gleiche_schule(kandidat, vorh)
+                           or (math.hypot(vorh[0] - x, vorh[1] - y) < 100
+                               and _traeger_aus("", "", _feld(vorh[2], "schulname", "name")) == "staatlich")), None)
             if gleich:
                 DIAGNOSE.setdefault(schulart, []).append({"name": _feld(p, "schulname", "name"), "quelle": "staatlicher Dienst",
                     "verworfen": "gleiche Schule wie " + _feld(gleich[2], "schulname", "name")})
@@ -271,6 +273,7 @@ def schulen_einer_art(schulart: str) -> tuple[list[tuple[float, float, dict]], l
             ergaenzt.append(_feld(p, "schulname", "name"))
         if ergaenzt:
             protokoll.append(f"ergänzt aus dem Dienst der staatlichen Schulen: {len(ergaenzt)} (z. B. {', '.join(ergaenzt[:3])})")
+    ergebnis = korrekturen_anwenden(schulart, ergebnis, protokoll)
     dienst = WFS_URL.rsplit("/", 1)[-1]
     protokoll.insert(0, f"Dienst {dienst} mit {len(ebenen_mit_titel())} Ebenen: " + ", ".join(t or n for n, t in ebenen_mit_titel())[:600])
     return ergebnis, protokoll
@@ -540,3 +543,44 @@ def traeger_bestimmen(x: float, y: float, props: dict) -> str:
     if any(("lage", zx + dx, zy + dy) in st for dx in (-1, 0, 1) for dy in (-1, 0, 1)) or ("name", _name_norm(name)) in st:
         return "staatlich"
     return "nichtstaatlich"
+
+
+KORREKTUREN = Path(__file__).resolve().parent.parent / "konfiguration" / "schulen_korrekturen.json"
+
+
+def korrekturen_anwenden(schulart: str, ergebnis: list, protokoll: list) -> list:
+    """
+    Eigene Korrekturen aus konfiguration/schulen_korrekturen.json: Schulen entfernen (z. B. nach einer
+    Zusammenlegung) und fehlende Schulen ergänzen. Die Dienste des Kultusministeriums sind nicht
+    vollständig; so lassen sich Lücken dauerhaft schließen.
+    """
+    if not KORREKTUREN.exists():
+        return ergebnis
+    try:
+        k = json.loads(KORREKTUREN.read_text(encoding="utf-8"))
+    except ValueError as e:
+        protokoll.append(f"Korrekturdatei fehlerhaft, nicht angewendet: {e}")
+        return ergebnis
+    vorher = len(ergebnis)
+    for e in k.get("entfernen", []):
+        if e.get("schulart", schulart) != schulart or not e.get("name_enthaelt"):
+            continue
+        muster = e["name_enthaelt"].lower()
+        ergebnis = [o for o in ergebnis if muster not in _feld(o[2], "schulname", "name").lower()]
+    entfernt = vorher - len(ergebnis)
+    from pyproj import Transformer
+    t = Transformer.from_crs(4326, 25832, always_xy=True)
+    ergaenzt = 0
+    for e in k.get("ergaenzen", []):
+        if e.get("schulart") != schulart or e.get("lat") is None or e.get("lon") is None:
+            continue
+        x, y = t.transform(float(e["lon"]), float(e["lat"]))
+        p = {"schulname": e.get("name", "Schule"), "schulart": e.get("schulart_text", ""), "strasse": e.get("strasse", ""),
+             "plz": e.get("plz", ""), "ort": e.get("ort", ""), "_traeger": e.get("traeger", "")}
+        if any(_name_norm(_feld(o[2], "schulname", "name")) == _name_norm(p["schulname"]) for o in ergebnis):
+            continue                                   # schon vorhanden (z. B. inzwischen im Dienst nachgetragen)
+        ergebnis.append((x, y, p))
+        ergaenzt += 1
+    if entfernt or ergaenzt:
+        protokoll.append(f"Korrekturdatei: {entfernt} entfernt, {ergaenzt} ergänzt")
+    return ergebnis

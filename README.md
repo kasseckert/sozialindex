@@ -83,6 +83,8 @@ Die Dimension „Bildung und Familie“ greift auf sechs Quellen zurück:
 
 Unter „Schulstandorte einblenden“ lassen sich die Realschulen als Stecknadeln anzeigen; ein Klick zeigt Name, Adresse, Träger, Kreis sowie Links zur Website und zu OpenStreetMap. Bei gewählter Region erscheinen nur deren Schulen. Die Standorte stammen aus dem Dienst „Schulstandorte in Bayern“ des Kultusministeriums (CC BY 4.0) und werden mit jedem Lauf aktualisiert (`web/data/schulen/`). Weitere Schularten lassen sich in `konfiguration/indikatoren.json` unter `"schulstandorte_karte"` ergänzen, z. B. `["realschule", "gymnasium", "mittelschule", "fos"]` (mögliche Werte: grundschule, mittelschule, realschule, gymnasium, fos, berufliche, foerderzentrum); die Karte bietet dann je Schulart einen Schalter.
 
+**Vollständigkeit der Schulstandorte:** Die Standorte kommen aus zwei Diensten des Kultusministeriums: dem umfassenden Dienst `schulstandorte_bayern` und dem Dienst der staatlichen Schulen, der fehlende staatliche Schulen ergänzt und den Träger „staatlich“ bestätigt. Beide sind nicht ganz vollständig und nicht immer aktuell (Zusammenlegungen, einzelne kommunale Schulen). Für solche Fälle gibt es `konfiguration/schulen_korrekturen.json`: Unter `entfernen` werden Schulen weggelassen, deren Name einen Text enthält; unter `ergaenzen` lassen sich fehlende Schulen mit Koordinaten eintragen (in OpenStreetMap per Rechtsklick → „Adresse anzeigen“). Die Korrekturen gelten bei jedem Lauf, auch für die Entfernungsberechnung. Welche Schulen gelesen und welche verworfen wurden, steht nach jedem Lauf in `daten/schulen_diagnose.json`.
+
 ## Was sich automatisch aktualisiert
 
 | Daten | Aktualisierung |
