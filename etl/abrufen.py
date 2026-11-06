@@ -227,9 +227,31 @@ def quelle_quotient(spec: dict, ebene: str):
     return werte, f"{z[1]} / {n[1]}", info
 
 
+def _aus_letztem_lauf(indikator: str, ebene: str) -> dict:
+    """Werte eines Indikators aus der Rohdatei des letzten Laufs (Rückfall bei Ausfall einer Quelle)."""
+    werte = {}
+    datei = DATEN / "rohdaten.csv"
+    if datei.exists():
+        with datei.open(encoding="utf-8") as f:
+            for z in csv.DictReader(f, delimiter=";"):
+                if z["indikator"] == indikator and z["ebene"] == ebene and z["herkunft"] != "demo":
+                    werte[(z["ags"], int(z["jahr"]))] = float(z["wert"])
+    return werte
+
+
 def quelle_schulen(spec: dict, ebene: str):
     import schulen
-    gem = schulen.entfernungen(spec["schulart"], geodateien("gemeinde"))
+    try:
+        gem = schulen.entfernungen(spec["schulart"], geodateien("gemeinde"))
+    except schulen.SchulFehler as e:
+        # Schulstandorte ändern sich selten: bei Ausfall des Dienstes die Werte des letzten Laufs übernehmen
+        ind_id = spec.get("_indikator", "")
+        alt = _aus_letztem_lauf(ind_id, ebene)
+        if not alt:
+            raise
+        return alt, f"schulen:{spec['schulart']} (aus letztem Lauf übernommen: {str(e)[:80]})", {
+            "quelle": "Schulstandorte in Bayern, Bayerisches Staatsministerium für Unterricht und Kultus (CC BY 4.0)",
+            "code": spec["schulart"]}
     if ebene == "kreis":
         summen: dict = {}
         for ags, km in gem.items():
@@ -350,7 +372,14 @@ def main():
     auffuellen = "--demo-auffuellen" in sys.argv
     DATEN.mkdir(exist_ok=True)
     IMPORT.mkdir(exist_ok=True)
-    zeilen, protokoll, quellenprotokoll = [], [], {"kreis": {}, "gemeinde": {}}
+    zeilen, quellenprotokoll = [], {"kreis": {}, "gemeinde": {}}
+
+    class Protokoll(list):
+        """Gibt jede Zeile sofort aus, damit bei einem Abbruch sichtbar ist, wie weit der Abruf kam."""
+        def append(self, zeile):
+            print(zeile, flush=True)
+            super().append(zeile)
+    protokoll = Protokoll()
     echte_werte = 0
 
     for ebene in ("kreis", "gemeinde"):
@@ -363,6 +392,8 @@ def main():
                 for spec in ind["quellen"]:
                     t0 = time.time()
                     try:
+                        if spec["typ"] == "schulen":
+                            spec = dict(spec, _indikator=ind["id"])
                         res = QUELLEN[spec["typ"]](spec, ebene)
                     except Exception as e:  # Quelle gestört → nächste Quelle
                         protokoll.append(f"  ! {ind['id']} ({ebene}, {spec['typ']}, {time.time() - t0:.0f} s): {str(e)[:900]}")
@@ -400,7 +431,6 @@ def main():
     if not nur_demo:
         genesis_katalog_schreiben()
         schulstandorte_schreiben()
-    print("\n".join(protokoll))
     if not nur_demo and echte_werte == 0:
         print("\nFEHLER: Keine Quelle hat echte Daten geliefert. Bisherige Daten bleiben unverändert.")
         sys.exit(1)

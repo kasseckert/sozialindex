@@ -68,9 +68,23 @@ class SchulFehler(RuntimeError):
     pass
 
 
-def _get(params: dict, timeout: int = 120) -> requests.Response:
+SCHULEN_BUDGET_S = 900      # höchstens 15 Minuten für alle Abrufe beim Schuldienst je Lauf
+_START = None
+
+
+def _budget_pruefen():
+    global _START
+    import time
+    if _START is None:
+        _START = time.time()
+    if time.time() - _START > SCHULEN_BUDGET_S:
+        raise SchulFehler(f"Zeitbudget von {SCHULEN_BUDGET_S // 60} Minuten für den Schuldienst aufgebraucht")
+
+
+def _get(params: dict, timeout: int = 90) -> requests.Response:
+    _budget_pruefen()
     letzter = None
-    for _ in range(3):
+    for _ in range(2):
         try:
             r = SITZUNG.get(WFS_URL, params=params, timeout=timeout)
             if r.status_code == 200:
@@ -86,13 +100,16 @@ def _lokal(tag: str) -> str:
 
 
 _EBENEN_CACHE: list = []
+_DIENST_AUS: str = ""
 
 
 def ebenen_mit_titel() -> list[tuple[str, str]]:
     """(Name, Titel) aller FeatureTypes aus GetCapabilities."""
-    global WFS_URL
+    global WFS_URL, _DIENST_AUS
     if _EBENEN_CACHE:
         return _EBENEN_CACHE
+    if _DIENST_AUS:                            # im selben Lauf schon gescheitert: nicht erneut warten
+        raise SchulFehler(_DIENST_AUS)
     fehler = []
     for url in WFS_URLS:                       # ersten erreichbaren Dienst verwenden
         WFS_URL = url
@@ -105,7 +122,8 @@ def ebenen_mit_titel() -> list[tuple[str, str]]:
         except (SchulFehler, ET.ParseError) as e:
             fehler.append(f"{url}: {str(e)[:100]}")
     else:
-        raise SchulFehler("Kein Schuldienst erreichbar: " + "; ".join(fehler))
+        _DIENST_AUS = "Kein Schuldienst erreichbar: " + "; ".join(fehler)
+        raise SchulFehler(_DIENST_AUS)
     for el in wurzel.iter():
         if _lokal(el.tag) == "FeatureType":
             name = next((k.text.strip() for k in el if _lokal(k.tag) == "Name" and k.text), None)
@@ -121,12 +139,17 @@ def ebenen() -> list[str]:
     return [n for n, _ in ebenen_mit_titel()]
 
 
+_FORMAT: dict = {}          # je Dienst das funktionierende Ausgabeformat ("gml" = Standard)
+
+
 def _ebene_lesen(name: str) -> list[tuple[float, float, dict]]:
-    """Alle Objekte einer Ebene mit Eigenschaften (GeoJSON, sonst GML)."""
+    """Alle Objekte einer Ebene mit Eigenschaften (GeoJSON, sonst GML); das Format wird je Dienst gemerkt."""
     basis = {"SERVICE": "WFS", "VERSION": "2.0.0", "REQUEST": "GetFeature",
              "TYPENAMES": name, "SRSNAME": "EPSG:25832", "COUNT": "50000"}
     roh: list[tuple[float, float, dict]] = []
-    for fmt in ("application/json", "application/geo+json", "json", "geojson"):
+    bekannt = _FORMAT.get(WFS_URL)
+    formate = [] if bekannt == "gml" else ([bekannt] if bekannt else ["application/json", "application/geo+json", "json", "geojson"])
+    for fmt in formate:
         try:
             daten = _get({**basis, "OUTPUTFORMAT": fmt}).json()
             for f in daten.get("features") or []:
@@ -137,13 +160,19 @@ def _ebene_lesen(name: str) -> list[tuple[float, float, dict]]:
                 if k:
                     roh.append((float(k[0]), float(k[1]), f.get("properties") or {}))
             if roh:
+                _FORMAT[WFS_URL] = fmt
                 return roh
-        except (SchulFehler, ValueError, AttributeError):
+        except (SchulFehler, ValueError, AttributeError) as e:
+            if "Zeitbudget" in str(e):
+                raise
             continue
     inhalt = _get(basis).content
     if b"ExceptionReport" in inhalt[:500] or b"ServiceException" in inhalt[:500]:
         raise SchulFehler("Fehlermeldung des Dienstes: " + inhalt[:200].decode("utf-8", "replace"))
-    return _eigenschaften_aus_gml(inhalt)
+    objekte = _eigenschaften_aus_gml(inhalt)
+    if objekte:
+        _FORMAT[WFS_URL] = "gml"
+    return objekte
 
 
 def _traeger_aus(titel: str, name: str, schulname: str) -> str:
