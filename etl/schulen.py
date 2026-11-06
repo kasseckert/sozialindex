@@ -203,6 +203,7 @@ def _traeger_aus(titel: str, name: str, schulname: str) -> str:
 
 
 _ALLE_CACHE: dict = {}
+DIAGNOSE: dict = {}          # je Schulart: alle gelesenen Schulen mit Quelle und ggf. Grund des Verwerfens
 
 
 def schulen_einer_art(schulart: str) -> tuple[list[tuple[float, float, dict]], list[str]]:
@@ -213,6 +214,7 @@ def schulen_einer_art(schulart: str) -> tuple[list[tuple[float, float, dict]], l
     """
     schluessel = SCHULARTEN.get(schulart, schulart).lower()
     protokoll, ergebnis, gesehen = [], [], set()
+    DIAGNOSE[schulart] = []
     for name, titel in ebenen_mit_titel():
         if not _ALLE_CACHE.get(name):         # nur erfolgreich gelesene Ebenen merken; leere erneut versuchen
             fehler = "leere Antwort"
@@ -240,6 +242,8 @@ def schulen_einer_art(schulart: str) -> tuple[list[tuple[float, float, dict]], l
             p.setdefault("_traeger", _traeger_aus(titel, name, _feld(p, "schulname", "name", "bezeichnung")))
             nr = _feld(p, "schulnummer", "schulnr")
             k = ("nr", nr) if nr else (round(x), round(y), _feld(p, "schulname", "name").lower())
+            DIAGNOSE.setdefault(schulart, []).append({"name": _feld(p, "schulname", "name"), "quelle": titel or name,
+                "schulart": _feld(p, "schulart"), "ort": _feld(p, "ort"), **({"verworfen": "doppelt im Dienst"} if k in gesehen else {})})
             if k not in gesehen:
                 gesehen.add(k)
                 ergebnis.append((x, y, p))
@@ -257,7 +261,10 @@ def schulen_einer_art(schulart: str) -> tuple[list[tuple[float, float, dict]], l
             if not passt:
                 continue
             kandidat = (x, y, p)
-            if any(_gleiche_schule(kandidat, vorh) for vorh in ergebnis):
+            gleich = next((vorh for vorh in ergebnis if _gleiche_schule(kandidat, vorh)), None)
+            if gleich:
+                DIAGNOSE.setdefault(schulart, []).append({"name": _feld(p, "schulname", "name"), "quelle": "staatlicher Dienst",
+                    "verworfen": "gleiche Schule wie " + _feld(gleich[2], "schulname", "name")})
                 continue
             p = dict(p, _traeger="staatlich")
             ergebnis.append((x, y, p))
@@ -508,7 +515,11 @@ def _gleiche_schule(a: tuple, b: tuple) -> bool:
         return True
     if math.hypot(xa - xb, ya - yb) > 150:
         return False
-    woerter = lambda n: {w for w in re.findall(r"[a-zäöüß]{5,}", n.lower())} - {"staatliche", "staatliches", "gymnasium", "realschule", "schule", "mittelschule", "grundschule"}
+    allgemein = {"staatliche", "staatliches", "staatl", "städtische", "städtisches", "gymnasium", "realschule", "schule",
+                 "mittelschule", "grundschule", "fachoberschule", "berufsoberschule", "private", "privates",
+                 "erzdiözese", "diözese", "schulwerk", "schulwerks", "stiftung", "evangelische", "katholische"}
+    orte = {w for p in (pa, pb) for w in re.findall(r"[a-zäöüß]{3,}", _feld(p, "ort").lower())}
+    woerter = lambda n: {w for w in re.findall(r"[a-zäöüß]{5,}", n.lower())} - allgemein - orte
     return bool(woerter(na) & woerter(nb))
 
 

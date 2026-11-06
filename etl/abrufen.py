@@ -295,6 +295,9 @@ def schulstandorte_schreiben():
             if ags:
                 s["kreis"] = ags
                 imland.append(s)
+            else:
+                schulen.DIAGNOSE.setdefault(art, []).append({"name": s["name"], "ort": s["ort"], "lage": [s["lon"], s["lat"]],
+                                                            "verworfen": "liegt außerhalb Bayerns (Koordinaten prüfen)"})
         ordner.mkdir(parents=True, exist_ok=True)
         # Plausibilität: ein gestörter Abruf darf die Karte nicht leeren. Sinkt die Zahl um mehr als
         # 30 % gegenüber der bisherigen Datei, bleibt diese stehen (bewusste Bereinigungen sind selten).
@@ -313,6 +316,11 @@ def schulstandorte_schreiben():
         (ordner / f"{art}.geojson").write_text(json.dumps(fc, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
         ohne_name = sum(1 for s in imland if s["name"] == "Schule")
         print(f"  · Schulstandorte {art}: {len(imland)} Standorte, davon ohne Namen {ohne_name}; Felder im Dienst: {felder[:25]}")
+    # Diagnose: alle gelesenen und verworfenen Schulen je Schulart, zum Nachprüfen fehlender Schulen
+    if schulen.DIAGNOSE:
+        (DATEN / "schulen_diagnose.json").write_text(json.dumps(schulen.DIAGNOSE, ensure_ascii=False, indent=1), encoding="utf-8")
+        verworfen = {a: sum(1 for e in l if e.get("verworfen")) for a, l in schulen.DIAGNOSE.items()}
+        print(f"  · Schuldiagnose: verworfen je Schulart {verworfen} (Details in daten/schulen_diagnose.json)")
 
 
 def zeitlich_konstant(werte: dict) -> dict:
