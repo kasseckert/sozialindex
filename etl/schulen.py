@@ -42,6 +42,16 @@ SCHULARTEN = {
     "foerderzentrum": "Foerderzentr",
 }
 
+# Schreibweisen der Schulart in gemischten Ebenen (Feld „Schulart“)
+SCHULART_MUSTER = {
+    "grundschule": ["grundschul", "grund- und"],
+    "mittelschule": ["mittelschul", "hauptschul", "- und mittel"],
+    "realschule": ["realschul"],
+    "gymnasium": ["gymnas"],
+    "berufliche": ["berufs", "fachoberschul", "berufsoberschul", "wirtschaftsschul"],
+    "foerderzentrum": ["förder", "foerder"],
+}
+
 SITZUNG = requests.Session()
 SITZUNG.headers["User-Agent"] = "sozialindex-oberfranken"
 
@@ -67,19 +77,113 @@ def _lokal(tag: str) -> str:
     return tag.rsplit("}", 1)[-1]
 
 
-def ebenen() -> list[str]:
-    """Namen der FeatureTypes aus GetCapabilities."""
+_EBENEN_CACHE: list = []
+
+
+def ebenen_mit_titel() -> list[tuple[str, str]]:
+    """(Name, Titel) aller FeatureTypes aus GetCapabilities."""
+    if _EBENEN_CACHE:
+        return _EBENEN_CACHE
     r = _get({"SERVICE": "WFS", "REQUEST": "GetCapabilities", "VERSION": "2.0.0"})
     wurzel = ET.fromstring(r.content)
-    namen = []
     for el in wurzel.iter():
         if _lokal(el.tag) == "FeatureType":
-            for kind in el:
-                if _lokal(kind.tag) == "Name" and kind.text:
-                    namen.append(kind.text.strip())
-    if not namen:
+            name = next((k.text.strip() for k in el if _lokal(k.tag) == "Name" and k.text), None)
+            titel = next((k.text.strip() for k in el if _lokal(k.tag) == "Title" and k.text), "")
+            if name:
+                _EBENEN_CACHE.append((name, titel))
+    if not _EBENEN_CACHE:
         raise SchulFehler("GetCapabilities enthält keine FeatureTypes.")
-    return namen
+    return _EBENEN_CACHE
+
+
+def ebenen() -> list[str]:
+    return [n for n, _ in ebenen_mit_titel()]
+
+
+def _ebene_lesen(name: str) -> list[tuple[float, float, dict]]:
+    """Alle Objekte einer Ebene mit Eigenschaften (GeoJSON, sonst GML)."""
+    basis = {"SERVICE": "WFS", "VERSION": "2.0.0", "REQUEST": "GetFeature",
+             "TYPENAMES": name, "SRSNAME": "EPSG:25832", "COUNT": "50000"}
+    roh: list[tuple[float, float, dict]] = []
+    for fmt in ("application/json", "application/geo+json", "json", "geojson"):
+        try:
+            daten = _get({**basis, "OUTPUTFORMAT": fmt}).json()
+            for f in daten.get("features") or []:
+                g = f.get("geometry") or {}
+                k = g.get("coordinates")
+                if g.get("type") == "MultiPoint" and k:
+                    k = k[0]
+                if k:
+                    roh.append((float(k[0]), float(k[1]), f.get("properties") or {}))
+            if roh:
+                return roh
+        except (SchulFehler, ValueError, AttributeError):
+            continue
+    return _eigenschaften_aus_gml(_get(basis).content)
+
+
+def _traeger_aus(titel: str, name: str, schulname: str) -> str:
+    """
+    Träger einer Schule: zuerst aus dem Schulnamen („Staatliche …“, „Städtische …“), dann aus dem
+    Titel der Ebene. „Weitere Schulen“ sind nichtstaatlich, umfassen aber kommunale und private.
+    """
+    sn = f" {schulname.lower()} "
+    if " staatliche " in sn or " staatl. " in sn:
+        return "staatlich"
+    if any(w in sn for w in (" städtische ", " staedtische ", " stadt ", " landkreis ", " zweckverband ")):
+        return "kommunal"
+    t = f"{titel} {name}".lower()
+    if "kommunal" in t:
+        return "kommunal"
+    if "staatl" in t and "nichtstaatl" not in t:
+        return "staatlich"
+    if any(w in t for w in ("privat", "kirchl")):
+        return "privat oder kirchlich"
+    if any(w in t for w in ("weitere", "nichtstaatl", "freie")):
+        return "nichtstaatlich"
+    return ""
+
+
+_ALLE_CACHE: dict = {}
+
+
+def schulen_einer_art(schulart: str) -> tuple[list[tuple[float, float, dict]], list[str]]:
+    """
+    Alle Schulen einer Schulart aus allen Ebenen des Dienstes: Ebenen, deren Name die Schulart
+    trägt, und gemischte Ebenen (z. B. „weitere Schulen“), gefiltert über das Feld „Schulart“.
+    Doppelte Standorte werden entfernt. Gibt die Schulen (UTM 32N) und Protokollzeilen zurück.
+    """
+    schluessel = SCHULARTEN.get(schulart, schulart).lower()
+    protokoll, ergebnis, gesehen = [], [], set()
+    for name, titel in ebenen_mit_titel():
+        if name not in _ALLE_CACHE:
+            try:
+                _ALLE_CACHE[name] = _ebene_lesen(name)
+            except SchulFehler as e:
+                protokoll.append(f"{name}: nicht lesbar ({str(e)[:80]})")
+                _ALLE_CACHE[name] = []
+        objekte = _ALLE_CACHE[name]
+        muster = SCHULART_MUSTER.get(schulart, [schluessel])
+        if schluessel in f"{name} {titel}".lower():
+            treffer = objekte                      # Ebene eigens für diese Schulart: vollständig übernehmen
+        elif any(_feld(p, "schulart") for _, _, p in objekte[:50]):
+            treffer = [o for o in objekte if any(m in _feld(o[2], "schulart").lower() for m in muster)]
+        else:
+            treffer = []
+        neu = 0
+        for x, y, p in treffer:
+            p = dict(p)
+            p.setdefault("_traeger", _traeger_aus(titel, name, _feld(p, "schulname", "name", "bezeichnung")))
+            k = (round(x), round(y), _feld(p, "schulname", "name").lower())
+            if k not in gesehen:
+                gesehen.add(k)
+                ergebnis.append((x, y, p))
+                neu += 1
+        if treffer:
+            arten = sorted({_feld(o[2], "schulart") for o in treffer if _feld(o[2], "schulart")})[:4]
+            protokoll.append(f"{titel or name}: {neu} {schulart}" + (f" (Schulart: {', '.join(arten)})" if arten else ""))
+    return ergebnis, protokoll
 
 
 def _punkte_aus_json(daten: dict) -> list[tuple[float, float]]:
@@ -124,29 +228,10 @@ def standorte(schulart: str) -> list[tuple[float, float]]:
     if cache.exists() and time.time() - cache.stat().st_mtime < 86400:
         return [tuple(p) for p in json.loads(cache.read_text())]
 
-    schluessel = SCHULARTEN.get(schulart, schulart).lower()
-    passend = [n for n in ebenen() if schluessel in n.lower()]
-    if not passend:
-        raise SchulFehler(f"Keine Ebene für Schulart '{schulart}' im Dienst gefunden.")
-    name = passend[0]
-
-    basis = {"SERVICE": "WFS", "VERSION": "2.0.0", "REQUEST": "GetFeature",
-             "TYPENAMES": name, "SRSNAME": "EPSG:25832", "COUNT": "50000"}
-    punkte: list[tuple[float, float]] = []
-    for fmt in ("application/json", "application/geo+json", "json", "geojson"):
-        try:
-            r = _get({**basis, "OUTPUTFORMAT": fmt})
-            punkte = _punkte_aus_json(r.json())
-            if punkte:
-                break
-        except (SchulFehler, ValueError):
-            continue
-    if not punkte:   # Standardformat GML
-        r = _get(basis)
-        punkte = _punkte_aus_gml(r.content)
-    if not punkte:
-        raise SchulFehler(f"Ebene {name}: keine Standorte gelesen.")
-    punkte = [_nach_utm(p) for p in punkte]
+    objekte, _ = schulen_einer_art(schulart)
+    if not objekte:
+        raise SchulFehler(f"Keine Standorte für Schulart '{schulart}' im Dienst gefunden.")
+    punkte = [_nach_utm((x, y)) for x, y, _ in objekte]
     cache.write_text(json.dumps(punkte))
     return punkte
 
@@ -262,33 +347,11 @@ def standorte_fuer_karte(schulart: str) -> tuple[list[dict], list[str]]:
     Gibt auch die im Dienst gefundenen Feldnamen zurück, damit sie im Protokoll stehen.
     """
     from pyproj import Transformer
-    schluessel = SCHULARTEN.get(schulart, schulart).lower()
-    passend = [n for n in ebenen() if schluessel in n.lower()]
-    if not passend:
-        raise SchulFehler(f"Keine Ebene für Schulart '{schulart}' im Dienst gefunden.")
-    basis = {"SERVICE": "WFS", "VERSION": "2.0.0", "REQUEST": "GetFeature",
-             "TYPENAMES": passend[0], "SRSNAME": "EPSG:25832", "COUNT": "50000"}
-    roh: list[tuple[float, float, dict]] = []
-    for fmt in ("application/json", "application/geo+json", "json", "geojson"):
-        try:
-            daten = _get({**basis, "OUTPUTFORMAT": fmt}).json()
-            for f in daten.get("features") or []:
-                g = f.get("geometry") or {}
-                k = g.get("coordinates")
-                if g.get("type") == "MultiPoint" and k:
-                    k = k[0]
-                if k:
-                    roh.append((float(k[0]), float(k[1]), f.get("properties") or {}))
-            if roh:
-                break
-        except (SchulFehler, ValueError):
-            continue
+    roh, ebenenprotokoll = schulen_einer_art(schulart)
     if not roh:
-        roh = _eigenschaften_aus_gml(_get(basis).content)
-    if not roh:
-        raise SchulFehler(f"Ebene {passend[0]}: keine Standorte gelesen.")
+        raise SchulFehler(f"Keine Standorte für Schulart '{schulart}' im Dienst gefunden.")
     t = Transformer.from_crs(25832, 4326, always_xy=True)
-    felder = sorted({k for _, _, p in roh for k in p})
+    felder = sorted({k for _, _, p in roh for k in p if not k.startswith("_")}) + ["Ebenen: " + "; ".join(ebenenprotokoll)]
     standorte = []
     for x, y, p in roh:
         if abs(x) <= 180 and abs(y) <= 90:          # schon geografisch
@@ -301,8 +364,9 @@ def standorte_fuer_karte(schulart: str) -> tuple[list[dict], list[str]]:
             "strasse": _feld(p, "strasse", "straße", "anschrift", "adresse"),
             "plz": _feld(p, "plz", "postleit"),
             "ort": _feld(p, "ort", "gemeinde", "stadt"),
-            "traeger": _feld(p, "traeger", "träger", "rechtsform", "schultraeger"),
+            "traeger": _feld(p, "traeger", "träger", "rechtsform", "schultraeger") or p.get("_traeger", ""),
             "url": _feld(p, "homepage", "internet", "url", "web"),
             "nummer": _feld(p, "schulnummer", "schulnr", "nummer"),
+            "schulart": _feld(p, "schulart"),
         })
     return standorte, felder
