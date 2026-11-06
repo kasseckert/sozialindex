@@ -28,7 +28,13 @@ from pathlib import Path
 
 import requests
 
-WFS_URL = os.environ.get("SCHULEN_WFS_URL", "https://gdiserv.bayern.de/srv112940/services/schulstandortebayern-wfs")
+# Zwei Dienste des Kultusministeriums: „schulstandorte_bayern“ umfasst alle Schulen (auch kommunale,
+# kirchliche und private, z. B. im Datensatz „weitere Schulen“); „schulstandortebayern“ nur die
+# staatlichen. Der umfassende Dienst wird bevorzugt, der zweite dient als Rückfall.
+WFS_URLS = [u for u in (os.environ.get("SCHULEN_WFS_URL"),
+                        "https://gdiserv.bayern.de/srv112940/services/schulstandorte_bayern-wfs",
+                        "https://gdiserv.bayern.de/srv112940/services/schulstandortebayern-wfs") if u]
+WFS_URL = WFS_URLS[0]
 WURZEL = Path(__file__).resolve().parent.parent
 CACHE = WURZEL / "daten" / "cache"
 
@@ -84,10 +90,22 @@ _EBENEN_CACHE: list = []
 
 def ebenen_mit_titel() -> list[tuple[str, str]]:
     """(Name, Titel) aller FeatureTypes aus GetCapabilities."""
+    global WFS_URL
     if _EBENEN_CACHE:
         return _EBENEN_CACHE
-    r = _get({"SERVICE": "WFS", "REQUEST": "GetCapabilities", "VERSION": "2.0.0"})
-    wurzel = ET.fromstring(r.content)
+    fehler = []
+    for url in WFS_URLS:                       # ersten erreichbaren Dienst verwenden
+        WFS_URL = url
+        try:
+            r = _get({"SERVICE": "WFS", "REQUEST": "GetCapabilities", "VERSION": "2.0.0"})
+            wurzel = ET.fromstring(r.content)
+            if any(_lokal(el.tag) == "FeatureType" for el in wurzel.iter()):
+                break
+            fehler.append(f"{url}: keine Ebenen")
+        except (SchulFehler, ET.ParseError) as e:
+            fehler.append(f"{url}: {str(e)[:100]}")
+    else:
+        raise SchulFehler("Kein Schuldienst erreichbar: " + "; ".join(fehler))
     for el in wurzel.iter():
         if _lokal(el.tag) == "FeatureType":
             name = next((k.text.strip() for k in el if _lokal(k.tag) == "Name" and k.text), None)
@@ -135,6 +153,11 @@ def _traeger_aus(titel: str, name: str, schulname: str) -> str:
         return "staatlich"
     if any(w in sn for w in (" städtische ", " staedtische ", " stadt ", " landkreis ", " zweckverband ")):
         return "kommunal"
+    if any(w in sn for w in ("evang", "kath.", "katholisch", "erzbisch", "bischöfl", "diözes", "kirchl", "kloster",
+                             "maria-ward", "schulwerk", "ordens", "benedikt", "franziskan", "ursulin", "englische fräulein")):
+        return "kirchlich"
+    if any(w in sn for w in (" priv.", " private ", " privates ", "privatschule", " freie ", "waldorf", "montessori")):
+        return "privat"
     t = f"{titel} {name}".lower()
     if "kommunal" in t:
         return "kommunal"
@@ -177,7 +200,8 @@ def schulen_einer_art(schulart: str) -> tuple[list[tuple[float, float, dict]], l
         for x, y, p in treffer:
             p = dict(p)
             p.setdefault("_traeger", _traeger_aus(titel, name, _feld(p, "schulname", "name", "bezeichnung")))
-            k = (round(x), round(y), _feld(p, "schulname", "name").lower())
+            nr = _feld(p, "schulnummer", "schulnr")
+            k = ("nr", nr) if nr else (round(x), round(y), _feld(p, "schulname", "name").lower())
             if k not in gesehen:
                 gesehen.add(k)
                 ergebnis.append((x, y, p))
@@ -185,6 +209,8 @@ def schulen_einer_art(schulart: str) -> tuple[list[tuple[float, float, dict]], l
         if treffer:
             arten = sorted({_feld(o[2], "schulart") for o in treffer if _feld(o[2], "schulart")})[:4]
             protokoll.append(f"{titel or name}: {neu} {schulart}" + (f" (Schulart: {', '.join(arten)})" if arten else ""))
+    dienst = WFS_URL.rsplit("/", 1)[-1]
+    protokoll.insert(0, f"Dienst {dienst} mit {len(ebenen_mit_titel())} Ebenen: " + ", ".join(t or n for n, t in ebenen_mit_titel())[:600])
     return ergebnis, protokoll
 
 
