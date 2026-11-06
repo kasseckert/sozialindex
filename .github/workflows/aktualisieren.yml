@@ -139,6 +139,7 @@ jobs:
           cp abruf.log daten/letzter_abruf.log 2>/dev/null || true
           git add web/data daten/rohdaten.csv daten/quellenprotokoll.json daten/letzter_abruf.log
           git add daten/schulen_diagnose.json 2>/dev/null || true
+          git add daten/werte_archiv.csv 2>/dev/null || true
           git add daten/genesis_struktur.md daten/genesis_struktur.json 2>/dev/null || true
           git add daten/genesis_auszug 2>/dev/null || true
           if git diff --cached --quiet; then
