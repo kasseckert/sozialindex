@@ -77,9 +77,9 @@ jobs:
           GENESIS_BILDUNG_PASSWORD: ${{ secrets.GENESIS_BILDUNG_PASSWORD }}
         run: |
           if [ "${{ inputs.modus }}" = "true" ]; then
-            python etl/abrufen.py --demo-auffuellen | tee abruf.log
+            python -u etl/abrufen.py --demo-auffuellen | tee abruf.log
           else
-            python etl/abrufen.py | tee abruf.log
+            python -u etl/abrufen.py | tee abruf.log
           fi
 
       - name: Index berechnen
@@ -89,7 +89,7 @@ jobs:
       - name: Tabellen erkunden
         if: always()
         continue-on-error: true
-        timeout-minutes: 10
+        timeout-minutes: 20
         env:
           GENESIS_BAYERN_USER: ${{ secrets.GENESIS_BAYERN_USER }}
           GENESIS_BAYERN_PASSWORD: ${{ secrets.GENESIS_BAYERN_PASSWORD }}
@@ -115,6 +115,21 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Protokoll bei Fehlschlag speichern
+        if: steps.abruf.outcome != 'success'
+        run: |
+          # Damit die Ursache ohne Anmeldung im Repository nachlesbar ist
+          cp abruf.log daten/letzter_abruf.log 2>/dev/null || exit 0
+          git config user.name "sozialindex-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add daten/letzter_abruf.log
+          git diff --cached --quiet && exit 0
+          git commit -m "Protokoll eines fehlgeschlagenen Datenabrufs"
+          for versuch in 1 2 3; do
+            git pull --rebase --autostash origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && exit 0
+            sleep 10
+          done
+
       - name: Geänderte Daten speichern
         if: steps.abruf.outcome == 'success'
         run: |
@@ -123,6 +138,7 @@ jobs:
           # Protokoll und Tabellenaufbau mit ablegen, damit sie ohne Anmeldung lesbar sind
           cp abruf.log daten/letzter_abruf.log 2>/dev/null || true
           git add web/data daten/rohdaten.csv daten/quellenprotokoll.json daten/letzter_abruf.log
+          git add daten/schulen_diagnose.json 2>/dev/null || true
           git add daten/genesis_struktur.md daten/genesis_struktur.json 2>/dev/null || true
           git add daten/genesis_auszug 2>/dev/null || true
           if git diff --cached --quiet; then
