@@ -11,6 +11,9 @@
     "versorgung": 1
   },
   "fortschreiben_jahre": 2,
+  "schulstandorte_karte": [
+    "realschule"
+  ],
   "dimensionen": [
     {
       "id": "arbeit",

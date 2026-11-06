@@ -33,6 +33,7 @@ def main():
                      "werte": json.loads((WEB / "data/werte_gemeinden" / f"{p.stem}.json").read_text(encoding="utf-8"))}
             for p in sorted((WEB / "data/gemeinden").glob("*.geojson"))
         },
+        "schulen": {p.stem: json.loads(p.read_text(encoding="utf-8")) for p in sorted((WEB / "data/schulen").glob("*.geojson"))},
     }
     skript = lambda p: (WEB / p).read_text(encoding="utf-8").replace("</script", "<\\/script")
 

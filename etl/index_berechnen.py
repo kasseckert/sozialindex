@@ -233,6 +233,7 @@ def main():
             "indikatoren": [{k: v for k, v in i.items() if k not in ("quelle", "quellen")} for i in K.INDIKATOREN],
             "quellen": quellen,
             "datenstand": datenstand,
+            "schulstandorte": sorted(p.stem for p in (WURZEL / "web" / "data" / "schulen").glob("*.geojson")),
         },
     }
     for ebene in ("kreis", "gemeinde"):

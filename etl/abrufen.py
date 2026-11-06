@@ -244,6 +244,44 @@ def quelle_schulen(spec: dict, ebene: str):
         "code": spec["schulart"]}
 
 
+def schulstandorte_schreiben():
+    """
+    Standorte ausgewählter Schularten als Markierungen für die Karte (web/data/schulen/<art>.geojson).
+    Welche Schularten, steht in konfiguration/indikatoren.json unter "schulstandorte_karte".
+    Scheitert der Abruf, bleibt die bisherige Datei erhalten.
+    """
+    import schulen
+    arten = json.loads((WURZEL / "konfiguration" / "indikatoren.json").read_text(encoding="utf-8")).get("schulstandorte_karte", [])
+    ordner = WEB_DATEN / "schulen"
+    for art in arten:
+        try:
+            standorte, felder = schulen.standorte_fuer_karte(art)
+        except Exception as e:
+            print(f"  ! Schulstandorte {art}: {str(e)[:200]} (bisherige Datei bleibt)")
+            continue
+        # Kreis jeder Schule über die Kreisflächen bestimmen; Schulen außerhalb des Landes entfallen
+        from shapely.geometry import Point, shape
+        kreise = [(f["properties"]["ags"], shape(f["geometry"]))
+                  for f in json.loads((WEB_DATEN / "kreise.geojson").read_text(encoding="utf-8"))["features"]]
+        imland = []
+        for s in standorte:
+            pt = Point(s["lon"], s["lat"])
+            ags = next((a for a, g in kreise if g.contains(pt)), None)
+            if ags is None:     # Punkt knapp außerhalb der vereinfachten Grenze: nächster Kreis bis 1 km
+                a, g = min(kreise, key=lambda kg: kg[1].distance(pt))
+                ags = a if g.distance(pt) < 0.01 else None
+            if ags:
+                s["kreis"] = ags
+                imland.append(s)
+        ordner.mkdir(parents=True, exist_ok=True)
+        fc = {"type": "FeatureCollection", "stand": date.today().isoformat(), "features": [
+            {"type": "Feature", "geometry": {"type": "Point", "coordinates": [s["lon"], s["lat"]]},
+             "properties": {k: v for k, v in s.items() if k not in ("lon", "lat") and v}} for s in imland]}
+        (ordner / f"{art}.geojson").write_text(json.dumps(fc, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        ohne_name = sum(1 for s in imland if s["name"] == "Schule")
+        print(f"  · Schulstandorte {art}: {len(imland)} Standorte, davon ohne Namen {ohne_name}; Felder im Dienst: {felder[:25]}")
+
+
 def zeitlich_konstant(werte: dict) -> dict:
     """Überträgt den jeweils jüngsten Wert eines Gebiets auf alle Jahre (Strukturmerkmale)."""
     letzter: dict = {}
@@ -350,6 +388,7 @@ def main():
 
     if not nur_demo:
         genesis_katalog_schreiben()
+        schulstandorte_schreiben()
     print("\n".join(protokoll))
     if not nur_demo and echte_werte == 0:
         print("\nFEHLER: Keine Quelle hat echte Daten geliefert. Bisherige Daten bleiben unverändert.")

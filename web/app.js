@@ -318,11 +318,79 @@
   }
 
   function neuZeichnen() {
+    for (const art of Schulen.an) schulenZeichnen(art);
     massstabAktualisieren();
     merkmalOptionenAufbauen();
     suchlisteAufbauen();
     flaechenZeichnen();
     aktualisieren();
+  }
+
+  // ------------------------------------------------------------ Schulstandorte
+  const SCHULARTEN_NAMEN = { realschule: "Realschulen", gymnasium: "Gymnasien", mittelschule: "Mittelschulen",
+    grundschule: "Grundschulen", berufliche: "Berufliche Schulen", foerderzentrum: "Förderzentren" };
+  const Schulen = { daten: {}, ebenen: {}, an: new Set() };
+
+  function pinSymbol() {
+    return `<svg viewBox="0 0 24 32" width="24" height="32" aria-hidden="true" focusable="false">
+      <path d="M12 31s10-11.2 10-19A10 10 0 0 0 2 12c0 7.8 10 19 10 19z" fill="var(--pin)" stroke="var(--pin-rand)" stroke-width="1.5"/>
+      <circle cx="12" cy="12" r="4" fill="var(--pin-rand)"/></svg>`;
+  }
+
+  function schulSchalterAufbauen() {
+    const arten = Z.daten.meta.schulstandorte || [];
+    if (!arten.length) return;
+    $("#schulschalter").hidden = false;
+    $("#schulschalter-liste").innerHTML = arten.map((a) => `<label>
+        <input type="checkbox" data-schulart="${esc(a)}">
+        <span class="pin-symbol">${pinSymbol()}</span>${esc(SCHULARTEN_NAMEN[a] || a)}
+        <span class="anzahl" data-anzahl="${esc(a)}"></span></label>`).join("");
+    $("#schulschalter-liste").addEventListener("change", async (e) => {
+      const art = e.target.dataset.schulart;
+      if (!art) return;
+      if (e.target.checked) {
+        Schulen.an.add(art);
+        try {
+          if (!Schulen.daten[art]) Schulen.daten[art] = window.__SOZIALINDEX__?.schulen?.[art] || await holen(`data/schulen/${art}.geojson`);
+        } catch (err) {
+          e.target.checked = false; Schulen.an.delete(art);
+          $(`[data-anzahl="${art}"]`).textContent = "(nicht verfügbar)";
+          return;
+        }
+      } else {
+        Schulen.an.delete(art);
+      }
+      schulenZeichnen(art);
+    });
+  }
+
+  function schulPopup(p, lat, lon) {
+    const adresse = [p.strasse, [p.plz, p.ort].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+    const kreis = Z.kreise.features.find((f) => f.properties.ags === p.kreis)?.properties;
+    const url = p.url ? (/^https?:\/\//i.test(p.url) ? p.url : `https://${p.url}`) : "";
+    return `<div class="schul-pop"><strong>${esc(p.name)}</strong>
+      ${adresse ? esc(adresse) + "<br>" : ""}
+      <span class="leise">${[p.traeger ? "Träger: " + esc(p.traeger) : "", kreis ? esc(anzeigeName(kreis, "kreis")) : ""].filter(Boolean).join("<br>")}</span><br>
+      ${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">Website</a>` : ""}
+      <a href="https://www.openstreetmap.org/?mlat=${lat}&amp;mlon=${lon}#map=17/${lat}/${lon}" target="_blank" rel="noopener">In OpenStreetMap öffnen</a></div>`;
+  }
+
+  /** Markierungen einer Schulart für die aktuelle Region (neu) zeichnen bzw. entfernen. */
+  function schulenZeichnen(art) {
+    Schulen.ebenen[art]?.remove();
+    delete Schulen.ebenen[art];
+    const anzeige = $(`[data-anzahl="${art}"]`);
+    if (!Schulen.an.has(art) || !Schulen.daten[art]) { if (anzeige) anzeige.textContent = ""; return; }
+    const feats = Schulen.daten[art].features.filter((f) => imFokus(f.properties.kreis || ""));
+    const icon = L.divIcon({ className: "schul-pin", html: pinSymbol(), iconSize: [24, 32], iconAnchor: [12, 31], popupAnchor: [0, -28] });
+    Schulen.ebenen[art] = L.layerGroup(feats.map((f) => {
+      const [lon, lat] = f.geometry.coordinates;
+      const p = f.properties;
+      const m = L.marker([lat, lon], { icon, title: p.name, alt: p.name, keyboard: true, riseOnHover: true });
+      m.bindPopup(() => schulPopup(p, lat, lon), { maxWidth: 300 });
+      return m;
+    })).addTo(Karte.map);
+    if (anzeige) anzeige.textContent = `(${feats.length.toLocaleString("de-DE")})`;
   }
 
   // ------------------------------------------------------------ Karte
@@ -339,6 +407,10 @@
       Karte.map.getPane(name).style.pointerEvents = "none";
     }
     Karte.map.on("mouseout", hoverAus);
+    // In der Übersicht kleinere Stecknadeln, damit sie sich weniger überdecken
+    const pinGroesse = () => Karte.map.getContainer().classList.toggle("pins-klein", Karte.map.getZoom() < 9);
+    Karte.map.on("zoomend", pinGroesse);
+    pinGroesse();
     Karte.map.attributionControl.setPrefix(false);
     Karte.map.attributionControl.addAttribution("Grenzen © GeoBasis-DE / BKG (dl-de/by-2-0)");
     const grenzen = L.geoJSON(Z.kreise).getBounds();
@@ -844,6 +916,7 @@
       diagrammGrundlagen();
       karteAnlegen();
       regionAuswahlAufbauen();
+      schulSchalterAufbauen();
       steuerungVerbinden();
       fussZeichnen();
       $("#lade").hidden = true;
