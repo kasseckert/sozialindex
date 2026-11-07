@@ -46,7 +46,7 @@ concurrency:
 jobs:
   daten:
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 120
     outputs:
       abruf: ${{ steps.abruf.outcome }}
     steps:
@@ -65,7 +65,7 @@ jobs:
       - name: Daten abrufen
         id: abruf
         continue-on-error: true
-        timeout-minutes: 35
+        timeout-minutes: 60
         env:
           GENESIS_BAYERN_USER: ${{ secrets.GENESIS_BAYERN_USER }}
           GENESIS_BAYERN_PASSWORD: ${{ secrets.GENESIS_BAYERN_PASSWORD }}
@@ -116,7 +116,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Protokoll bei Fehlschlag speichern
-        if: steps.abruf.outcome != 'success'
+        if: always() && (steps.abruf.outcome != 'success' || job.status != 'success')
         run: |
           # Damit die Ursache ohne Anmeldung im Repository nachlesbar ist
           cp abruf.log daten/letzter_abruf.log 2>/dev/null || exit 0
