@@ -160,6 +160,16 @@ jobs:
           echo "::error::Die Daten konnten nicht gespeichert werden."
           exit 1
 
+      - name: Versionskennung an Programmdateien anhängen
+        # Browser speichern app.js und style.css zwischen; mit der Kennung laden sie nach jeder
+        # Veröffentlichung die neue Fassung und mischen nie alte Programmdateien mit neuen Daten.
+        run: |
+          v="${GITHUB_SHA::8}-$(date +%s)"
+          for f in web/index.html web/assistent.html; do
+            [ -f "$f" ] && sed -i -E "s#(href|src)=\"(style\.css|app\.js|assistent\.css|assistent\.js)\"#\1=\"\2?v=$v\"#g" "$f"
+          done
+          grep -o '[a-z]*\.\(css\|js\)?v=[^"]*' web/index.html web/assistent.html | sed 's/^/  /'
+
       - name: Website als Artefakt bereitstellen
         uses: actions/upload-artifact@v7
         with:
