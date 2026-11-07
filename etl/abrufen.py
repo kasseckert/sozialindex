@@ -217,6 +217,17 @@ def quelle_summe(spec: dict, ebene: str):
     return werte, "summe(" + ", ".join(t[1] for t in teile) + ")", dict(teile[0][2])
 
 
+def quelle_rest(spec: dict, ebene: str):
+    """Rest auf eine Gesamtgröße, z. B. 100 % minus die Anteile einzelner Schularten."""
+    teile = [QUELLEN[t["typ"]](t, ebene) for t in spec["minus"]]
+    if not all(teile):
+        return None
+    schluessel = set(teile[0][0]).intersection(*[set(t[0]) for t in teile[1:]])
+    basis = spec.get("basis", 100)
+    werte = {k: max(0.0, basis - sum(t[0][k] for t in teile)) for k in schluessel}
+    return werte, f"rest({basis} - " + " - ".join(t[1] for t in teile) + ")", dict(teile[0][2])
+
+
 def quelle_quotient(spec: dict, ebene: str):
     z = QUELLEN[spec["zaehler"]["typ"]](spec["zaehler"], ebene)
     n = QUELLEN[spec["nenner"]["typ"]](spec["nenner"], ebene)
@@ -421,7 +432,8 @@ def genesis_katalog_schreiben():
 
 
 QUELLEN = {"regionalatlas": quelle_regionalatlas, "csv": quelle_csv, "genesis": quelle_genesis,
-           "quotient": quelle_quotient, "schulen": quelle_schulen, "summe": quelle_summe}
+           "quotient": quelle_quotient, "schulen": quelle_schulen, "summe": quelle_summe,
+           "rest": quelle_rest}
 
 
 def abdeckung(werte: dict, anzahl_gebiete: int) -> float:
