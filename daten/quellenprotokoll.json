@@ -125,13 +125,13 @@
    "titel": ""
   },
   "einsch_spaet": {
-   "herkunft": "summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)",
+   "herkunft": "summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) (teils aus letztem Lauf)",
    "quelle": "Kommunale Bildungsdatenbank",
    "code": "BY-D11.1i",
    "titel": ""
   },
   "einsch_frueh": {
-   "herkunft": "summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)",
+   "herkunft": "summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) (teils aus letztem Lauf)",
    "quelle": "Kommunale Bildungsdatenbank",
    "code": "BY-D11.1i",
    "titel": ""
