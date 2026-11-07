@@ -1,4 +1,3 @@
-  · Werte-Archiv aus 15 früheren Läufen aufgebaut (131210 Werte)
 kreis     alq           960 Werte  regionalatlas:AI008-1-5/ai0801
 kreis     sgb2          960 Werte  regionalatlas:AI-S-04/ai2102
 kreis     eink          768 Werte  regionalatlas:AI-S-01/ai1601
@@ -13,35 +12,41 @@ kreis     uebertritt_rs   576 Werte  csv:uebertritt_realschule.csv
 kreis     eignung_gym   576 Werte  csv:eignung_gymnasium.csv
 kreis     eignung_rs    576 Werte  csv:eignung_realschule.csv
 kreis     abi           960 Werte  regionalatlas:AI003-2/ai0304
-  · sch_ausl (kreis, quotient): 71 s
+  · sch_ausl (kreis, quotient): 75 s
 kreis     sch_ausl      960 Werte  summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i) / summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i)
-  · sch_je_lk (kreis, quotient): 117 s
+  · sch_je_lk (kreis, quotient): 125 s
 kreis     sch_je_lk     960 Werte  summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i) / summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i)
+  · lk_teilzeit (kreis, quotient): 20 s
 kreis     lk_teilzeit   960 Werte  summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i) / summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i)
-  · einsch_spaet (kreis, quotient): 242 s
-  · einsch_spaet (kreis): Jahre 2021 diesmal nicht geliefert, aus dem letzten Lauf übernommen
-kreis     einsch_spaet   960 Werte  summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) (teils aus letztem Lauf)
-  · einsch_frueh (kreis): Jahre 2021 diesmal nicht geliefert, aus dem letzten Lauf übernommen
-kreis     einsch_frueh   960 Werte  summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) (teils aus letztem Lauf)
-  · ue_ms (kreis, genesis): 375 s
+  · einsch_spaet (kreis, quotient): 68 s
+kreis     einsch_spaet   960 Werte  summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)
+kreis     einsch_frueh   960 Werte  summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)
+  ! ue_ms (kreis, quotient, 351 s): Filter nicht eindeutig: 09178 2018 hat mehrere passende Zeilen (451.0 und 1454.0); bitte genauer filtern, z. B. mit „=“
   · ue_ms (kreis): Jahre 2015, 2016, 2017 diesmal nicht geliefert, aus dem letzten Lauf übernommen
 kreis     ue_ms         960 Werte  genesis:bildung/BY-D12.1i (teils aus letztem Lauf)
+  ! ue_gym_kbd (kreis, quotient, 0 s): Filter nicht eindeutig: 09178 2018 hat mehrere passende Zeilen (526.0 und 1454.0); bitte genauer filtern, z. B. mit „=“
   · ue_gym_kbd (kreis): Jahre 2015, 2016, 2017 diesmal nicht geliefert, aus dem letzten Lauf übernommen
 kreis     ue_gym_kbd    940 Werte  genesis:bildung/BY-D12.1i (teils aus letztem Lauf)
+  ! ue_rs_kbd (kreis, quotient, 0 s): Filter nicht eindeutig: 09178 2018 hat mehrere passende Zeilen (436.0 und 1454.0); bitte genauer filtern, z. B. mit „=“
   · ue_rs_kbd (kreis): Jahre 2015, 2016, 2017 diesmal nicht geliefert, aus dem letzten Lauf übernommen
 kreis     ue_rs_kbd     960 Werte  genesis:bildung/BY-D12.1i (teils aus letztem Lauf)
-  · wechsel_gym_rs (kreis, genesis): 380 s
-  · wechsel_gym_rs (kreis): Jahre 2016, 2017, 2018 diesmal nicht geliefert, aus dem letzten Lauf übernommen
+  ! ue_sonst_kbd (kreis, rest, 0 s): 'rest'
+kreis     ue_sonst_kbd     – keine Daten, entfällt auf dieser Ebene
+  · wechsel_gym_rs (kreis, genesis): 407 s
+  · wechsel_gym_rs (kreis): Jahre 2016, 2017, 2024 diesmal nicht geliefert, aus dem letzten Lauf übernommen
+  · wechsel_gym_rs (kreis): Werte nur bis 2023; die Tabelle enthält keine späteren Jahre
 kreis     wechsel_gym_rs   960 Werte  genesis:bildung/BY-D12.3i (teils aus letztem Lauf)
-  · wechsel_rs_ms (kreis): Jahre 2016, 2017, 2018 diesmal nicht geliefert, aus dem letzten Lauf übernommen
+  · wechsel_rs_ms (kreis): Jahre 2016, 2017, 2024 diesmal nicht geliefert, aus dem letzten Lauf übernommen
+  · wechsel_rs_ms (kreis): Werte nur bis 2023; die Tabelle enthält keine späteren Jahre
 kreis     wechsel_rs_ms   960 Werte  genesis:bildung/BY-D12.3i (teils aus letztem Lauf)
-  · wechsel_ms_rs (kreis): Jahre 2016, 2017, 2018 diesmal nicht geliefert, aus dem letzten Lauf übernommen
+  · wechsel_ms_rs (kreis): Jahre 2016, 2017, 2024 diesmal nicht geliefert, aus dem letzten Lauf übernommen
+  · wechsel_ms_rs (kreis): Werte nur bis 2023; die Tabelle enthält keine späteren Jahre
 kreis     wechsel_ms_rs   858 Werte  genesis:bildung/BY-D12.3i (teils aus letztem Lauf)
-  · ohne_beruf (kreis, quotient): 31 s
+  · ohne_beruf (kreis, quotient): 26 s
   · ohne_beruf (kreis): Werte nur bis 2022; die Tabelle enthält keine späteren Jahre
 kreis     ohne_beruf    960 Werte  genesis:zensus/2000S-1003 / genesis:zensus/2000S-1003 (konstant fortgeschrieben)
 kreis     ausbildung      – keine Daten, entfällt auf dieser Ebene
-  · weg_gs (kreis, schulen): 38 s
+  · weg_gs (kreis, schulen): 41 s
 kreis     weg_gs        960 Werte  schulen:grundschule (konstant fortgeschrieben)
 kreis     weg_gym       960 Werte  schulen:gymnasium (konstant fortgeschrieben)
 kreis     wfl             – keine Daten, entfällt auf dieser Ebene
@@ -58,12 +63,9 @@ gemeinde  u3              – keine Daten, entfällt auf dieser Ebene
 gemeinde  weg_gs      20560 Werte  schulen:grundschule (konstant fortgeschrieben)
 gemeinde  weg_gym     20560 Werte  schulen:gymnasium (konstant fortgeschrieben)
 gemeinde  wfl             – keine Daten, entfällt auf dieser Ebene
-  ! BY-D11.1i: Jahre 2021 nicht abrufbar
   ! BY-D12.1i: Jahre 2015, 2016, 2017 nicht abrufbar
-  ! BY-D12.3i: Jahre 2016, 2017, 2018 nicht abrufbar
-  ! Tabellenliste bildung (*): https://www.bildungsmonitoring.de/bildungws/rest/2020/catalogue/tables fehlgeschlagen: HTTPSConnectionPool(host='www.bildungsmonitoring.de', port=443): Max retries exceeded with url: /bildungws/rest/2
-  ! Tabellenliste bildung (BY-*): https://www.bildungsmonitoring.de/bildungws/rest/2020/catalogue/tables fehlgeschlagen: HTTPSConnectionPool(host='www.bildungsmonitoring.de', port=443): Max retries exceeded with url: /bildungws/rest/2
-  · Tabellenliste bildung: bisherige Liste mit 907 Tabellen beibehalten
+  ! BY-D12.3i: Jahre 2016, 2017, 2024 nicht abrufbar
+  · Tabellenliste bildung: 907 Tabellen
   · Tabellenliste zensus: 420 Tabellen
   · Schulstandorte realschule: 368 Standorte, davon ohne Namen 0; Felder im Dienst: ['hausnummer', 'ort', 'plz', 'postleitzahl', 'schulart', 'schulname', 'strasse', 'Ebenen: Dienst schulstandorte_bayern-wfs mit 8 Ebenen: SchulenZurSonderpaedagogischenFoerderung, WeitereSchulen, BeruflicheSchulen, MittelUndHauptschulen, Wirtschaftsschulen, Realschulen, Grundschulen, Gymnasien; SchulenZurSonderpaedagogischenFoerderung: 3 realschule (Schulart: Realschule z. sp. F.); Realschulen: 339 realschule (Schulart: Abendrealschule, Integrierte Gesamtschule, Realschule, Realschule z. sp. F.); ergänzt aus dem Dienst der staatlichen Schulen: 25 (z. B. Staatliche Realschule Buchloe, Georg-Hartmann-Realschule Staatliche Realschule Forchheim, Ferdinand-von-Miller-Schule Staatliche Realschule Fürstenfeldbruck); Korrekturdatei: 0 entfernt, 1 ergänzt']
   · Schulstandorte gymnasium: 433 Standorte, davon ohne Namen 0; Felder im Dienst: ['hausnummer', 'ort', 'plz', 'postleitzahl', 'schulart', 'schulname', 'strasse', 'Ebenen: Dienst schulstandorte_bayern-wfs mit 8 Ebenen: SchulenZurSonderpaedagogischenFoerderung, WeitereSchulen, BeruflicheSchulen, MittelUndHauptschulen, Wirtschaftsschulen, Realschulen, Grundschulen, Gymnasien; Gymnasien: 412 gymnasium (Schulart: Abendgymnasium, Gymnasium, Integrierte Gesamtschule, Kolleg); ergänzt aus dem Dienst der staatlichen Schulen: 21 (z. B. Jack-Steinberger-Gymnasium Bad Kissingen, Staatl. Gymnasium Lappersdorf, Gymnasium Casimirianum Coburg)']
@@ -71,5 +73,6 @@ gemeinde  wfl             – keine Daten, entfällt auf dieser Ebene
   · Schuldiagnose: verworfen je Schulart {'grundschule': 2088, 'gymnasium': 302, 'realschule': 216, 'fos': 0} (Details in daten/schulen_diagnose.json)
 
 108531 Zeilen geschrieben nach daten/rohdaten.csv
-Geschrieben: web/data/werte.json (440 KB)
+Geschrieben: web/data/werte.json (441 KB)
 kreis: günstigste ['München', 'München', 'Starnberg'], ungünstigste ['Schweinfurt', 'Wunsiedel i. Fichtelgebirge', 'Hof']
+BY-D12.1i: ok
