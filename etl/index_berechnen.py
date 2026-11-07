@@ -263,8 +263,9 @@ def main():
         g = ausgabe[ebene]["gebiete"]
         letzt = str(max(K.JAHRE))
         top = sorted(g, key=lambda a: -g[a]["index"].get(letzt, 0))
-        print(f"{ebene}: günstigste {[namen[ebene][a]['name'] for a in top[:3]]}, "
-              f"ungünstigste {[namen[ebene][a]['name'] for a in top[-3:]]}")
+        name = lambda a: namen[ebene].get(a, {}).get("name", a)   # Schlüssel ohne Geodaten nicht abstürzen lassen
+        print(f"{ebene}: günstigste {[name(a) for a in top[:3]]}, "
+              f"ungünstigste {[name(a) for a in top[-3:]]}")
 
 
 if __name__ == "__main__":

@@ -489,6 +489,11 @@ def main():
                         continue
                     werte, herkunft, info = w, h, i
                     break
+            if werte:
+                # nur Gebiete, die in den Geodaten als bewohnte Kreise bzw. Gemeinden geführt sind; gemeindefreie
+                # Gebiete (Staatsforsten u. a.) und unbekannte Schlüssel würden den Vergleich verzerren
+                gueltig = {g["ags"] for g in gebiet_liste}
+                werte = {k: v for k, v in werte.items() if k[0] in gueltig}
             if werte and herkunft != "demo":
                 # Jahre, die beim letzten Lauf vorhanden waren und diesmal fehlen (gestörter Server),
                 # aus dem letzten Lauf übernehmen, damit die Karte nicht schlechter wird
