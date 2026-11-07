@@ -137,19 +137,19 @@
    "titel": ""
   },
   "ue_ms": {
-   "herkunft": "genesis:bildung/BY-D12.1i (teils aus letztem Lauf)",
+   "herkunft": "genesis:bildung/BY-D12.1i",
    "quelle": "Kommunale Bildungsdatenbank",
    "code": "BY-D12.1i",
    "titel": ""
   },
   "ue_gym_kbd": {
-   "herkunft": "genesis:bildung/BY-D12.1i (teils aus letztem Lauf)",
+   "herkunft": "genesis:bildung/BY-D12.1i",
    "quelle": "Kommunale Bildungsdatenbank",
    "code": "BY-D12.1i",
    "titel": ""
   },
   "ue_rs_kbd": {
-   "herkunft": "genesis:bildung/BY-D12.1i (teils aus letztem Lauf)",
+   "herkunft": "genesis:bildung/BY-D12.1i",
    "quelle": "Kommunale Bildungsdatenbank",
    "code": "BY-D12.1i",
    "titel": ""
