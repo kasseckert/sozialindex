@@ -154,6 +154,12 @@
    "code": "BY-D12.1i",
    "titel": ""
   },
+  "ue_sonst_kbd": {
+   "herkunft": "rest(100 - genesis:bildung/BY-D12.1i - genesis:bildung/BY-D12.1i - genesis:bildung/BY-D12.1i)",
+   "quelle": "Kommunale Bildungsdatenbank",
+   "code": "BY-D12.1i",
+   "titel": ""
+  },
   "wechsel_gym_rs": {
    "herkunft": "genesis:bildung/BY-D12.3i (teils aus letztem Lauf)",
    "quelle": "Kommunale Bildungsdatenbank",

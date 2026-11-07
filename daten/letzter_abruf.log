@@ -12,35 +12,34 @@ kreis     uebertritt_rs   576 Werte  csv:uebertritt_realschule.csv
 kreis     eignung_gym   576 Werte  csv:eignung_gymnasium.csv
 kreis     eignung_rs    576 Werte  csv:eignung_realschule.csv
 kreis     abi           960 Werte  regionalatlas:AI003-2/ai0304
-  · sch_ausl (kreis, quotient): 76 s
+  · sch_ausl (kreis, quotient): 78 s
 kreis     sch_ausl      960 Werte  summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i) / summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i)
-  · sch_je_lk (kreis, quotient): 126 s
+  · sch_je_lk (kreis, quotient): 130 s
 kreis     sch_je_lk     960 Werte  summe(genesis:bildung/BY-D07.1i, genesis:bildung/BY-D07.1i) / summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i)
-  · lk_teilzeit (kreis, quotient): 20 s
 kreis     lk_teilzeit   960 Werte  summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i) / summe(genesis:bildung/BY-D09.1i, genesis:bildung/BY-D09.1i)
   · einsch_spaet (kreis, quotient): 71 s
 kreis     einsch_spaet   960 Werte  summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)
 kreis     einsch_frueh   960 Werte  summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i) / summe(genesis:bildung/BY-D11.1i, genesis:bildung/BY-D11.1i)
-  ! ue_ms (kreis, quotient, 35 s): Filter nicht eindeutig: 09778 2015 hat mehrere passende Zeilen (388.0 und 718.0); bitte genauer filtern, z. B. mit „=“
+  · ue_ms (kreis, genesis): 37 s
 kreis     ue_ms         960 Werte  genesis:bildung/BY-D12.1i
-  ! ue_gym_kbd (kreis, quotient, 0 s): Filter nicht eindeutig: 09778 2015 hat mehrere passende Zeilen (146.0 und 718.0); bitte genauer filtern, z. B. mit „=“
-kreis     ue_gym_kbd    940 Werte  genesis:bildung/BY-D12.1i
-  ! ue_rs_kbd (kreis, quotient, 0 s): Filter nicht eindeutig: 09778 2015 hat mehrere passende Zeilen (172.0 und 718.0); bitte genauer filtern, z. B. mit „=“
+kreis     ue_gym_kbd    960 Werte  genesis:bildung/BY-D12.1i
 kreis     ue_rs_kbd     960 Werte  genesis:bildung/BY-D12.1i
-  ! ue_sonst_kbd (kreis, rest, 0 s): Filter nicht eindeutig: 09778 2015 hat mehrere passende Zeilen (388.0 und 718.0); bitte genauer filtern, z. B. mit „=“
-kreis     ue_sonst_kbd     – keine Daten, entfällt auf dieser Ebene
-  · wechsel_gym_rs (kreis, genesis): 398 s
-  · wechsel_gym_rs (kreis): Jahre 2015 diesmal nicht geliefert, aus dem letzten Lauf übernommen
+kreis     ue_sonst_kbd   960 Werte  rest(100 - genesis:bildung/BY-D12.1i - genesis:bildung/BY-D12.1i - genesis:bildung/BY-D12.1i)
+  · wechsel_gym_rs (kreis, genesis): 531 s
+  · wechsel_gym_rs (kreis): Jahre 2021, 2022, 2023, 2024 diesmal nicht geliefert, aus dem letzten Lauf übernommen
+  · wechsel_gym_rs (kreis): Werte nur bis 2020; die Tabelle enthält keine späteren Jahre
 kreis     wechsel_gym_rs   960 Werte  genesis:bildung/BY-D12.3i (teils aus letztem Lauf)
-  · wechsel_rs_ms (kreis): Jahre 2015 diesmal nicht geliefert, aus dem letzten Lauf übernommen
+  · wechsel_rs_ms (kreis): Jahre 2021, 2022, 2023, 2024 diesmal nicht geliefert, aus dem letzten Lauf übernommen
+  · wechsel_rs_ms (kreis): Werte nur bis 2020; die Tabelle enthält keine späteren Jahre
 kreis     wechsel_rs_ms   960 Werte  genesis:bildung/BY-D12.3i (teils aus letztem Lauf)
-  · wechsel_ms_rs (kreis): Jahre 2015 diesmal nicht geliefert, aus dem letzten Lauf übernommen
+  · wechsel_ms_rs (kreis): Jahre 2021, 2022, 2023, 2024 diesmal nicht geliefert, aus dem letzten Lauf übernommen
+  · wechsel_ms_rs (kreis): Werte nur bis 2020; die Tabelle enthält keine späteren Jahre
 kreis     wechsel_ms_rs   858 Werte  genesis:bildung/BY-D12.3i (teils aus letztem Lauf)
   · ohne_beruf (kreis, quotient): 27 s
   · ohne_beruf (kreis): Werte nur bis 2022; die Tabelle enthält keine späteren Jahre
 kreis     ohne_beruf    960 Werte  genesis:zensus/2000S-1003 / genesis:zensus/2000S-1003 (konstant fortgeschrieben)
 kreis     ausbildung      – keine Daten, entfällt auf dieser Ebene
-  · weg_gs (kreis, schulen): 38 s
+  · weg_gs (kreis, schulen): 39 s
 kreis     weg_gs        960 Werte  schulen:grundschule (konstant fortgeschrieben)
 kreis     weg_gym       960 Werte  schulen:gymnasium (konstant fortgeschrieben)
 kreis     wfl             – keine Daten, entfällt auf dieser Ebene
@@ -57,7 +56,7 @@ gemeinde  u3              – keine Daten, entfällt auf dieser Ebene
 gemeinde  weg_gs      20560 Werte  schulen:grundschule (konstant fortgeschrieben)
 gemeinde  weg_gym     20560 Werte  schulen:gymnasium (konstant fortgeschrieben)
 gemeinde  wfl             – keine Daten, entfällt auf dieser Ebene
-  ! BY-D12.3i: Jahre 2015 nicht abrufbar
+  ! BY-D12.3i: Jahre 2021, 2022, 2023, 2024 nicht abrufbar
   · Tabellenliste bildung: 907 Tabellen
   · Tabellenliste zensus: 420 Tabellen
   · Schulstandorte realschule: 368 Standorte, davon ohne Namen 0; Felder im Dienst: ['hausnummer', 'ort', 'plz', 'postleitzahl', 'schulart', 'schulname', 'strasse', 'Ebenen: Dienst schulstandorte_bayern-wfs mit 8 Ebenen: SchulenZurSonderpaedagogischenFoerderung, WeitereSchulen, BeruflicheSchulen, MittelUndHauptschulen, Wirtschaftsschulen, Realschulen, Grundschulen, Gymnasien; SchulenZurSonderpaedagogischenFoerderung: 3 realschule (Schulart: Realschule z. sp. F.); Realschulen: 339 realschule (Schulart: Abendrealschule, Integrierte Gesamtschule, Realschule, Realschule z. sp. F.); ergänzt aus dem Dienst der staatlichen Schulen: 25 (z. B. Staatliche Realschule Buchloe, Georg-Hartmann-Realschule Staatliche Realschule Forchheim, Ferdinand-von-Miller-Schule Staatliche Realschule Fürstenfeldbruck); Korrekturdatei: 0 entfernt, 1 ergänzt']
@@ -65,8 +64,7 @@ gemeinde  wfl             – keine Daten, entfällt auf dieser Ebene
   · Schulstandorte fos: 71 Standorte, davon ohne Namen 0; Felder im Dienst: ['hausnummer', 'ort', 'plz', 'postleitzahl', 'schulart', 'schulname', 'strasse', 'Ebenen: Dienst schulstandorte_bayern-wfs mit 8 Ebenen: SchulenZurSonderpaedagogischenFoerderung, WeitereSchulen, BeruflicheSchulen, MittelUndHauptschulen, Wirtschaftsschulen, Realschulen, Grundschulen, Gymnasien; SchulenZurSonderpaedagogischenFoerderung: 2 fos (Schulart: Fachoberschule z. sp. F.); ergänzt aus dem Dienst der staatlichen Schulen: 69 (z. B. Staatl. Fachoberschule Altötting, Staatliche Fachoberschule Amberg, Staatliche Fachoberschule Ansbach)']
   · Schuldiagnose: verworfen je Schulart {'grundschule': 2088, 'gymnasium': 302, 'realschule': 216, 'fos': 0} (Details in daten/schulen_diagnose.json)
 
-106770 Zeilen geschrieben nach daten/rohdaten.csv
-Geschrieben: web/data/werte.json (441 KB)
+107750 Zeilen geschrieben nach daten/rohdaten.csv
+Geschrieben: web/data/werte.json (454 KB)
 kreis: günstigste ['München', 'München', 'Starnberg'], ungünstigste ['Schweinfurt', 'Wunsiedel i. Fichtelgebirge', 'Hof']
 gemeinde: günstigste ['Bamberg', 'München', 'Nürnberg'], ungünstigste ['Ludwigsstadt', 'Bayerisch Eisenstein', 'Rottach-Egern']
-BY-D12.1i: ok

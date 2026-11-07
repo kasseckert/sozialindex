@@ -737,7 +737,7 @@
       "name": "Fünftklässler an Mittelschulen (am Schulort)",
       "einheit": "%",
       "nachkommastellen": 1,
-      "beschreibung": "Anteil der Mittel- und Hauptschulen an allen Schülerinnen und Schülern der Eingangsklassen (Jahrgangsstufe 5) der weiterführenden Schulen im Kreis, berechnet aus den Anzahlen (BY-D12.1i). Gezählt am Ort der weiterführenden Schule, deshalb in Städten mit großem Einzugsgebiet höher. Zusammen mit den Anteilen der übrigen Schularten ergibt sich 100 %. Kontextindikator",
+      "beschreibung": "Anteil der Mittel- und Hauptschulen an allen Schülerinnen und Schülern der Eingangsklassen (Jahrgangsstufe 5) der weiterführenden Schulen im Kreis (BY-D12.1i); 0 %, wenn es diese Schulart im Kreis nicht gibt. Gezählt am Ort der weiterführenden Schule, deshalb in Städten mit großem Einzugsgebiet höher. Zusammen mit den übrigen Schularten 100 %. Kontextindikator",
       "dimension": "bildung",
       "polaritaet": 1,
       "im_index": false,
@@ -745,28 +745,6 @@
         "kreis"
       ],
       "quellen": [
-        {
-          "typ": "quotient",
-          "faktor": 100,
-          "zaehler": {
-            "typ": "genesis",
-            "datenbank": "bildung",
-            "tabelle": "BY-D12.1i",
-            "regionalvariable": "BY-KRE",
-            "wert_spalte": "by-w03",
-            "filter": {
-              "Schulart": "=Mittel-/Hauptschulen"
-            }
-          },
-          "nenner": {
-            "typ": "genesis",
-            "datenbank": "bildung",
-            "tabelle": "BY-D12.1i",
-            "regionalvariable": "BY-KRE",
-            "wert_spalte": "by-w03",
-            "filter": {}
-          }
-        },
         {
           "typ": "genesis",
           "datenbank": "bildung",
@@ -776,7 +754,7 @@
           "filter": {
             "Schulart": "=Mittel-/Hauptschulen"
           },
-          "quellenangabe": "Kommunale Bildungsdatenbank, Bayern – Allgemeinbildende Schulen (09--D)"
+          "strich_als_null": true
         }
       ]
     },
@@ -785,7 +763,7 @@
       "name": "Fünftklässler an Gymnasien (am Schulort)",
       "einheit": "%",
       "nachkommastellen": 1,
-      "beschreibung": "Anteil der Gymnasien an allen Schülerinnen und Schülern der Eingangsklassen (Jahrgangsstufe 5) der weiterführenden Schulen im Kreis, berechnet aus den Anzahlen (BY-D12.1i). Gezählt am Ort der weiterführenden Schule, deshalb in Städten mit großem Einzugsgebiet höher. Zusammen mit den Anteilen der übrigen Schularten ergibt sich 100 %. Kontextindikator",
+      "beschreibung": "Anteil der Gymnasien an allen Schülerinnen und Schülern der Eingangsklassen (Jahrgangsstufe 5) der weiterführenden Schulen im Kreis (BY-D12.1i); 0 %, wenn es diese Schulart im Kreis nicht gibt. Gezählt am Ort der weiterführenden Schule, deshalb in Städten mit großem Einzugsgebiet höher. Zusammen mit den übrigen Schularten 100 %. Kontextindikator",
       "dimension": "bildung",
       "polaritaet": 1,
       "im_index": false,
@@ -793,28 +771,6 @@
         "kreis"
       ],
       "quellen": [
-        {
-          "typ": "quotient",
-          "faktor": 100,
-          "zaehler": {
-            "typ": "genesis",
-            "datenbank": "bildung",
-            "tabelle": "BY-D12.1i",
-            "regionalvariable": "BY-KRE",
-            "wert_spalte": "by-w03",
-            "filter": {
-              "Schulart": "=Gymnasien"
-            }
-          },
-          "nenner": {
-            "typ": "genesis",
-            "datenbank": "bildung",
-            "tabelle": "BY-D12.1i",
-            "regionalvariable": "BY-KRE",
-            "wert_spalte": "by-w03",
-            "filter": {}
-          }
-        },
         {
           "typ": "genesis",
           "datenbank": "bildung",
@@ -824,7 +780,7 @@
           "filter": {
             "Schulart": "=Gymnasien"
           },
-          "quellenangabe": "Kommunale Bildungsdatenbank, Bayern – Allgemeinbildende Schulen (09--D)"
+          "strich_als_null": true
         }
       ]
     },
@@ -833,7 +789,7 @@
       "name": "Fünftklässler an Realschulen (am Schulort)",
       "einheit": "%",
       "nachkommastellen": 1,
-      "beschreibung": "Anteil der Realschulen an allen Schülerinnen und Schülern der Eingangsklassen (Jahrgangsstufe 5) der weiterführenden Schulen im Kreis, berechnet aus den Anzahlen (BY-D12.1i). Gezählt am Ort der weiterführenden Schule, deshalb in Städten mit großem Einzugsgebiet höher. Zusammen mit den Anteilen der übrigen Schularten ergibt sich 100 %. Kontextindikator",
+      "beschreibung": "Anteil der Realschulen an allen Schülerinnen und Schülern der Eingangsklassen (Jahrgangsstufe 5) der weiterführenden Schulen im Kreis (BY-D12.1i); 0 %, wenn es diese Schulart im Kreis nicht gibt. Gezählt am Ort der weiterführenden Schule, deshalb in Städten mit großem Einzugsgebiet höher. Zusammen mit den übrigen Schularten 100 %. Kontextindikator",
       "dimension": "bildung",
       "polaritaet": 1,
       "im_index": false,
@@ -841,28 +797,6 @@
         "kreis"
       ],
       "quellen": [
-        {
-          "typ": "quotient",
-          "faktor": 100,
-          "zaehler": {
-            "typ": "genesis",
-            "datenbank": "bildung",
-            "tabelle": "BY-D12.1i",
-            "regionalvariable": "BY-KRE",
-            "wert_spalte": "by-w03",
-            "filter": {
-              "Schulart": "=Realschulen"
-            }
-          },
-          "nenner": {
-            "typ": "genesis",
-            "datenbank": "bildung",
-            "tabelle": "BY-D12.1i",
-            "regionalvariable": "BY-KRE",
-            "wert_spalte": "by-w03",
-            "filter": {}
-          }
-        },
         {
           "typ": "genesis",
           "datenbank": "bildung",
@@ -872,7 +806,7 @@
           "filter": {
             "Schulart": "=Realschulen"
           },
-          "quellenangabe": "Kommunale Bildungsdatenbank, Bayern – Allgemeinbildende Schulen (09--D)"
+          "strich_als_null": true
         }
       ]
     },
@@ -881,7 +815,7 @@
       "name": "Fünftklässler an sonstigen Schulen (am Schulort)",
       "einheit": "%",
       "nachkommastellen": 1,
-      "beschreibung": "Anteil der Eingangsklassen (Jahrgangsstufe 5) an weiterführenden Schulen außer Mittelschule, Realschule und Gymnasium, z. B. Förderzentren, Schulen besonderer Art oder Freie Waldorfschulen (BY-D12.1i). Rest auf 100 %. Kontextindikator",
+      "beschreibung": "Anteil der Eingangsklassen (Jahrgangsstufe 5) an weiterführenden Schulen außer Mittelschule, Realschule und Gymnasium, z. B. Förderzentren, Integrierte Gesamtschulen oder Freie Waldorfschulen (BY-D12.1i). Rest auf 100 %; leer, wenn ein Anteil gesperrt ist. Kontextindikator",
       "dimension": "bildung",
       "polaritaet": 1,
       "im_index": false,
@@ -894,70 +828,37 @@
           "basis": 100,
           "minus": [
             {
-              "typ": "quotient",
-              "faktor": 100,
-              "zaehler": {
-                "typ": "genesis",
-                "datenbank": "bildung",
-                "tabelle": "BY-D12.1i",
-                "regionalvariable": "BY-KRE",
-                "wert_spalte": "by-w03",
-                "filter": {
-                  "Schulart": "=Mittel-/Hauptschulen"
-                }
+              "typ": "genesis",
+              "datenbank": "bildung",
+              "tabelle": "BY-D12.1i",
+              "regionalvariable": "BY-KRE",
+              "wert_spalte": "none__none__%",
+              "filter": {
+                "Schulart": "=Mittel-/Hauptschulen"
               },
-              "nenner": {
-                "typ": "genesis",
-                "datenbank": "bildung",
-                "tabelle": "BY-D12.1i",
-                "regionalvariable": "BY-KRE",
-                "wert_spalte": "by-w03",
-                "filter": {}
-              }
+              "strich_als_null": true
             },
             {
-              "typ": "quotient",
-              "faktor": 100,
-              "zaehler": {
-                "typ": "genesis",
-                "datenbank": "bildung",
-                "tabelle": "BY-D12.1i",
-                "regionalvariable": "BY-KRE",
-                "wert_spalte": "by-w03",
-                "filter": {
-                  "Schulart": "=Realschulen"
-                }
+              "typ": "genesis",
+              "datenbank": "bildung",
+              "tabelle": "BY-D12.1i",
+              "regionalvariable": "BY-KRE",
+              "wert_spalte": "none__none__%",
+              "filter": {
+                "Schulart": "=Realschulen"
               },
-              "nenner": {
-                "typ": "genesis",
-                "datenbank": "bildung",
-                "tabelle": "BY-D12.1i",
-                "regionalvariable": "BY-KRE",
-                "wert_spalte": "by-w03",
-                "filter": {}
-              }
+              "strich_als_null": true
             },
             {
-              "typ": "quotient",
-              "faktor": 100,
-              "zaehler": {
-                "typ": "genesis",
-                "datenbank": "bildung",
-                "tabelle": "BY-D12.1i",
-                "regionalvariable": "BY-KRE",
-                "wert_spalte": "by-w03",
-                "filter": {
-                  "Schulart": "=Gymnasien"
-                }
+              "typ": "genesis",
+              "datenbank": "bildung",
+              "tabelle": "BY-D12.1i",
+              "regionalvariable": "BY-KRE",
+              "wert_spalte": "none__none__%",
+              "filter": {
+                "Schulart": "=Gymnasien"
               },
-              "nenner": {
-                "typ": "genesis",
-                "datenbank": "bildung",
-                "tabelle": "BY-D12.1i",
-                "regionalvariable": "BY-KRE",
-                "wert_spalte": "by-w03",
-                "filter": {}
-              }
+              "strich_als_null": true
             }
           ]
         }
